@@ -50,7 +50,14 @@ export const sendEmailOtp = async (email) => {
 
 export const verifyEmailOtp = (email, inputOtp) => {
   const cleanEmail = (email || '').trim().toLowerCase();
-  const cleanOtp = (inputOtp || '').toString().trim();
+  let cleanOtp = (inputOtp || '').toString().trim();
+  
+  // Allow user to enter raw 6 digits or Google verification code format "G-123456" / "g-123456"
+  if (cleanOtp.toUpperCase().startsWith('G-')) {
+    cleanOtp = cleanOtp.substring(2).trim();
+  }
+  // Strip any accidental spaces or dashes
+  cleanOtp = cleanOtp.replace(/\D/g, '');
 
   try {
     const otps = JSON.parse(localStorage.getItem(OTP_STORAGE_KEY) || '{}');
@@ -62,7 +69,7 @@ export const verifyEmailOtp = (email, inputOtp) => {
       return { success: false, message: 'Verification code has expired. Please request a new code.' };
     }
     if (record.otp !== cleanOtp) {
-      return { success: false, message: 'Invalid OTP code. Please check your verification code.' };
+      return { success: false, message: 'Invalid verification code. Please check the code sent to your email.' };
     }
 
     // Clear verified OTP

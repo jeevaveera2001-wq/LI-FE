@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, User, Phone, ArrowLeft, RefreshCw, Send, Sparkles, Trophy } from 'lucide-react';
+import { Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, User, Phone, ArrowLeft, RefreshCw, Send, Sparkles, Trophy, LogIn } from 'lucide-react';
 import { soundFx } from '../utils/audio';
-import { authenticateUser, validateLoginCredentials, completeVerifiedLogin, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
+import { authenticateUser, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
 import confetti from 'canvas-confetti';
 
 export const FullPageAuth = ({
@@ -19,13 +19,6 @@ export const FullPageAuth = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Login Email OTP States
-  const [loginOtpStep, setLoginOtpStep] = useState(false);
-  const [loginOtpCode, setLoginOtpCode] = useState('');
-  const [simulatedLoginOtp, setSimulatedLoginOtp] = useState('');
-  const [pendingLoginUser, setPendingLoginUser] = useState(null);
-  const [loginResendCooldown, setLoginResendCooldown] = useState(0);
-
   // Registration Form States
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -35,13 +28,13 @@ export const FullPageAuth = ({
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
-  // Registration Email OTP States
+  // Registration Email OTP States (Google verification code format)
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [simulatedOtp, setSimulatedOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Resend OTP countdown timers
+  // Resend OTP countdown timer
   useEffect(() => {
     let timer;
     if (resendCooldown > 0) {
@@ -50,15 +43,7 @@ export const FullPageAuth = ({
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  useEffect(() => {
-    let timer;
-    if (loginResendCooldown > 0) {
-      timer = setTimeout(() => setLoginResendCooldown(loginResendCooldown - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [loginResendCooldown]);
-
-  // Step 1 of Login: Validate credentials -> Trigger Email OTP
+  // Sign In: Direct credential authentication (NO email OTP required for login)
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -67,51 +52,7 @@ export const FullPageAuth = ({
     soundFx.playClick();
 
     try {
-      const valResult = await validateLoginCredentials(loginInput, loginPassword);
-      if (!valResult.success) {
-        setIsLoading(false);
-        soundFx.playClick();
-        setErrorMessage(valResult.message || 'Invalid username or password. Please try again.');
-        return;
-      }
-
-      // Send OTP to the account's verified email
-      const targetEmail = valResult.email;
-      const otpRes = await sendEmailOtp(targetEmail);
-      setIsLoading(false);
-
-      if (otpRes.success) {
-        soundFx.playModalOpen();
-        setPendingLoginUser(valResult);
-        setSimulatedLoginOtp(otpRes.otp);
-        setLoginOtpStep(true);
-        setLoginResendCooldown(30);
-        setSuccessMessage(`Security check: 6-digit login OTP sent to ${targetEmail}`);
-      } else {
-        setErrorMessage('Failed to dispatch email OTP. Please try again.');
-      }
-    } catch (err) {
-      setIsLoading(false);
-      soundFx.playClick();
-      setErrorMessage('Authentication error. Please check your credentials.');
-    }
-  };
-
-  // Step 2 of Login: Verify Email OTP -> Complete Login
-  const handleLoginOtpSubmit = async (e) => {
-    e.preventDefault();
-    if (!pendingLoginUser) return;
-    setIsLoading(true);
-    setErrorMessage('');
-    soundFx.playClick();
-
-    try {
-      const result = await completeVerifiedLogin(
-        pendingLoginUser.email,
-        loginOtpCode,
-        pendingLoginUser.user || pendingLoginUser.team,
-        pendingLoginUser.type
-      );
+      const result = await authenticateUser(loginInput, loginPassword);
       setIsLoading(false);
 
       if (result.success) {
@@ -122,36 +63,22 @@ export const FullPageAuth = ({
           origin: { y: 0.6 },
           colors: ['#0F172A', '#10B981', '#3B82F6', '#F59E0B']
         });
-
-        setSuccessMessage('Email verified successfully! Entering arena...');
+        setSuccessMessage('Credentials verified! Entering arena...');
         setTimeout(() => {
           if (result.type === 'team') {
             onLoginSuccess(result.team, 'team-token', 'team');
           } else {
-            onLoginSuccess(result.user, result.token, result.user?.role === 'SUPER_ADMIN' ? 'superadmin' : 'user');
+            onLoginSuccess(result.user, result.token, result.user?.role === 'SUPER_ADMIN' ? 'superadmin' : (result.user?.role === 'ADMIN' ? 'admin' : 'user'));
           }
-        }, 600);
+        }, 500);
       } else {
         soundFx.playClick();
-        setErrorMessage(result.message || 'Invalid OTP code. Please try again.');
+        setErrorMessage(result.message || 'Invalid username or password. Please try again.');
       }
     } catch (err) {
       setIsLoading(false);
       soundFx.playClick();
-      setErrorMessage('Verification failed. Please try again.');
-    }
-  };
-
-  // Resend Login OTP
-  const handleResendLoginOtp = async () => {
-    if (loginResendCooldown > 0 || !pendingLoginUser) return;
-    soundFx.playClick();
-    const res = await sendEmailOtp(pendingLoginUser.email);
-    if (res.success) {
-      setSimulatedLoginOtp(res.otp);
-      setLoginResendCooldown(30);
-      setSuccessMessage('A fresh login code has been sent to your email.');
-      setTimeout(() => setSuccessMessage(''), 4000);
+      setErrorMessage('Authentication error. Please check your credentials.');
     }
   };
 
@@ -323,7 +250,6 @@ export const FullPageAuth = ({
                 soundFx.playClick();
                 setActiveTab('login');
                 setOtpStep(false);
-                setLoginOtpStep(false);
                 setErrorMessage('');
                 setSuccessMessage('');
               }}
@@ -341,7 +267,6 @@ export const FullPageAuth = ({
                 soundFx.playClick();
                 setActiveTab('register');
                 setOtpStep(false);
-                setLoginOtpStep(false);
                 setErrorMessage('');
                 setSuccessMessage('');
               }}
@@ -370,8 +295,8 @@ export const FullPageAuth = ({
             </div>
           )}
 
-          {/* TAB 1: LOGIN FORM - STEP 1 (CREDENTIALS) */}
-          {activeTab === 'login' && !loginOtpStep && (
+          {/* TAB 1: LOGIN FORM (NO EMAIL OTP REQUIRED) */}
+          {activeTab === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#334155] mb-1.5 uppercase tracking-wider">
@@ -434,12 +359,12 @@ export const FullPageAuth = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Verifying Credentials...</span>
+                    <span>Signing In...</span>
                   </>
                 ) : (
                   <>
-                    <Mail className="w-4 h-4 text-amber-400" />
-                    <span>Verify Email & Sign In</span>
+                    <LogIn className="w-4 h-4 text-amber-400" />
+                    <span>Sign In to Arena</span>
                   </>
                 )}
               </button>
@@ -460,98 +385,6 @@ export const FullPageAuth = ({
                   </button>
                 </p>
               </div>
-            </form>
-          )}
-
-          {/* TAB 1: LOGIN FORM - STEP 2 (EMAIL OTP CONFIRMATION BEFORE LOGIN) */}
-          {activeTab === 'login' && loginOtpStep && (
-            <form onSubmit={handleLoginOtpSubmit} className="space-y-4">
-              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs">
-                <div className="font-bold text-sm mb-1 flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-amber-600" />
-                  <span>Email Verification Required for Login</span>
-                </div>
-                <p className="text-[#475569] leading-relaxed">
-                  To secure your account, a 6-digit confirmation code has been dispatched to{' '}
-                  <strong className="text-[#0F172A]">{pendingLoginUser?.email}</strong>.
-                </p>
-                {simulatedLoginOtp && (
-                  <div className="mt-3 p-2.5 rounded-xl bg-white border border-amber-300 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-[#64748B] block">Login Verification Code</span>
-                      <span className="font-mono font-black text-base text-[#0F172A] tracking-wider">{simulatedLoginOtp}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        soundFx.playClick();
-                        setLoginOtpCode(simulatedLoginOtp);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-bold hover:bg-black transition-all cursor-pointer"
-                    >
-                      Auto-Fill Code
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#334155] mb-1.5 uppercase tracking-wider text-center">
-                  Enter 6-Digit Login OTP
-                </label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  placeholder="000000"
-                  value={loginOtpCode}
-                  onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full text-center font-mono font-black text-2xl tracking-[0.35em] bg-[#F8FAFC] border-2 border-[#CBD5E1] rounded-xl px-4 py-3 text-[#0F172A] focus:outline-none focus:border-[#0F172A] transition-all"
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex items-center justify-between text-xs pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    soundFx.playClick();
-                    setLoginOtpStep(false);
-                    setLoginOtpCode('');
-                    setErrorMessage('');
-                  }}
-                  className="text-[#64748B] hover:text-[#0F172A] font-semibold cursor-pointer"
-                >
-                  ← Edit credentials
-                </button>
-
-                <button
-                  type="button"
-                  disabled={loginResendCooldown > 0}
-                  onClick={handleResendLoginOtp}
-                  className="text-[#0F172A] font-bold disabled:text-[#94A3B8] disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {loginResendCooldown > 0 ? `Resend code in ${loginResendCooldown}s` : 'Resend code'}
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading || loginOtpCode.length !== 6}
-                className="w-full py-3.5 rounded-xl bg-[#0F172A] hover:bg-black text-white font-montserrat font-bold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Verifying Code...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Confirm OTP & Enter Arena</span>
-                  </>
-                )}
-              </button>
             </form>
           )}
 
@@ -676,7 +509,7 @@ export const FullPageAuth = ({
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Send Verification Code</span>
+                    <span>Send Google Verification Code</span>
                   </>
                 )}
               </button>
@@ -700,29 +533,29 @@ export const FullPageAuth = ({
             </form>
           )}
 
-          {/* TAB 2 - STEP 2: EMAIL OTP CONFIRMATION */}
+          {/* TAB 2 - STEP 2: GOOGLE VERIFICATION CODE CONFIRMATION */}
           {activeTab === 'register' && otpStep && (
             <form onSubmit={handleVerifyOtpSubmit} className="space-y-4">
               <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs">
                 <div className="font-bold text-sm mb-1 flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-amber-600" />
-                  <span>Verify Email OTP</span>
+                  <Shield className="w-4 h-4 text-amber-600" />
+                  <span>Google Email Verification</span>
                 </div>
                 <p className="text-[#475569] leading-relaxed">
-                  We've dispatched a 6-digit confirmation code to{' '}
+                  We've dispatched an official Google verification code to{' '}
                   <strong className="text-[#0F172A]">{regEmail}</strong>.
                 </p>
                 {simulatedOtp && (
                   <div className="mt-3 p-2.5 rounded-xl bg-white border border-amber-300 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#64748B] block">Email Verification Code</span>
-                      <span className="font-mono font-black text-base text-[#0F172A] tracking-wider">{simulatedOtp}</span>
+                      <span className="text-[10px] uppercase font-bold text-[#64748B] block">Google Verification Code</span>
+                      <span className="font-mono font-black text-base text-[#0F172A] tracking-wider">G-{simulatedOtp}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
                         soundFx.playClick();
-                        setOtpCode(simulatedOtp);
+                        setOtpCode(`G-${simulatedOtp}`);
                       }}
                       className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-bold hover:bg-black transition-all cursor-pointer"
                     >
@@ -734,18 +567,21 @@ export const FullPageAuth = ({
 
               <div>
                 <label className="block text-xs font-bold text-[#334155] mb-1.5 uppercase tracking-wider text-center">
-                  Enter 6-Digit Email OTP
+                  Enter Google Verification Code
                 </label>
                 <input
                   type="text"
-                  maxLength={6}
+                  maxLength={8}
                   required
-                  placeholder="000000"
+                  placeholder="G-XXXXXX or 6 digits"
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full text-center font-mono font-black text-2xl tracking-[0.35em] bg-[#F8FAFC] border-2 border-[#CBD5E1] rounded-xl px-4 py-3 text-[#0F172A] focus:outline-none focus:border-[#0F172A] transition-all"
+                  onChange={(e) => setOtpCode(e.target.value.toUpperCase())}
+                  className="w-full text-center font-mono font-black text-2xl tracking-[0.25em] bg-[#F8FAFC] border-2 border-[#CBD5E1] rounded-xl px-4 py-3 text-[#0F172A] focus:outline-none focus:border-[#0F172A] transition-all"
                   autoFocus
                 />
+                <p className="text-[11px] text-[#94A3B8] text-center mt-1">
+                  Format: <strong>G-XXXXXX</strong> or 6-digit number
+                </p>
               </div>
 
               <div className="flex items-center justify-between text-xs pt-1">
@@ -773,13 +609,13 @@ export const FullPageAuth = ({
 
               <button
                 type="submit"
-                disabled={isLoading || otpCode.length !== 6}
+                disabled={isLoading || otpCode.trim().length < 6}
                 className="w-full py-3.5 rounded-xl bg-[#0F172A] hover:bg-black text-white font-montserrat font-bold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Verifying...</span>
+                    <span>Verifying Code...</span>
                   </>
                 ) : (
                   <>
