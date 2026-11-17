@@ -27,7 +27,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
   // Registration Email OTP States (Google verification code format)
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [simulatedOtp, setSimulatedOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
@@ -111,7 +110,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
       setIsLoading(false);
 
       if (otpRes.success) {
-        setSimulatedOtp(otpRes.otp);
         setOtpStep(true);
         setResendCooldown(30);
         soundFx.playModalOpen();
@@ -165,7 +163,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
       setLoginInput(regEmail);
       setLoginPassword(regPassword);
       setOtpCode('');
-      setSimulatedOtp('');
     } else {
       setErrorMessage(regRes.message || 'Failed to save account.');
     }
@@ -177,7 +174,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
     soundFx.playClick();
     const res = await sendEmailOtp(regEmail);
     if (res.success) {
-      setSimulatedOtp(res.otp);
       setResendCooldown(30);
       setSuccessMessage('A fresh verification code has been dispatched.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -523,26 +519,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
                     {regEmail}
                   </strong>
                 </div>
-
-                {/* Instant On-Screen Notification Box */}
-                {simulatedOtp && (
-                  <div className="p-3 rounded-2xl bg-teal-50 border border-teal-300 text-teal-900 text-xs flex items-center justify-between shadow-sm">
-                    <div>
-                      <span className="text-[10px] text-teal-600 block font-mono uppercase font-bold">Google Code:</span>
-                      <strong className="text-sm font-mono tracking-widest text-teal-900">G-{simulatedOtp}</strong>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        soundFx.playClick();
-                        setOtpCode(`G-${simulatedOtp}`);
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-teal-600 text-white text-[11px] font-bold uppercase hover:bg-teal-700 transition-all cursor-pointer"
-                    >
-                      Fill Code
-                    </button>
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1 text-center">

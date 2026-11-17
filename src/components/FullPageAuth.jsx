@@ -31,7 +31,6 @@ export const FullPageAuth = ({
   // Registration Email OTP States (Google verification code format)
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [simulatedOtp, setSimulatedOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
   // Resend OTP countdown timer
@@ -108,7 +107,6 @@ export const FullPageAuth = ({
       setIsLoading(false);
 
       if (otpRes.success) {
-        setSimulatedOtp(otpRes.otp);
         setOtpStep(true);
         setResendCooldown(30);
         soundFx.playModalOpen();
@@ -181,7 +179,6 @@ export const FullPageAuth = ({
     soundFx.playClick();
     const res = await sendEmailOtp(regEmail);
     if (res.success) {
-      setSimulatedOtp(res.otp);
       setResendCooldown(30);
       setSuccessMessage('A fresh verification code has been dispatched.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -543,26 +540,8 @@ export const FullPageAuth = ({
                 </div>
                 <p className="text-[#475569] leading-relaxed">
                   We've dispatched an official Google verification code to{' '}
-                  <strong className="text-[#0F172A]">{regEmail}</strong>.
+                  <strong className="text-[#0F172A]">{regEmail}</strong>. Please check your inbox or spam folder.
                 </p>
-                {simulatedOtp && (
-                  <div className="mt-3 p-2.5 rounded-xl bg-white border border-amber-300 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-[#64748B] block">Google Verification Code</span>
-                      <span className="font-mono font-black text-base text-[#0F172A] tracking-wider">G-{simulatedOtp}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        soundFx.playClick();
-                        setOtpCode(`G-${simulatedOtp}`);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-bold hover:bg-black transition-all cursor-pointer"
-                    >
-                      Auto-Fill Code
-                    </button>
-                  </div>
-                )}
               </div>
 
               <div>
