@@ -14,7 +14,7 @@ export const Sidebar = ({
     { id: 'hero', icon: Home, label: 'Hero Overview' },
     { id: 'trophies', icon: Trophy, label: 'Featured Tournaments' },
     { id: 'tournaments', icon: Swords, label: 'Live Tournaments' },
-    { id: 'winners', icon: Shield, label: 'Winners & Hall of Fame' },
+    { id: 'winners', icon: Shield, label: 'Scrims & Standings' },
     { id: 'upcoming', icon: Calendar, label: 'Upcoming Tournaments' },
     { id: 'sponsors', icon: Sparkles, label: 'Sponsors & Supporters' },
     { id: 'contact', icon: Mail, label: 'Contact & Enquiries' },

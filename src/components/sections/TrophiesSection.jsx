@@ -10,7 +10,7 @@ export const TrophiesSection = () => {
     { heading: 'FEATURED 2', label: 'Teams Slots', value: '50 Duos Limit', desc: 'Competitive Duo Match Slots', icon: Target },
     { heading: 'FEATURED 3', label: 'Teams Slots', value: '100 Solo Slots', desc: 'Battlegrounds Solo Arena Slots', icon: Trophy },
     { heading: 'FEATURED 4', label: 'Teams Slots', value: 'Custom Room Dispatcher', desc: 'Instant Room ID & Passcode Slots', icon: Zap },
-    { heading: 'FEATURED 5', label: 'Teams Slots', value: 'Top 10 Hall of Fame', desc: 'Official Teams Points Table', icon: Award },
+    { heading: 'FEATURED 5', label: 'Teams Slots', value: 'Top 10 Scrims', desc: 'Official Teams Points Table', icon: Award },
     { heading: 'FEATURED 6', label: 'Teams Slots', value: 'Championship Finalists', desc: 'Verified Finals Qualified Teams', icon: Users },
   ];
 
@@ -18,7 +18,7 @@ export const TrophiesSection = () => {
     { heading: 'FEATURED 1', label: 'Teams Slots', value: 'Verified Squad Lineups', desc: 'Competitive Tournament Rosters', icon: Shield },
     { heading: 'FEATURED 2', label: 'Teams Slots', value: 'Custom Room Scrims', desc: 'Dedicated Scrim Match Slots', icon: Target },
     { heading: 'FEATURED 3', label: 'Teams Slots', value: 'Competitive Match Slots', desc: 'Registered Teams Allocation', icon: Trophy },
-    { heading: 'FEATURED 4', label: 'Teams Slots', value: 'Hall of Fame Champions', desc: 'Top Tier Trophy Holding Teams', icon: Award },
+    { heading: 'FEATURED 4', label: 'Teams Slots', value: 'Scrims Champions', desc: 'Top Tier Trophy Holding Teams', icon: Award },
     { heading: 'FEATURED 5', label: 'Teams Slots', value: 'Qualified Squad Slots', desc: 'Weekly Scrims Qualified Teams', icon: Zap },
     { heading: 'FEATURED 6', label: 'Teams Slots', value: 'Anti-Cheat Whitelisted Teams', desc: 'Verified Match Ops Approved Slots', icon: Users },
   ];

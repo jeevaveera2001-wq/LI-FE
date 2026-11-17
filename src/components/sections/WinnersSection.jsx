@@ -43,11 +43,11 @@ export const WinnersSection = ({ onOpenTournamentModal }) => {
           <div className="flex items-center gap-2 mb-1">
             <Trophy className="w-5 h-5 text-[#E5C05B]" />
             <h2 className="font-montserrat font-black text-xl sm:text-2xl text-white tracking-wider uppercase">
-              HALL OF FAME & OFFICIAL TOP 10 STANDINGS
+              SCRIMS & OFFICIAL TOP 10 STANDINGS
             </h2>
           </div>
           <p className="font-rajdhani text-xs sm:text-sm text-[#94A3B8]">
-            Verified official points tables, kill records, and championship standings managed by Match Ops.
+            Verified official points tables, kill records, and scrims standings managed by Match Ops.
           </p>
         </div>
 

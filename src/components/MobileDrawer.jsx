@@ -22,7 +22,7 @@ export const MobileDrawer = ({
     { id: 'hero', icon: Home, label: 'Hero Overview', badge: 'Live' },
     { id: 'trophies', icon: Trophy, label: 'Featured Tournaments' },
     { id: 'tournaments', icon: Swords, label: 'Live Tournaments', badge: 'Active' },
-    { id: 'winners', icon: Shield, label: 'Winners & Hall of Fame', highlight: 'Top 10' },
+    { id: 'winners', icon: Shield, label: 'Scrims & Standings', highlight: 'Top 10' },
     { id: 'upcoming', icon: Calendar, label: 'Upcoming Tournaments', badge: 'Next' },
     { id: 'sponsors', icon: Sparkles, label: 'Sponsors & Supporters' },
     { id: 'contact', icon: Mail, label: 'Contact & Official Enquiries' },
