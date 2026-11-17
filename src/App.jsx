@@ -16,11 +16,14 @@ import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { TeamPortal } from './components/TeamPortal';
 import { MobileDrawer } from './components/MobileDrawer';
+import { FullPageAuth } from './components/FullPageAuth';
+import { FullPageTournamentsOverview } from './components/FullPageTournamentsOverview';
 import { getActiveSession, logoutUser } from './utils/auth';
+import { soundFx } from './utils/audio';
 
 export function App() {
   const [activeSection, setActiveSection] = useState('hero');
-  // Full-page View Router: 'portal' | 'superadmin' | 'admin' | 'team'
+  // Full-page View Router: 'portal' | 'auth' | 'overview' | 'superadmin' | 'admin' | 'team'
   const [currentView, setCurrentView] = useState('portal');
 
   // Interactive Modals State
@@ -64,9 +67,13 @@ export function App() {
     setIsLiveStreamModalOpen(false);
   };
 
-  const handleOpenLogin = (tab = 'login') => {
+  const handleOpenLogin = (tab = 'login', fullPage = true) => {
     setLoginModalTab(tab);
-    setIsLoginModalOpen(true);
+    if (fullPage) {
+      setCurrentView('auth');
+    } else {
+      setIsLoginModalOpen(true);
+    }
   };
 
   const handleCloseLogin = () => {
@@ -79,7 +86,7 @@ export function App() {
     } else if (currentUser) {
       setCurrentView('admin');
     } else {
-      setIsLoginModalOpen(true);
+      setCurrentView('auth');
     }
   };
 
@@ -87,7 +94,17 @@ export function App() {
     if (currentUser) {
       setCurrentView('admin');
     } else {
-      setIsLoginModalOpen(true);
+      setCurrentView('auth');
+    }
+  };
+
+  const handleAuthPageSuccess = (userOrTeam, token, type) => {
+    if (type === 'team' || userOrTeam?.ticketId || userOrTeam?.passcode) {
+      setCurrentTeam(userOrTeam);
+      setCurrentView('team');
+    } else {
+      setCurrentUser(userOrTeam);
+      setCurrentView('overview');
     }
   };
 
@@ -101,8 +118,10 @@ export function App() {
       setCurrentUser(userOrTeam);
       if (userOrTeam?.role === 'SUPER_ADMIN') {
         setCurrentView('superadmin');
-      } else {
+      } else if (userOrTeam?.role === 'ADMIN') {
         setCurrentView('admin');
+      } else {
+        setCurrentView('overview');
       }
     }
   };
@@ -198,7 +217,31 @@ export function App() {
     );
   }
 
-  // VIEW 4: PUBLIC PORTAL (FULL SCREEN)
+  // VIEW 4: FULL-PAGE WHITE-BACKGROUND AUTHENTICATION (LOGIN / REGISTER WITH OTP)
+  if (currentView === 'auth') {
+    return (
+      <FullPageAuth
+        initialTab={loginModalTab}
+        onLoginSuccess={handleAuthPageSuccess}
+        onBackToPortal={() => setCurrentView('portal')}
+      />
+    );
+  }
+
+  // VIEW 5: FULL-PAGE WHITE-BACKGROUND OVERALL TOURNAMENTS & SCRIMS HUB
+  if (currentView === 'overview') {
+    return (
+      <FullPageTournamentsOverview
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onBackToPortal={() => setCurrentView('portal')}
+        onOpenAdmin={() => setCurrentView('admin')}
+        onOpenSuperAdmin={() => setCurrentView('superadmin')}
+      />
+    );
+  }
+
+  // VIEW 6: PUBLIC PORTAL (FULL SCREEN)
   return (
     <div className="min-h-screen bg-[#090B0E] text-[#E2E8F0] font-sans flex antialiased selection:bg-[#E5C05B]/30 selection:text-[#E5C05B]">
       
@@ -209,7 +252,8 @@ export function App() {
         currentUser={currentUser}
         onOpenSuperAdmin={handleOpenSuperAdmin}
         onOpenAdmin={handleOpenAdmin}
-        onOpenLogin={handleOpenLogin}
+        onOpenOverview={() => setCurrentView('overview')}
+        onOpenLogin={() => handleOpenLogin('login', true)}
       />
 
       {/* Main App Canvas */}
@@ -218,14 +262,25 @@ export function App() {
         {/* Top Navbar */}
         <Navbar
           currentUser={currentUser}
-          onOpenLogin={handleOpenLogin}
+          onOpenLogin={() => handleOpenLogin('login', true)}
           onOpenSuperAdmin={handleOpenSuperAdmin}
           onOpenAdmin={handleOpenAdmin}
+          onOpenOverview={() => setCurrentView('overview')}
           onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
         />
 
         {/* Full-Bleed Hero Landing Screen */}
-        <HeroSection onOpenTournamentModal={handleOpenTournamentModal} />
+        <HeroSection
+          onJoinNow={() => {
+            soundFx.playModalOpen();
+            if (!currentUser) {
+              setCurrentView('auth');
+            } else {
+              setCurrentView('overview');
+            }
+          }}
+          onOpenTournamentModal={handleOpenTournamentModal}
+        />
 
         {/* Main Content Sections */}
         <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1500px] w-full mx-auto space-y-8">
@@ -264,9 +319,10 @@ export function App() {
         activeSection={activeSection}
         onSelectSection={setActiveSection}
         currentUser={currentUser}
-        onOpenLogin={handleOpenLogin}
+        onOpenLogin={() => handleOpenLogin('login', true)}
         onOpenSuperAdmin={handleOpenSuperAdmin}
         onOpenAdmin={handleOpenAdmin}
+        onOpenOverview={() => setCurrentView('overview')}
         onLogout={handleLogout}
       />
 

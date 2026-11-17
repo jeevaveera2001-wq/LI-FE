@@ -14,6 +14,7 @@ export const MobileDrawer = ({
   onOpenLogin,
   onOpenSuperAdmin,
   onOpenAdmin,
+  onOpenOverview,
   onLogout
 }) => {
   if (!isOpen) return null;
@@ -111,7 +112,7 @@ export const MobileDrawer = ({
                     >
                       Super Admin Console
                     </button>
-                  ) : (
+                  ) : currentUser.role === 'ADMIN' ? (
                     <button
                       onClick={() => {
                         soundFx.playVictory();
@@ -121,6 +122,17 @@ export const MobileDrawer = ({
                       className="flex-1 py-1.5 rounded bg-white hover:bg-[#E5E5E5] text-black font-mono font-bold text-[10px] uppercase text-center cursor-pointer transition-colors"
                     >
                       Match Ops Desk
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        soundFx.playVictory();
+                        onOpenOverview?.();
+                        onClose();
+                      }}
+                      className="flex-1 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono font-bold text-[10px] uppercase text-center cursor-pointer transition-colors"
+                    >
+                      Tournaments & Scrims
                     </button>
                   )}
 

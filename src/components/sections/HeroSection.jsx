@@ -3,7 +3,7 @@ import { ChevronDown, ExternalLink, Play, Sparkles } from 'lucide-react';
 import { soundFx } from '../../utils/audio';
 import { EmberCanvas } from '../EmberCanvas';
 
-export const HeroSection = ({ onOpenTournamentModal }) => {
+export const HeroSection = ({ onOpenTournamentModal, onJoinNow }) => {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
 
   // Smooth mouse parallax motion tracking
@@ -81,7 +81,11 @@ export const HeroSection = ({ onOpenTournamentModal }) => {
           <button
             onClick={() => {
               soundFx.playModalOpen();
-              onOpenTournamentModal?.();
+              if (onJoinNow) {
+                onJoinNow();
+              } else {
+                onOpenTournamentModal?.();
+              }
             }}
             onMouseEnter={() => soundFx.playHover()}
             className="px-9 py-2.5 sm:px-11 sm:py-3 rounded-xl bg-[#FFDE00] hover:bg-[#FFE84D] text-[#090B0E] font-montserrat font-black text-xs sm:text-sm uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_30px_rgba(255,222,0,0.6)] hover:shadow-[0_0_50px_rgba(255,222,0,0.9)] hover:scale-105 active:scale-95 flex items-center justify-center transform"

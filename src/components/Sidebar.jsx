@@ -8,6 +8,7 @@ export const Sidebar = ({
   currentUser,
   onOpenSuperAdmin,
   onOpenAdmin,
+  onOpenOverview,
   onOpenLogin
 }) => {
   const navItems = [
@@ -79,7 +80,7 @@ export const Sidebar = ({
             >
               SA
             </button>
-          ) : (
+          ) : currentUser.role === 'ADMIN' ? (
             <button
               onClick={() => {
                 soundFx.playVictory();
@@ -89,6 +90,17 @@ export const Sidebar = ({
               className="w-7 h-7 rounded-md bg-[#1C1C1C] border border-[#333] flex items-center justify-center text-white text-[9px] font-bold font-mono mt-1 cursor-pointer hover:scale-110 transition-transform"
             >
               AD
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                soundFx.playVictory();
+                onOpenOverview?.();
+              }}
+              title={`Tournaments & Scrims Hub: ${currentUser.name || 'Competitor'}`}
+              className="w-7 h-7 rounded-md bg-emerald-600 border border-emerald-400 flex items-center justify-center text-white text-[9px] font-bold font-mono mt-1 cursor-pointer hover:scale-110 transition-transform shadow-xs"
+            >
+              LT
             </button>
           )
         ) : (
@@ -100,7 +112,7 @@ export const Sidebar = ({
             title="Portal Login"
             className="w-6 h-6 rounded-md bg-[#141822] border border-[#222938] hover:border-[#E5C05B]/60 flex items-center justify-center text-[#E5C05B] text-[9px] font-bold font-mono mt-1 cursor-pointer transition-colors"
           >
-            MK
+            LT
           </button>
         )}
       </div>

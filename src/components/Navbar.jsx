@@ -7,6 +7,7 @@ export const Navbar = ({
   onOpenLogin,
   onOpenSuperAdmin,
   onOpenAdmin,
+  onOpenOverview,
   onOpenMobileDrawer
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -19,7 +20,7 @@ export const Navbar = ({
     } else if (currentUser?.role === 'ADMIN') {
       onOpenAdmin?.();
     } else {
-      onOpenLogin?.();
+      onOpenOverview?.();
     }
   };
 
@@ -88,14 +89,26 @@ export const Navbar = ({
           {currentUser ? (
             <button
               onClick={handleAuthBadgeClick}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#2A200B] to-[#161208] border border-[#E5C05B]/60 text-[#E5C05B] hover:border-[#E5C05B] text-[11px] sm:text-xs font-montserrat font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(229,192,91,0.25)] transition-all cursor-pointer"
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-[11px] sm:text-xs font-montserrat font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN'
+                  ? 'bg-gradient-to-r from-[#2A200B] to-[#161208] border-[#E5C05B]/60 text-[#E5C05B] hover:border-[#E5C05B] shadow-[0_0_12px_rgba(229,192,91,0.25)]'
+                  : 'bg-emerald-950/60 border-emerald-500/60 text-emerald-400 hover:border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+              }`}
             >
-              <Crown className="w-3.5 h-3.5 text-[#FFD700] fill-[#FFD700]" />
+              {currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN' ? (
+                <Crown className="w-3.5 h-3.5 text-[#FFD700] fill-[#FFD700]" />
+              ) : (
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              )}
               <span className="hidden sm:inline">
-                {currentUser.role === 'SUPER_ADMIN' ? 'SUPER ADMIN' : 'MATCH OPS'}
+                {currentUser.role === 'SUPER_ADMIN'
+                  ? 'SUPER ADMIN'
+                  : currentUser.role === 'ADMIN'
+                  ? 'MATCH OPS'
+                  : (currentUser.name || 'ARENA HUB')}
               </span>
               <span className="sm:hidden">
-                {currentUser.role === 'SUPER_ADMIN' ? 'SA' : 'OPS'}
+                {currentUser.role === 'SUPER_ADMIN' ? 'SA' : currentUser.role === 'ADMIN' ? 'OPS' : 'HUB'}
               </span>
             </button>
           ) : (
