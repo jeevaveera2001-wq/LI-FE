@@ -5,7 +5,7 @@ import { HeroSection } from './components/sections/HeroSection';
 import { TrophiesSection } from './components/sections/TrophiesSection';
 import { TournamentsSection } from './components/sections/TournamentsSection';
 import { WinnersSection } from './components/sections/WinnersSection';
-import { PollSection } from './components/sections/PollSection';
+import { UpcomingTournamentsSection } from './components/sections/UpcomingTournamentsSection';
 import { SponsorsSection } from './components/sections/SponsorsSection';
 import { ContactSection } from './components/sections/ContactSection';
 import { TournamentRegistrationModal } from './components/TournamentRegistrationModal';
@@ -119,7 +119,7 @@ export function App() {
     if (currentView !== 'portal') return;
 
     const handleScroll = () => {
-      const sections = ['hero', 'trophies', 'tournaments', 'winners', 'poll', 'sponsors', 'contact'];
+      const sections = ['hero', 'trophies', 'tournaments', 'winners', 'upcoming', 'sponsors', 'contact'];
       const scrollPosition = window.scrollY + 250;
 
       for (const section of sections) {
@@ -239,8 +239,8 @@ export function App() {
           {/* Section 4: Winners Cash List & Hall of Fame Squads (Seasonal, Solo, Duo, Squad) */}
           <WinnersSection onOpenTournamentModal={handleOpenTournamentModal} />
 
-          {/* Section 5: Live Fan Poll Section */}
-          <PollSection />
+          {/* Section 5: Upcoming Tournaments Section */}
+          <UpcomingTournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
 
           {/* Section 6: Sponsors & Supporters Showcase */}
           <SponsorsSection onOpenSponsorModal={() => setIsSponsorModalOpen(true)} />

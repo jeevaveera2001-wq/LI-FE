@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   X, Home, Trophy, Swords, MessageSquare, BarChart2, Mail,
-  Shield, Crown, Key, LogOut, ArrowRight, ExternalLink, Vote, Sparkles
+  Shield, Crown, Key, LogOut, ArrowRight, ExternalLink, Calendar, Sparkles
 } from 'lucide-react';
 import { soundFx } from '../utils/audio';
 
@@ -21,9 +21,9 @@ export const MobileDrawer = ({
   const navLinks = [
     { id: 'hero', icon: Home, label: 'Hero Overview', badge: 'Live' },
     { id: 'trophies', icon: Trophy, label: 'Featured Tournaments' },
-    { id: 'tournaments', icon: Swords, label: 'Tournaments Hub', badge: 'S7 War' },
+    { id: 'tournaments', icon: Swords, label: 'Live Tournaments', badge: 'Active' },
     { id: 'winners', icon: Shield, label: 'Winners & Hall of Fame', highlight: 'Top 10' },
-    { id: 'poll', icon: Vote, label: 'Live Fan Poll', badge: 'Vote' },
+    { id: 'upcoming', icon: Calendar, label: 'Upcoming Tournaments', badge: 'Next' },
     { id: 'sponsors', icon: Sparkles, label: 'Sponsors & Supporters' },
     { id: 'contact', icon: Mail, label: 'Contact & Official Enquiries' },
   ];

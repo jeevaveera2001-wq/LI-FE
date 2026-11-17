@@ -107,15 +107,15 @@ export const TournamentsSection = ({ onOpenTournamentModal }) => {
           </div>
         </div>
 
-        {/* 4 Tournament Cards Grid (Featuring Hero Section Page Background) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        {/* 4 Tournament Cards in a Single Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {displayedTournaments.map((t, idx) => (
             <div
               key={t.id || idx}
-              className="group rounded-xl bg-[#11151E] border border-[#1E2536] hover:border-[#E5C05B]/60 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-[0_0_25px_rgba(229,192,91,0.15)]"
+              className="group rounded-xl bg-[#11151E] border border-[#1E2536] hover:border-[#E5C05B]/60 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-[0_0_20px_rgba(229,192,91,0.15)]"
             >
               {/* Card Banner: Hero Section Page Background Image */}
-              <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-black/60">
+              <div className="relative h-36 w-full overflow-hidden bg-black/60">
                 <img
                   src="/assets/conqueror_badge.jpg"
                   alt={t.title || 'Tournament Card'}
@@ -126,26 +126,26 @@ export const TournamentsSection = ({ onOpenTournamentModal }) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#11151E] via-[#11151E]/40 to-black/50 pointer-events-none" />
 
                 {/* Floating Top Header Badges */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#E5C05B]/40 text-[#E5C05B] text-[10px] font-montserrat font-bold tracking-wider">
+                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-[#E5C05B]/40 text-[#E5C05B] text-[9px] font-montserrat font-bold tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>ACTIVE REGISTRATION</span>
+                    <span>ACTIVE</span>
                   </div>
-                  <span className="text-[10px] font-montserrat font-bold text-[#E5C05B] px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#2B3448] uppercase tracking-wider">
+                  <span className="text-[9px] font-montserrat font-bold text-[#E5C05B] px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-[#2B3448] uppercase tracking-wider">
                     {t.tag || t.category || 'BOTSQUADWAR'}
                   </span>
                 </div>
 
                 {/* Title & Prize Pool overlay on Banner */}
-                <div className="absolute bottom-3 left-3.5 right-3.5 z-10">
-                  <h4 className="font-montserrat font-black text-sm sm:text-base text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                <div className="absolute bottom-2.5 left-3 right-3 z-10">
+                  <h4 className="font-montserrat font-black text-xs sm:text-sm text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
                     {t.title || `TOURNAMENT ${idx + 1}`}
                   </h4>
-                  <div className="flex items-center justify-between text-xs font-rajdhani mt-1">
-                    <span className="text-gray-300 font-medium drop-shadow">
+                  <div className="flex items-center justify-between text-[11px] font-rajdhani mt-0.5">
+                    <span className="text-gray-300 font-medium drop-shadow truncate">
                       {t.date || 'Active 16 — June 19, 2026'}
                     </span>
-                    <span className="text-[#E5C05B] font-extrabold font-mono text-sm tracking-wider drop-shadow">
+                    <span className="text-[#E5C05B] font-extrabold font-mono text-xs tracking-wider drop-shadow shrink-0 ml-1">
                       {t.prizePool || t.prize || '₹2,50,000 INR'}
                     </span>
                   </div>
@@ -153,30 +153,30 @@ export const TournamentsSection = ({ onOpenTournamentModal }) => {
               </div>
 
               {/* Card Body: Match Specs & Action */}
-              <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
                 
                 {/* 3-Column Match Specs Pill */}
-                <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono bg-black/40 p-2.5 rounded-lg border border-[#1A202C]">
+                <div className="grid grid-cols-3 gap-1 text-center text-[11px] font-mono bg-black/40 p-2 rounded-lg border border-[#1A202C]">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#64748B] uppercase font-sans">Map</span>
+                    <span className="text-[9px] text-[#64748B] uppercase font-sans">Map</span>
                     <strong className="text-white font-bold truncate mt-0.5">{t.map || 'Erangel'}</strong>
                   </div>
                   <div className="flex flex-col border-x border-[#1E2536]">
-                    <span className="text-[10px] text-[#64748B] uppercase font-sans">Format</span>
-                    <strong className="text-teal-400 font-bold truncate mt-0.5">{t.format || 'Squad War'}</strong>
+                    <span className="text-[9px] text-[#64748B] uppercase font-sans">Format</span>
+                    <strong className="text-teal-400 font-bold truncate mt-0.5">{(t.format || 'Squad War').split(' ')[0]}</strong>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#64748B] uppercase font-sans">Slots</span>
-                    <strong className="text-[#E5C05B] font-bold truncate mt-0.5">{t.slots || `${t.totalSlots || 25} Squads Limit`}</strong>
+                    <span className="text-[9px] text-[#64748B] uppercase font-sans">Slots</span>
+                    <strong className="text-[#E5C05B] font-bold truncate mt-0.5">{t.totalSlots || 25} Limit</strong>
                   </div>
                 </div>
 
                 {/* Slots Filled Capacity Indicator */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-[#64748B] uppercase font-sans text-[10px]">Verified Capacity</span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-[#64748B] uppercase font-sans">Verified Capacity</span>
                     <span className="text-[#E5C05B] font-bold">
-                      {t.filledSlots || 18} / {t.totalSlots || 25} Teams Registered
+                      {t.filledSlots || 18} / {t.totalSlots || 25} Teams
                     </span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-[#1A202C] overflow-hidden">
@@ -194,9 +194,9 @@ export const TournamentsSection = ({ onOpenTournamentModal }) => {
                     onOpenTournamentModal?.(t);
                   }}
                   onMouseEnter={() => soundFx.playHover()}
-                  className="w-full py-3 rounded-lg bg-[#E5C05B] hover:bg-[#F3CF7A] text-[#0A0D12] font-montserrat font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-[0_0_15px_rgba(229,192,91,0.25)] hover:shadow-[0_0_20px_rgba(229,192,91,0.4)] flex items-center justify-center gap-2 group-hover:scale-[1.01]"
+                  className="w-full py-2.5 rounded-lg bg-[#E5C05B] hover:bg-[#F3CF7A] text-[#0A0D12] font-montserrat font-extrabold text-[11px] uppercase tracking-wider transition-all cursor-pointer shadow-[0_0_12px_rgba(229,192,91,0.2)] hover:shadow-[0_0_18px_rgba(229,192,91,0.35)] flex items-center justify-center gap-1.5 group-hover:scale-[1.01]"
                 >
-                  <Swords className="w-4 h-4" />
+                  <Swords className="w-3.5 h-3.5" />
                   <span>REGISTER FOR UPCOMING TOURNAMENTS</span>
                 </button>
 

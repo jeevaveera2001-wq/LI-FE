@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Trophy, Swords, MessageSquare, BarChart2, Mail, Shield, Crown, Vote, Sparkles } from 'lucide-react';
+import { Home, Trophy, Swords, MessageSquare, BarChart2, Mail, Shield, Crown, Calendar, Sparkles } from 'lucide-react';
 import { soundFx } from '../utils/audio';
 
 export const Sidebar = ({
@@ -13,9 +13,9 @@ export const Sidebar = ({
   const navItems = [
     { id: 'hero', icon: Home, label: 'Hero Overview' },
     { id: 'trophies', icon: Trophy, label: 'Featured Tournaments' },
-    { id: 'tournaments', icon: Swords, label: 'Tournaments' },
+    { id: 'tournaments', icon: Swords, label: 'Live Tournaments' },
     { id: 'winners', icon: Shield, label: 'Winners & Hall of Fame' },
-    { id: 'poll', icon: Vote, label: 'Live Fan Poll' },
+    { id: 'upcoming', icon: Calendar, label: 'Upcoming Tournaments' },
     { id: 'sponsors', icon: Sparkles, label: 'Sponsors & Supporters' },
     { id: 'contact', icon: Mail, label: 'Contact & Enquiries' },
   ];
