@@ -203,6 +203,135 @@ export const verifyJwtToken = async (token) => {
   }
 };
 
+// Validate Credentials before dispatching login OTP
+export const validateLoginCredentials = async (usernameOrEmail, password) => {
+  const cleanInput = (usernameOrEmail || '').trim().toLowerCase();
+  const inputHash = await hashPassword(password);
+
+  // 1. Super Admin Check
+  if ((cleanInput === SUPER_ADMIN_USERNAME || cleanInput === SUPER_ADMIN_EMAIL) && inputHash === SUPER_ADMIN_HASH) {
+    const userPayload = {
+      sub: SUPER_ADMIN_USERNAME,
+      username: 'lastzetas',
+      email: SUPER_ADMIN_EMAIL,
+      name: 'Last Zetas',
+      role: 'SUPER_ADMIN',
+      badge: 'Super Admin Level 10',
+      permissions: ['ALL_ACCESS', 'ADMIN_MANAGE', 'TOURNAMENT_MANAGE', 'PAYOUT_DISPATCH', 'BROADCAST_ROOMS', 'AUDIT_LOGS']
+    };
+    return {
+      success: true,
+      email: SUPER_ADMIN_EMAIL,
+      user: userPayload,
+      type: 'superadmin'
+    };
+  }
+
+  // 2. Match Ops Admin Check
+  if ((cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL || cleanInput === 'admin@livetournaments.in') && inputHash === ADMIN_HASH) {
+    const userPayload = {
+      sub: ADMIN_USERNAME,
+      username: 'admin',
+      email: ADMIN_EMAIL,
+      name: 'Match Ops Lead',
+      role: 'ADMIN',
+      badge: 'Match Operations Admin',
+      permissions: ['TOURNAMENT_MANAGE', 'ROSTER_WHITELIST', 'ROOM_DISPATCH']
+    };
+    return {
+      success: true,
+      email: ADMIN_EMAIL,
+      user: userPayload,
+      type: 'admin'
+    };
+  }
+
+  // 3. Registered User Accounts Check
+  const users = getStoredUsers();
+  const matchedUser = users.find(u => 
+    u.email.toLowerCase() === cleanInput || 
+    (u.username && u.username.toLowerCase() === cleanInput) ||
+    (u.name && u.name.toLowerCase() === cleanInput) ||
+    (u.phone && u.phone === cleanInput)
+  );
+
+  if (matchedUser && matchedUser.passwordHash === inputHash) {
+    const userPayload = {
+      sub: matchedUser.id,
+      username: matchedUser.username || matchedUser.name,
+      email: matchedUser.email,
+      name: matchedUser.name,
+      phone: matchedUser.phone,
+      role: matchedUser.role || 'PLAYER',
+      badge: matchedUser.badge || 'Verified Player',
+      permissions: ['VIEW_TOURNAMENTS', 'SUBMIT_ROSTER']
+    };
+    return {
+      success: true,
+      email: matchedUser.email,
+      user: userPayload,
+      type: 'user'
+    };
+  }
+
+  // 4. Team / Squad Passcode Check
+  try {
+    const teamsRaw = localStorage.getItem('livetournaments_portal_registrations_mongo_v10');
+    if (teamsRaw) {
+      const teams = JSON.parse(teamsRaw);
+      const matchedTeam = teams.find(t => 
+        (t.ticketId && t.ticketId.toLowerCase() === cleanInput) ||
+        (t.teamName && t.teamName.toLowerCase() === cleanInput) ||
+        (t.name && t.name.toLowerCase() === cleanInput)
+      );
+      if (matchedTeam && (matchedTeam.passcode === password || matchedTeam.passcode === cleanInput)) {
+        return {
+          success: true,
+          email: matchedTeam.email || matchedTeam.iglEmail || 'admin@livetournaments.in',
+          team: matchedTeam,
+          type: 'team'
+        };
+      }
+    }
+  } catch (e) {}
+
+  return {
+    success: false,
+    message: 'Invalid username or password. Please check your credentials.'
+  };
+};
+
+// Complete Login after email OTP confirmation
+export const completeVerifiedLogin = async (email, otp, userOrTeam, type = 'user') => {
+  const verifyRes = verifyEmailOtp(email, otp);
+  if (!verifyRes.success) {
+    return verifyRes;
+  }
+
+  if (type === 'team') {
+    return {
+      success: true,
+      type: 'team',
+      team: userOrTeam,
+      token: 'team-session-token'
+    };
+  }
+
+  const token = await createSignedJwt(userOrTeam);
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch (e) {
+    console.warn('LocalStorage unavailable:', e);
+  }
+
+  return {
+    success: true,
+    token,
+    user: userOrTeam,
+    type: userOrTeam?.role === 'SUPER_ADMIN' ? 'superadmin' : (userOrTeam?.role === 'ADMIN' ? 'admin' : 'user')
+  };
+};
+
 // Main Authenticate function with Secured Password Hashing & JWT Generation
 export const authenticateUser = async (usernameOrEmail, password) => {
   const cleanInput = (usernameOrEmail || '').trim().toLowerCase();

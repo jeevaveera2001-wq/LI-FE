@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, User, Phone, ArrowLeft, RefreshCw, Send, Sparkles, Trophy } from 'lucide-react';
 import { soundFx } from '../utils/audio';
-import { authenticateUser, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
+import { authenticateUser, validateLoginCredentials, completeVerifiedLogin, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
 import confetti from 'canvas-confetti';
 
 export const FullPageAuth = ({
@@ -19,6 +19,13 @@ export const FullPageAuth = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Login Email OTP States
+  const [loginOtpStep, setLoginOtpStep] = useState(false);
+  const [loginOtpCode, setLoginOtpCode] = useState('');
+  const [simulatedLoginOtp, setSimulatedLoginOtp] = useState('');
+  const [pendingLoginUser, setPendingLoginUser] = useState(null);
+  const [loginResendCooldown, setLoginResendCooldown] = useState(0);
+
   // Registration Form States
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -28,13 +35,13 @@ export const FullPageAuth = ({
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
-  // Email OTP States
+  // Registration Email OTP States
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [simulatedOtp, setSimulatedOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Resend OTP countdown timer
+  // Resend OTP countdown timers
   useEffect(() => {
     let timer;
     if (resendCooldown > 0) {
@@ -43,7 +50,15 @@ export const FullPageAuth = ({
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Handle Login submission
+  useEffect(() => {
+    let timer;
+    if (loginResendCooldown > 0) {
+      timer = setTimeout(() => setLoginResendCooldown(loginResendCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [loginResendCooldown]);
+
+  // Step 1 of Login: Validate credentials -> Trigger Email OTP
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -52,31 +67,91 @@ export const FullPageAuth = ({
     soundFx.playClick();
 
     try {
-      const result = await authenticateUser(loginInput, loginPassword);
+      const valResult = await validateLoginCredentials(loginInput, loginPassword);
+      if (!valResult.success) {
+        setIsLoading(false);
+        soundFx.playClick();
+        setErrorMessage(valResult.message || 'Invalid username or password. Please try again.');
+        return;
+      }
+
+      // Send OTP to the account's verified email
+      const targetEmail = valResult.email;
+      const otpRes = await sendEmailOtp(targetEmail);
+      setIsLoading(false);
+
+      if (otpRes.success) {
+        soundFx.playModalOpen();
+        setPendingLoginUser(valResult);
+        setSimulatedLoginOtp(otpRes.otp);
+        setLoginOtpStep(true);
+        setLoginResendCooldown(30);
+        setSuccessMessage(`Security check: 6-digit login OTP sent to ${targetEmail}`);
+      } else {
+        setErrorMessage('Failed to dispatch email OTP. Please try again.');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      soundFx.playClick();
+      setErrorMessage('Authentication error. Please check your credentials.');
+    }
+  };
+
+  // Step 2 of Login: Verify Email OTP -> Complete Login
+  const handleLoginOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!pendingLoginUser) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    soundFx.playClick();
+
+    try {
+      const result = await completeVerifiedLogin(
+        pendingLoginUser.email,
+        loginOtpCode,
+        pendingLoginUser.user || pendingLoginUser.team,
+        pendingLoginUser.type
+      );
       setIsLoading(false);
 
       if (result.success) {
         soundFx.playVictory();
         confetti({
-          particleCount: 120,
+          particleCount: 130,
           spread: 80,
           origin: { y: 0.6 },
-          colors: ['#0F172A', '#2563EB', '#10B981', '#F59E0B']
+          colors: ['#0F172A', '#10B981', '#3B82F6', '#F59E0B']
         });
 
-        if (result.type === 'team') {
-          onLoginSuccess(result.team, 'team-token', 'team');
-        } else {
-          onLoginSuccess(result.user, result.token, result.user?.role === 'SUPER_ADMIN' ? 'superadmin' : 'user');
-        }
+        setSuccessMessage('Email verified successfully! Entering arena...');
+        setTimeout(() => {
+          if (result.type === 'team') {
+            onLoginSuccess(result.team, 'team-token', 'team');
+          } else {
+            onLoginSuccess(result.user, result.token, result.user?.role === 'SUPER_ADMIN' ? 'superadmin' : 'user');
+          }
+        }, 600);
       } else {
         soundFx.playClick();
-        setErrorMessage(result.message || 'Invalid username or password. Please try again.');
+        setErrorMessage(result.message || 'Invalid OTP code. Please try again.');
       }
     } catch (err) {
       setIsLoading(false);
       soundFx.playClick();
-      setErrorMessage('Authentication error. Please try again.');
+      setErrorMessage('Verification failed. Please try again.');
+    }
+  };
+
+  // Resend Login OTP
+  const handleResendLoginOtp = async () => {
+    if (loginResendCooldown > 0 || !pendingLoginUser) return;
+    soundFx.playClick();
+    const res = await sendEmailOtp(pendingLoginUser.email);
+    if (res.success) {
+      setSimulatedLoginOtp(res.otp);
+      setLoginResendCooldown(30);
+      setSuccessMessage('A fresh login code has been sent to your email.');
+      setTimeout(() => setSuccessMessage(''), 4000);
     }
   };
 
@@ -248,6 +323,7 @@ export const FullPageAuth = ({
                 soundFx.playClick();
                 setActiveTab('login');
                 setOtpStep(false);
+                setLoginOtpStep(false);
                 setErrorMessage('');
                 setSuccessMessage('');
               }}
@@ -265,6 +341,7 @@ export const FullPageAuth = ({
                 soundFx.playClick();
                 setActiveTab('register');
                 setOtpStep(false);
+                setLoginOtpStep(false);
                 setErrorMessage('');
                 setSuccessMessage('');
               }}
@@ -293,8 +370,8 @@ export const FullPageAuth = ({
             </div>
           )}
 
-          {/* TAB 1: LOGIN FORM */}
-          {activeTab === 'login' && (
+          {/* TAB 1: LOGIN FORM - STEP 1 (CREDENTIALS) */}
+          {activeTab === 'login' && !loginOtpStep && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#334155] mb-1.5 uppercase tracking-wider">
@@ -357,10 +434,13 @@ export const FullPageAuth = ({
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Signing In...</span>
+                    <span>Verifying Credentials...</span>
                   </>
                 ) : (
-                  <span>Sign In to Arena</span>
+                  <>
+                    <Mail className="w-4 h-4 text-amber-400" />
+                    <span>Verify Email & Sign In</span>
+                  </>
                 )}
               </button>
 
@@ -380,6 +460,98 @@ export const FullPageAuth = ({
                   </button>
                 </p>
               </div>
+            </form>
+          )}
+
+          {/* TAB 1: LOGIN FORM - STEP 2 (EMAIL OTP CONFIRMATION BEFORE LOGIN) */}
+          {activeTab === 'login' && loginOtpStep && (
+            <form onSubmit={handleLoginOtpSubmit} className="space-y-4">
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs">
+                <div className="font-bold text-sm mb-1 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-amber-600" />
+                  <span>Email Verification Required for Login</span>
+                </div>
+                <p className="text-[#475569] leading-relaxed">
+                  To secure your account, a 6-digit confirmation code has been dispatched to{' '}
+                  <strong className="text-[#0F172A]">{pendingLoginUser?.email}</strong>.
+                </p>
+                {simulatedLoginOtp && (
+                  <div className="mt-3 p-2.5 rounded-xl bg-white border border-amber-300 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#64748B] block">Login Verification Code</span>
+                      <span className="font-mono font-black text-base text-[#0F172A] tracking-wider">{simulatedLoginOtp}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundFx.playClick();
+                        setLoginOtpCode(simulatedLoginOtp);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-bold hover:bg-black transition-all cursor-pointer"
+                    >
+                      Auto-Fill Code
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#334155] mb-1.5 uppercase tracking-wider text-center">
+                  Enter 6-Digit Login OTP
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  required
+                  placeholder="000000"
+                  value={loginOtpCode}
+                  onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full text-center font-mono font-black text-2xl tracking-[0.35em] bg-[#F8FAFC] border-2 border-[#CBD5E1] rounded-xl px-4 py-3 text-[#0F172A] focus:outline-none focus:border-[#0F172A] transition-all"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setLoginOtpStep(false);
+                    setLoginOtpCode('');
+                    setErrorMessage('');
+                  }}
+                  className="text-[#64748B] hover:text-[#0F172A] font-semibold cursor-pointer"
+                >
+                  ← Edit credentials
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loginResendCooldown > 0}
+                  onClick={handleResendLoginOtp}
+                  className="text-[#0F172A] font-bold disabled:text-[#94A3B8] disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {loginResendCooldown > 0 ? `Resend code in ${loginResendCooldown}s` : 'Resend code'}
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || loginOtpCode.length !== 6}
+                className="w-full py-3.5 rounded-xl bg-[#0F172A] hover:bg-black text-white font-montserrat font-bold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    <span>Verifying Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Confirm OTP & Enter Arena</span>
+                  </>
+                )}
+              </button>
             </form>
           )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, Key, User, Phone, ArrowLeft, RefreshCw, Send, Check } from 'lucide-react';
 import { soundFx } from '../utils/audio';
-import { authenticateUser, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
+import { authenticateUser, validateLoginCredentials, completeVerifiedLogin, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
 import confetti from 'canvas-confetti';
 
 export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'login' }) => {
@@ -15,6 +15,13 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Login Email OTP States
+  const [loginOtpStep, setLoginOtpStep] = useState(false);
+  const [loginOtpCode, setLoginOtpCode] = useState('');
+  const [simulatedLoginOtp, setSimulatedLoginOtp] = useState('');
+  const [pendingLoginUser, setPendingLoginUser] = useState(null);
+  const [loginResendCooldown, setLoginResendCooldown] = useState(0);
+
   // Registration Form States
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -24,7 +31,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
-  // Email OTP States
+  // Registration Email OTP States
   const [otpStep, setOtpStep] = useState(false); // true when awaiting OTP verification
   const [otpCode, setOtpCode] = useState('');
   const [simulatedOtp, setSimulatedOtp] = useState('');
@@ -36,7 +43,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
     }
   }, [initialTab, isOpen]);
 
-  // Resend OTP countdown timer
+  // Resend OTP countdown timers
   useEffect(() => {
     let timer;
     if (resendCooldown > 0) {
@@ -45,9 +52,17 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    let timer;
+    if (loginResendCooldown > 0) {
+      timer = setTimeout(() => setLoginResendCooldown(loginResendCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [loginResendCooldown]);
+
   if (!isOpen) return null;
 
-  // Handle Login submission
+  // Handle Login submission: Validate credentials -> Send Email OTP
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -56,7 +71,51 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
     soundFx.playClick();
 
     try {
-      const result = await authenticateUser(loginInput, loginPassword);
+      const valResult = await validateLoginCredentials(loginInput, loginPassword);
+      if (!valResult.success) {
+        setIsLoading(false);
+        soundFx.playClick();
+        setErrorMessage(valResult.message || 'Invalid username or password. Please try again.');
+        return;
+      }
+
+      // Send OTP to account email
+      const targetEmail = valResult.email;
+      const otpRes = await sendEmailOtp(targetEmail);
+      setIsLoading(false);
+
+      if (otpRes.success) {
+        soundFx.playModalOpen();
+        setPendingLoginUser(valResult);
+        setSimulatedLoginOtp(otpRes.otp);
+        setLoginOtpStep(true);
+        setLoginResendCooldown(30);
+        setSuccessMessage(`Security check: 6-digit login OTP sent to ${targetEmail}`);
+      } else {
+        setErrorMessage('Failed to send login verification code. Please try again.');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      soundFx.playClick();
+      setErrorMessage('Authentication error. Please try again.');
+    }
+  };
+
+  // Handle Login OTP submission: Verify OTP -> Complete Login
+  const handleLoginOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!pendingLoginUser) return;
+    setIsLoading(true);
+    setErrorMessage('');
+    soundFx.playClick();
+
+    try {
+      const result = await completeVerifiedLogin(
+        pendingLoginUser.email,
+        loginOtpCode,
+        pendingLoginUser.user || pendingLoginUser.team,
+        pendingLoginUser.type
+      );
       setIsLoading(false);
 
       if (result.success) {
@@ -71,17 +130,29 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
         if (result.type === 'team') {
           onLoginSuccess(result.team, 'team-token', 'team');
         } else {
-          onLoginSuccess(result.user, result.token, 'admin');
+          onLoginSuccess(result.user, result.token, result.type);
         }
         onClose();
       } else {
         soundFx.playClick();
-        setErrorMessage(result.message || 'Invalid username or password. Please try again.');
+        setErrorMessage(result.message || 'Invalid OTP code. Please try again.');
       }
     } catch (err) {
       setIsLoading(false);
       soundFx.playClick();
-      setErrorMessage('Authentication error. Please try again.');
+      setErrorMessage('Verification error. Please try again.');
+    }
+  };
+
+  const handleResendLoginOtp = async () => {
+    if (loginResendCooldown > 0 || !pendingLoginUser) return;
+    soundFx.playClick();
+    const res = await sendEmailOtp(pendingLoginUser.email);
+    if (res.success) {
+      setSimulatedLoginOtp(res.otp);
+      setLoginResendCooldown(30);
+      setSuccessMessage('A fresh verification code has been dispatched.');
+      setTimeout(() => setSuccessMessage(''), 4000);
     }
   };
 
@@ -230,6 +301,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
               soundFx.playClick();
               setActiveTab('login');
               setOtpStep(false);
+              setLoginOtpStep(false);
               setErrorMessage('');
               setSuccessMessage('');
             }}
@@ -249,6 +321,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
               soundFx.playClick();
               setActiveTab('register');
               setOtpStep(false);
+              setLoginOtpStep(false);
               setErrorMessage('');
               setSuccessMessage('');
             }}
@@ -280,9 +353,9 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 1: LOGIN TAB (Clean Username or Email & Password)    */}
+        {/* VIEW 1: LOGIN TAB (Credentials Input)                    */}
         {/* ========================================================= */}
-        {activeTab === 'login' && (
+        {activeTab === 'login' && !loginOtpStep && (
           <form onSubmit={handleLoginSubmit} className="space-y-3.5">
             <div>
               <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">
@@ -338,11 +411,11 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
                 className="w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all"
               >
                 {isLoading ? (
-                  <span>AUTHENTICATING...</span>
+                  <span>VALIDATING...</span>
                 ) : (
                   <>
-                    <Key className="w-3.5 h-3.5 text-teal-400" />
-                    <span>LOGIN</span>
+                    <Mail className="w-3.5 h-3.5 text-teal-400" />
+                    <span>VERIFY EMAIL & LOGIN</span>
                   </>
                 )}
               </button>
@@ -362,6 +435,97 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
                 Register here
               </button>
             </div>
+          </form>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW 1B: LOGIN EMAIL OTP CONFIRMATION                    */}
+        {/* ========================================================= */}
+        {activeTab === 'login' && loginOtpStep && (
+          <form onSubmit={handleLoginOtpSubmit} className="space-y-3.5">
+            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+              <div className="font-bold text-xs mb-1 flex items-center gap-1.5">
+                <Mail className="w-4 h-4 text-amber-600" />
+                <span>Email Verification Required</span>
+              </div>
+              <p className="text-[#475569] text-[11px] leading-relaxed">
+                We sent a 6-digit confirmation code to{' '}
+                <strong className="text-[#0F172A]">{pendingLoginUser?.email}</strong>.
+              </p>
+              {simulatedLoginOtp && (
+                <div className="mt-2.5 p-2 rounded-xl bg-white border border-amber-300 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-[#64748B] block">Login Code</span>
+                    <span className="font-mono font-black text-sm text-[#0F172A] tracking-wider">{simulatedLoginOtp}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundFx.playClick();
+                      setLoginOtpCode(simulatedLoginOtp);
+                    }}
+                    className="px-2.5 py-1 rounded bg-[#0F172A] text-white text-[10px] font-bold hover:bg-black transition-all cursor-pointer"
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1 text-center">
+                Enter 6-Digit Login Code
+              </label>
+              <input
+                type="text"
+                maxLength={6}
+                required
+                placeholder="000000"
+                value={loginOtpCode}
+                onChange={(e) => setLoginOtpCode(e.target.value.replace(/\D/g, ''))}
+                className="w-full text-center font-mono font-black text-xl tracking-[0.3em] py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] focus:outline-none focus:border-teal-500 transition-colors shadow-sm"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  soundFx.playClick();
+                  setLoginOtpStep(false);
+                  setLoginOtpCode('');
+                  setErrorMessage('');
+                }}
+                className="text-[#64748B] hover:text-[#0F172A] font-semibold cursor-pointer"
+              >
+                ← Edit credentials
+              </button>
+
+              <button
+                type="button"
+                disabled={loginResendCooldown > 0}
+                onClick={handleResendLoginOtp}
+                className="text-[#0F172A] font-bold disabled:text-[#94A3B8] disabled:cursor-not-allowed cursor-pointer"
+              >
+                {loginResendCooldown > 0 ? `Resend (${loginResendCooldown}s)` : 'Resend code'}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || loginOtpCode.length !== 6}
+              className="w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span>VERIFYING...</span>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                  <span>CONFIRM OTP & LOGIN</span>
+                </>
+              )}
+            </button>
           </form>
         )}
 
