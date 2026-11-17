@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, Key, User, Phone, ArrowLeft, RefreshCw, Send, Check } from 'lucide-react';
+import { X, Lock, Mail, Shield, CheckCircle2, AlertCircle, Eye, EyeOff, Key, User, Phone, ArrowLeft, RefreshCw, Send, Check, KeyRound } from 'lucide-react';
 import { soundFx } from '../utils/audio';
-import { authenticateUser, sendEmailOtp, verifyEmailOtp, registerUser } from '../utils/auth';
+import { authenticateUser, sendEmailOtp, verifyEmailOtp, registerUser, resetUserPassword, getStoredUsers } from '../utils/auth';
 import confetti from 'canvas-confetti';
 
 export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'login' }) => {
-  const [activeTab, setActiveTab] = useState(initialTab || 'login'); // 'login' | 'register'
+  const [activeTab, setActiveTab] = useState(initialTab || 'login'); // 'login' | 'register' | 'forgot'
   
   // Login Form States
   const [loginInput, setLoginInput] = useState('');
@@ -29,6 +29,16 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
   const [otpCode, setOtpCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Forgot Password States
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtpCode, setForgotOtpCode] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
+  const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
+  const [forgotCooldown, setForgotCooldown] = useState(0);
+
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab);
@@ -43,6 +53,135 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
     }
     return () => clearTimeout(timer);
   }, [resendCooldown]);
+
+  // Forgot password countdown timer
+  useEffect(() => {
+    let timer;
+    if (forgotCooldown > 0) {
+      timer = setTimeout(() => setForgotCooldown(forgotCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [forgotCooldown]);
+
+  // Forgot Password - Step 1: Send Verification Code
+  const handleForgotInitiate = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrorMessage('Please enter a valid registered email address.');
+      soundFx.playClick();
+      return;
+    }
+
+    const users = getStoredUsers();
+    const userExists = users.some(u => u.email.toLowerCase() === cleanEmail) || 
+      cleanEmail === 'admin@livetournaments.in' || 
+      cleanEmail === 'lastzetas@gmail.com';
+
+    if (!userExists) {
+      setErrorMessage('No registered account found with this email. Please check your email or register.');
+      soundFx.playClick();
+      return;
+    }
+
+    setIsLoading(true);
+    soundFx.playClick();
+
+    try {
+      const res = await sendEmailOtp(cleanEmail, 'reset');
+      setIsLoading(false);
+
+      if (res.success) {
+        setForgotStep(2);
+        setForgotCooldown(30);
+        soundFx.playModalOpen();
+        setSuccessMessage('A Google verification code has been dispatched to your email.');
+      } else {
+        setErrorMessage('Failed to send verification code. Please try again.');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage('Error sending verification code. Please check your network.');
+    }
+  };
+
+  // Forgot Password - Step 2: Verify Code & Update Password
+  const handleForgotResetSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setErrorMessage('Passwords do not match. Please verify.');
+      soundFx.playClick();
+      return;
+    }
+
+    if (forgotNewPassword.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      soundFx.playClick();
+      return;
+    }
+
+    setIsLoading(true);
+    soundFx.playClick();
+
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    const result = await resetUserPassword({
+      email: cleanEmail,
+      newPassword: forgotNewPassword,
+      otp: forgotOtpCode
+    });
+
+    setIsLoading(false);
+
+    if (result.success) {
+      soundFx.playVictory();
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#2DD4BF', '#14B8A6', '#0F172A']
+      });
+
+      setSuccessMessage('Password reset successfully! Logging you in...');
+      setTimeout(async () => {
+        const autoLogin = await authenticateUser(cleanEmail, forgotNewPassword);
+        if (autoLogin.success) {
+          if (autoLogin.type === 'team') {
+            onLoginSuccess(autoLogin.team, 'team-token', 'team');
+          } else {
+            onLoginSuccess(autoLogin.user, autoLogin.token, autoLogin.user?.role === 'SUPER_ADMIN' ? 'superadmin' : (autoLogin.user?.role === 'ADMIN' ? 'admin' : 'user'));
+          }
+          onClose();
+        } else {
+          setActiveTab('login');
+          setLoginInput(cleanEmail);
+          setLoginPassword(forgotNewPassword);
+          setForgotStep(1);
+        }
+      }, 900);
+    } else {
+      soundFx.playClick();
+      setErrorMessage(result.message || 'Verification failed. Please check the code.');
+    }
+  };
+
+  // Resend Forgot Password OTP
+  const handleResendForgotOtp = async () => {
+    if (forgotCooldown > 0) return;
+    soundFx.playClick();
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    const res = await sendEmailOtp(cleanEmail, 'reset');
+    if (res.success) {
+      setForgotCooldown(30);
+      setSuccessMessage('A fresh verification code has been dispatched.');
+      setTimeout(() => setSuccessMessage(''), 4000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -218,14 +357,15 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
           </p>
         </div>
 
-        {/* Tab Switcher: LOGIN and REGISTER ONLY */}
-        <div className="grid grid-cols-2 p-1 rounded-2xl bg-white border border-[#CBD5E1] mb-4 shadow-inner">
+        {/* Tab Switcher: LOGIN, REGISTER, and FORGOT */}
+        <div className={`grid ${activeTab === 'forgot' ? 'grid-cols-3' : 'grid-cols-2'} p-1 rounded-2xl bg-white border border-[#CBD5E1] mb-4 shadow-inner`}>
           <button
             type="button"
             onClick={() => {
               soundFx.playClick();
               setActiveTab('login');
               setOtpStep(false);
+              setForgotStep(1);
               setErrorMessage('');
               setSuccessMessage('');
             }}
@@ -245,6 +385,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
               soundFx.playClick();
               setActiveTab('register');
               setOtpStep(false);
+              setForgotStep(1);
               setErrorMessage('');
               setSuccessMessage('');
             }}
@@ -257,6 +398,16 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
             <Key className="w-3.5 h-3.5 text-[#E5C05B]" />
             <span>REGISTER</span>
           </button>
+
+          {activeTab === 'forgot' && (
+            <button
+              type="button"
+              className="py-2 rounded-xl text-xs font-bold uppercase bg-[#0F172A] text-white shadow-sm flex items-center justify-center gap-1.5 cursor-default"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span>RESET</span>
+            </button>
+          )}
         </div>
 
         {/* Error Alert */}
@@ -323,6 +474,23 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
                   title={showLoginPassword ? "Hide password" : "Show password"}
                 >
                   {showLoginPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setActiveTab('forgot');
+                    setForgotStep(1);
+                    setForgotEmail(loginInput.includes('@') ? loginInput : '');
+                    setErrorMessage('');
+                    setSuccessMessage('');
+                  }}
+                  className="text-[11px] font-semibold text-teal-700 hover:text-teal-900 underline cursor-pointer flex items-center gap-1"
+                >
+                  <KeyRound className="w-3 h-3 text-teal-600" />
+                  <span>Forgot Password?</span>
                 </button>
               </div>
             </div>
@@ -575,6 +743,210 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess, initialTab = 'logi
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${resendCooldown > 0 ? '' : 'text-teal-700'}`} />
                       <span>{resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW 3: FORGOT PASSWORD TAB                              */}
+        {/* ========================================================= */}
+        {activeTab === 'forgot' && (
+          <div>
+            {forgotStep === 1 ? (
+              /* Step 3A: Enter Email for Reset */
+              <form onSubmit={handleForgotInitiate} className="space-y-3.5">
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                  <div className="font-bold mb-1 flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Password Recovery</span>
+                  </div>
+                  <p className="text-[#475569] text-[11px] leading-relaxed">
+                    Enter your registered email address. We'll send an official Google verification code to verify your identity.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">
+                    Registered Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                      <Mail className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-[#CBD5E1] focus:border-teal-500 text-[#0F172A] font-sans text-xs focus:outline-none shadow-sm"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading || !forgotEmail.trim()}
+                    className="w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <span>SENDING CODE...</span>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5 text-amber-400" />
+                        <span>SEND GOOGLE VERIFICATION CODE</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundFx.playClick();
+                      setActiveTab('login');
+                      setErrorMessage('');
+                      setSuccessMessage('');
+                    }}
+                    className="text-[11px] font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    <span>Back to Login</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Step 3B: Verify Code & Set New Password */
+              <form onSubmit={handleForgotResetSubmit} className="space-y-3">
+                <div className="text-center space-y-1">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-600">
+                    <Shield className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <h4 className="font-extrabold text-xs sm:text-sm text-[#0F172A] uppercase">
+                    Verify Reset Code
+                  </h4>
+                  <p className="text-[11px] text-[#64748B]">
+                    Google verification code dispatched to:
+                  </p>
+                  <strong className="text-[11px] text-[#0F172A] font-mono block">
+                    {forgotEmail}
+                  </strong>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1 text-center">
+                    Enter Google Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={8}
+                    placeholder="G-XXXXXX or 6 digits"
+                    value={forgotOtpCode}
+                    onChange={(e) => setForgotOtpCode(e.target.value.toUpperCase())}
+                    className="w-full text-center py-2 rounded-xl bg-white border border-[#CBD5E1] focus:border-teal-500 text-lg font-mono font-bold tracking-[0.25em] text-[#0F172A] focus:outline-none shadow-sm"
+                    autoFocus
+                  />
+                  <p className="text-[10px] text-[#94A3B8] text-center mt-0.5">
+                    Format: <strong>G-XXXXXX</strong> or 6-digit number
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type={showForgotNewPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Minimum 6 characters"
+                      value={forgotNewPassword}
+                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      className="w-full pl-9 pr-9 py-2 rounded-xl bg-white border border-[#CBD5E1] focus:border-teal-500 text-[#0F172A] font-sans text-xs focus:outline-none shadow-sm tracking-wider"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#0F172A] cursor-pointer"
+                    >
+                      {showForgotNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type={showForgotConfirmPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Re-enter new password"
+                      value={forgotConfirmPassword}
+                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      className="w-full pl-9 pr-9 py-2 rounded-xl bg-white border border-[#CBD5E1] focus:border-teal-500 text-[#0F172A] font-sans text-xs focus:outline-none shadow-sm tracking-wider"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#0F172A] cursor-pointer"
+                    >
+                      {showForgotConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={isLoading || forgotOtpCode.trim().length < 6}
+                    className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <span>UPDATING PASSWORD...</span>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 text-white" />
+                        <span>CONFIRM & RESET PASSWORD</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setForgotStep(1)}
+                      className="text-[#64748B] hover:text-[#0F172A] flex items-center gap-1 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Change Email</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={forgotCooldown > 0}
+                      onClick={handleResendForgotOtp}
+                      className={`flex items-center gap-1 cursor-pointer ${
+                        forgotCooldown > 0 ? 'text-[#94A3B8] cursor-not-allowed' : 'text-teal-700 font-bold hover:underline'
+                      }`}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${forgotCooldown > 0 ? '' : 'text-teal-700'}`} />
+                      <span>{forgotCooldown > 0 ? `Resend in ${forgotCooldown}s` : 'Resend Code'}</span>
                     </button>
                   </div>
                 </div>

@@ -23,29 +23,60 @@ export const getStoredUsers = () => {
   }
 };
 
-export const sendEmailOtp = async (email) => {
+export const sendEmailOtp = async (email, purpose = 'registration') => {
   const cleanEmail = (email || '').trim().toLowerCase();
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiry = Date.now() + (10 * 60 * 1000); // 10 minutes expiry
 
   try {
     const otps = JSON.parse(localStorage.getItem(OTP_STORAGE_KEY) || '{}');
-    otps[cleanEmail] = { otp, expiry };
+    otps[cleanEmail] = { otp, expiry, purpose };
     localStorage.setItem(OTP_STORAGE_KEY, JSON.stringify(otps));
   } catch (e) {
     console.warn('Failed to store OTP:', e);
   }
 
-  // Attempt remote dispatch / server trigger if available
+  // Remote dispatch via Gmail SMTP serverless endpoint
+  let emailSent = false;
+  let emailError = null;
+
   try {
-    fetch('/api/send-otp', {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const response = await fetch('/api/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: cleanEmail, otp })
-    }).catch(() => {});
-  } catch (e) {}
+      body: JSON.stringify({ email: cleanEmail, otp, purpose }),
+      signal: controller.signal
+    });
 
-  return { success: true, email: cleanEmail, otp };
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      emailSent = !!data.emailSent;
+      emailError = data.emailError || null;
+      console.log(`[OTP Client] Server dispatch result for ${cleanEmail}: emailSent=${emailSent}`, data);
+    } else {
+      console.warn(`[OTP Client] Server dispatch returned status ${response.status}`);
+      emailError = `Server returned status ${response.status}`;
+    }
+  } catch (e) {
+    console.warn('[OTP Client] Network/fetch error while dispatching email OTP:', e.message);
+    emailError = e.message;
+  }
+
+  return { 
+    success: true, 
+    email: cleanEmail, 
+    otp, 
+    emailSent, 
+    emailError,
+    message: emailSent 
+      ? 'Verification code dispatched to your Gmail inbox!' 
+      : 'Verification code generated'
+  };
 };
 
 export const verifyEmailOtp = (email, inputOtp) => {
@@ -79,6 +110,56 @@ export const verifyEmailOtp = (email, inputOtp) => {
   } catch (e) {
     return { success: false, message: 'Verification failed. Please try again.' };
   }
+};
+
+export const resetUserPassword = async ({ email, newPassword, otp }) => {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!cleanEmail || !newPassword) {
+    return { success: false, message: 'Email and new password are required.' };
+  }
+
+  if (newPassword.length < 6) {
+    return { success: false, message: 'Password must be at least 6 characters long.' };
+  }
+
+  // 1. Verify OTP code
+  const verifyRes = verifyEmailOtp(cleanEmail, otp);
+  if (!verifyRes.success) {
+    return verifyRes;
+  }
+
+  // 2. Hash new password
+  const passwordHash = await hashPassword(newPassword);
+
+  // 3. Update in local storage
+  const users = getStoredUsers();
+  const userIdx = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+
+  if (userIdx >= 0) {
+    users[userIdx].passwordHash = passwordHash;
+    users[userIdx].updatedAt = new Date().toISOString();
+    try {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    } catch (e) {
+      console.warn('Failed to update user in localStorage:', e);
+    }
+  }
+
+  // 4. Update on server if available
+  try {
+    await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail, password: newPassword, otp })
+    });
+  } catch (e) {
+    console.warn('Server reset-password sync error:', e);
+  }
+
+  return {
+    success: true,
+    message: 'Your password has been successfully reset! You can now log in.'
+  };
 };
 
 export const registerUser = async ({ name, email, phone, password }) => {
