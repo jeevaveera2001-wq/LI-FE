@@ -18,12 +18,13 @@ import { TeamPortal } from './components/TeamPortal';
 import { MobileDrawer } from './components/MobileDrawer';
 import { FullPageAuth } from './components/FullPageAuth';
 import { FullPageTournamentsOverview } from './components/FullPageTournamentsOverview';
+import { FullPageTournamentRegistration } from './components/FullPageTournamentRegistration';
 import { getActiveSession, logoutUser } from './utils/auth';
 import { soundFx } from './utils/audio';
 
 export function App() {
   const [activeSection, setActiveSection] = useState('hero');
-  // Full-page View Router: 'portal' | 'auth' | 'overview' | 'superadmin' | 'admin' | 'team'
+  // Full-page View Router: 'portal' | 'auth' | 'overview' | 'registration' | 'superadmin' | 'admin' | 'team'
   const [currentView, setCurrentView] = useState('portal');
 
   // Interactive Modals State
@@ -52,7 +53,7 @@ export function App() {
 
   const handleOpenTournamentModal = (tournament) => {
     setSelectedTournament(tournament || null);
-    setIsTournamentModalOpen(true);
+    setCurrentView('registration');
   };
 
   const handleCloseTournamentModal = () => {
@@ -237,11 +238,24 @@ export function App() {
         onBackToPortal={() => setCurrentView('portal')}
         onOpenAdmin={() => setCurrentView('admin')}
         onOpenSuperAdmin={() => setCurrentView('superadmin')}
+        onOpenRegisterTournament={handleOpenTournamentModal}
       />
     );
   }
 
-  // VIEW 6: PUBLIC PORTAL (FULL SCREEN)
+  // VIEW 6: FULL-PAGE WHITE-BACKGROUND TOURNAMENT REGISTRATION (ENTIRE PAGE, NOT FLOATING)
+  if (currentView === 'registration') {
+    return (
+      <FullPageTournamentRegistration
+        selectedTournament={selectedTournament}
+        currentUser={currentUser}
+        onBackToPortal={() => setCurrentView('portal')}
+        onOpenOverview={() => setCurrentView('overview')}
+      />
+    );
+  }
+
+  // VIEW 7: PUBLIC PORTAL (FULL SCREEN)
   return (
     <div className="min-h-screen bg-[#090B0E] text-[#E2E8F0] font-sans flex antialiased selection:bg-[#E5C05B]/30 selection:text-[#E5C05B]">
       

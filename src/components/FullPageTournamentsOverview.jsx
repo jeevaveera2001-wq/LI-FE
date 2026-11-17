@@ -9,7 +9,8 @@ export const FullPageTournamentsOverview = ({
   onLogout,
   onBackToPortal,
   onOpenAdmin,
-  onOpenSuperAdmin
+  onOpenSuperAdmin,
+  onOpenRegisterTournament
 }) => {
   // Category state (matching user's reference UI)
   const [matchCategory, setMatchCategory] = useState('SQUAD'); // 'SQUAD' | 'DUO' | 'SOLO'
@@ -507,8 +508,12 @@ export const FullPageTournamentsOverview = ({
                       type="button"
                       onClick={() => {
                         soundFx.playModalOpen();
-                        setRegisteringItem(tournament);
-                        setRegistrationSuccessData(null);
+                        if (onOpenRegisterTournament) {
+                          onOpenRegisterTournament(tournament);
+                        } else {
+                          setRegisteringItem(tournament);
+                          setRegistrationSuccessData(null);
+                        }
                       }}
                       className="mt-4 w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                     >
@@ -585,8 +590,12 @@ export const FullPageTournamentsOverview = ({
                     type="button"
                     onClick={() => {
                       soundFx.playModalOpen();
-                      setRegisteringItem(item);
-                      setRegistrationSuccessData(null);
+                      if (onOpenRegisterTournament) {
+                        onOpenRegisterTournament(item);
+                      } else {
+                        setRegisteringItem(item);
+                        setRegistrationSuccessData(null);
+                      }
                     }}
                     className="mt-4 w-full py-2.5 rounded-xl bg-white border border-[#CBD5E1] hover:bg-slate-100 text-[#0F172A] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                   >
@@ -657,8 +666,12 @@ export const FullPageTournamentsOverview = ({
                     type="button"
                     onClick={() => {
                       soundFx.playModalOpen();
-                      setRegisteringItem(scrim);
-                      setRegistrationSuccessData(null);
+                      if (onOpenRegisterTournament) {
+                        onOpenRegisterTournament(scrim);
+                      } else {
+                        setRegisteringItem(scrim);
+                        setRegistrationSuccessData(null);
+                      }
                     }}
                     className="mt-4 w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                   >
