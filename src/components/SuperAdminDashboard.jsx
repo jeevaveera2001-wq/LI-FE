@@ -495,7 +495,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       {/* ========================================================
           LEFT DARK SIDEBAR (EXACT media_1795009600879_721f2f3a.jpg REPLICA)
           ======================================================== */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-[#0E0E10] text-[#9CA3AF] flex flex-col border-r border-[#1F2937] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside
+        style={{ minHeight: '100vh', width: '240px', backgroundColor: '#0E0E10' }}
+        className={`w-60 bg-[#0E0E10] text-[#9CA3AF] flex-col border-r border-[#1F2937] shrink-0 z-50 transition-all duration-200 ${
+          sidebarOpen ? 'fixed inset-y-0 left-0 flex shadow-2xl' : 'hidden lg:flex'
+        }`}
+      >
         {/* Brand & Crest Header */}
         <div className="px-4 py-4 border-b border-[#1F2937]/80 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -757,10 +762,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             {/* Black Action Button (Matches [+ New Bill] in image) */}
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
+              style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[15px]">add</span>
-              <span>New Bill</span>
+              <span className="material-symbols-outlined text-[15px] !text-white">add</span>
+              <span className="!text-white">New Bill</span>
             </button>
 
             {/* User Profile Pill with Avatar Circle */}
