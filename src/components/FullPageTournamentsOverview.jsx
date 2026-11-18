@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Swords, Trophy, Calendar, Shield, Users, User, ArrowLeft, LogOut, Search, Clock, MapPin, CheckCircle2, ChevronRight, AlertCircle, Sparkles, Filter, Check, Copy, Flame } from 'lucide-react';
 import { soundFx } from '../utils/audio';
-import { getStoredTournaments, getStoredHallOfFame, submitTournamentRegistration, getStoredRegistrations } from '../utils/portalData';
+import { getStoredTournaments, getStoredHallOfFame, submitTournamentRegistration, getStoredRegistrations, getTournamentBanner } from '../utils/portalData';
 import confetti from 'canvas-confetti';
 
 export const FullPageTournamentsOverview = ({
@@ -56,7 +56,7 @@ export const FullPageTournamentsOverview = ({
   const upcomingTournaments = [
     {
       id: 'up-1',
-      title: 'UPCOMING TOURNAMENT 1 (SOLO WAR)',
+      title: 'UPCOMING TOURNAMENT 1 (SOLO CLASH)',
       category: 'SOLO',
       format: 'Solo TPP Sanhok',
       prize: '₹2,50,000 INR',
@@ -70,7 +70,7 @@ export const FullPageTournamentsOverview = ({
     },
     {
       id: 'up-2',
-      title: 'UPCOMING TOURNAMENT 2 (DUO WAR)',
+      title: 'UPCOMING TOURNAMENT 2 (DUO SHOWDOWN)',
       category: 'DUO',
       format: 'Duo TPP Miramar',
       prize: '₹2,50,000 INR',
@@ -84,7 +84,7 @@ export const FullPageTournamentsOverview = ({
     },
     {
       id: 'up-3',
-      title: 'UPCOMING TOURNAMENT 3 (SQUAD WAR)',
+      title: 'UPCOMING TOURNAMENT 3 (SQUAD CHAMPIONSHIP)',
       category: 'SQUAD',
       format: 'Squad TPP Erangel',
       prize: '₹2,50,000 INR',
@@ -94,11 +94,11 @@ export const FullPageTournamentsOverview = ({
       totalSlots: 25,
       filledSlots: 9,
       status: 'UPCOMING',
-      tag: 'SQUAD WAR'
+      tag: 'SQUAD CHAMPIONSHIP'
     },
     {
       id: 'up-4',
-      title: 'UPCOMING TOURNAMENT 4 (CHAMPIONSHIP)',
+      title: 'UPCOMING TOURNAMENT 4 (MEGA FINALE)',
       category: 'SQUAD',
       format: 'Squad TPP All Maps',
       prize: '₹5,00,000 INR',
@@ -112,7 +112,7 @@ export const FullPageTournamentsOverview = ({
     }
   ];
 
-  // Daily Scrims Schedule Data
+  // Daily Scrims Schedule Data (STRICTLY SQUAD MATCH ONLY - NO DUO OR SOLO IN SCRIMS)
   const dailyScrims = [
     {
       id: 'scrim-1',
@@ -125,7 +125,7 @@ export const FullPageTournamentsOverview = ({
       totalSlots: 25,
       filledSlots: 21,
       status: 'OPEN',
-      mode: 'Custom Competitive Room'
+      mode: 'Custom Competitive Room (25 Squads Limit)'
     },
     {
       id: 'scrim-2',
@@ -138,11 +138,11 @@ export const FullPageTournamentsOverview = ({
       totalSlots: 25,
       filledSlots: 18,
       status: 'OPEN',
-      mode: 'Custom Competitive Room'
+      mode: 'Custom Competitive Room (25 Squads Limit)'
     },
     {
       id: 'scrim-3',
-      title: 'HIGH-KILL SPRINT SCRIM (MATCH 3)',
+      title: 'HIGH-KILL SPRINT SQUAD SCRIM (MATCH 3)',
       category: 'SQUAD',
       format: 'Squad TPP Sanhok',
       time: '9:00 PM IST',
@@ -151,33 +151,20 @@ export const FullPageTournamentsOverview = ({
       totalSlots: 25,
       filledSlots: 15,
       status: 'OPEN',
-      mode: 'Custom Competitive Room'
+      mode: 'Custom Competitive Room (25 Squads Limit)'
     },
     {
       id: 'scrim-4',
-      title: 'DUO INTENSE PRACTICE SCRIM',
-      category: 'DUO',
-      format: 'Duo TPP Miramar',
-      time: '6:00 PM IST',
-      checkinTime: '5:45 PM IST',
-      map: 'Miramar',
-      totalSlots: 50,
-      filledSlots: 38,
+      title: 'NIGHT ELITE SQUAD SCRIM (MATCH 4)',
+      category: 'SQUAD',
+      format: 'Squad TPP Vikendi',
+      time: '11:00 PM IST',
+      checkinTime: '10:45 PM IST',
+      map: 'Vikendi',
+      totalSlots: 25,
+      filledSlots: 19,
       status: 'OPEN',
-      mode: 'Custom Competitive Room'
-    },
-    {
-      id: 'scrim-5',
-      title: 'SOLO DEATHMATCH BOOTCAMP SCRIM',
-      category: 'SOLO',
-      format: 'Solo TPP Sanhok',
-      time: '8:00 PM IST',
-      checkinTime: '7:45 PM IST',
-      map: 'Sanhok',
-      totalSlots: 100,
-      filledSlots: 82,
-      status: 'OPEN',
-      mode: 'Custom Competitive Room'
+      mode: 'Custom Competitive Room (25 Squads Limit)'
     }
   ];
 
@@ -194,10 +181,8 @@ export const FullPageTournamentsOverview = ({
     return t.category === matchCategory;
   });
 
-  // Filter Scrims by category
-  const filteredScrims = dailyScrims.filter(s => {
-    return s.category === matchCategory;
-  });
+  // Daily Scrims are strictly SQUAD ONLY (no Duo or Single in Scrims)
+  const filteredScrims = dailyScrims;
 
   // Standings Leaderboard for current category
   const currentLeaderboard = hofData[matchCategory] || getStoredHallOfFame(matchCategory) || [];
@@ -351,67 +336,79 @@ export const FullPageTournamentsOverview = ({
           </div>
         </div>
 
-        {/* Filter Controls Row (MATCH CATEGORY - Matching the User's Screenshot Exactly) */}
+        {/* Filter Controls Row (MATCH CATEGORY for Tournaments, or SQUAD ONLY for Scrims) */}
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           
-          {/* Match Category Buttons (SQUAD / DUO / SOLO) */}
+          {/* Match Category Section */}
           <div>
             <span className="text-[11px] font-black uppercase tracking-wider text-[#64748B] block mb-1.5">
-              MATCH CATEGORY
+              {activeTab === 'SCRIMS' ? 'SCRIMS MATCH FORMAT' : 'MATCH CATEGORY'}
             </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  soundFx.playClick();
-                  setMatchCategory('SQUAD');
-                }}
-                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  matchCategory === 'SQUAD'
-                    ? 'bg-[#0F172A] text-white shadow-xs'
-                    : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
-                }`}
-              >
-                SQUAD (4P)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  soundFx.playClick();
-                  setMatchCategory('DUO');
-                }}
-                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  matchCategory === 'DUO'
-                    ? 'bg-[#0F172A] text-white shadow-xs'
-                    : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
-                }`}
-              >
-                DUO (2P)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  soundFx.playClick();
-                  setMatchCategory('SOLO');
-                }}
-                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  matchCategory === 'SOLO'
-                    ? 'bg-[#0F172A] text-white shadow-xs'
-                    : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
-                }`}
-              >
-                SOLO (1P)
-              </button>
-            </div>
+            {activeTab === 'SCRIMS' ? (
+              <div className="flex items-center gap-2">
+                <span className="px-5 py-2 rounded-full text-xs font-bold bg-[#0F172A] text-white flex items-center gap-1.5 shadow-xs">
+                  <Shield className="w-3.5 h-3.5 text-amber-400" />
+                  <span>SQUAD MATCH ONLY (4 PLAYERS + 1 SUB)</span>
+                </span>
+                <span className="text-xs text-amber-700 font-semibold hidden sm:inline">
+                  • 25 Squads Competitive Capacity
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setMatchCategory('SQUAD');
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    matchCategory === 'SQUAD'
+                      ? 'bg-[#0F172A] text-white shadow-xs'
+                      : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
+                  }`}
+                >
+                  SQUAD (4P)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setMatchCategory('DUO');
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    matchCategory === 'DUO'
+                      ? 'bg-[#0F172A] text-white shadow-xs'
+                      : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
+                  }`}
+                >
+                  DUO (2P)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundFx.playClick();
+                    setMatchCategory('SOLO');
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    matchCategory === 'SOLO'
+                      ? 'bg-[#0F172A] text-white shadow-xs'
+                      : 'bg-white border border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
+                  }`}
+                >
+                  SOLO (1P)
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Section View Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
             {[
               { id: 'ALL', label: 'All Overview' },
-              { id: 'LIVE', label: 'Live Tournaments' },
+              { id: 'LIVE', label: 'Tournaments Hub' },
               { id: 'UPCOMING', label: 'Upcoming Tournaments' },
-              { id: 'SCRIMS', label: 'Daily Scrims' },
+              { id: 'SCRIMS', label: 'Daily Scrims (Squad Only)' },
               { id: 'LEADERBOARD', label: 'Scrims Standings' }
             ].map(tab => (
               <button
@@ -419,6 +416,9 @@ export const FullPageTournamentsOverview = ({
                 onClick={() => {
                   soundFx.playClick();
                   setActiveTab(tab.id);
+                  if (tab.id === 'SCRIMS') {
+                    setMatchCategory('SQUAD');
+                  }
                 }}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === tab.id
@@ -433,7 +433,7 @@ export const FullPageTournamentsOverview = ({
         </div>
 
         {/* ======================================================== */}
-        {/* SECTION 1: LIVE TOURNAMENTS                             */}
+        {/* SECTION 1: TOURNAMENTS HUB (CARD SECTIONS)              */}
         {/* ======================================================== */}
         {(activeTab === 'ALL' || activeTab === 'LIVE') && (
           <section className="space-y-4">
@@ -441,7 +441,7 @@ export const FullPageTournamentsOverview = ({
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-500" />
                 <h2 className="font-montserrat font-bold text-lg text-[#0F172A] uppercase tracking-wide">
-                  Live Tournaments ({matchCategory} Format)
+                  Tournaments Hub ({matchCategory} Format)
                 </h2>
               </div>
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
@@ -455,15 +455,41 @@ export const FullPageTournamentsOverview = ({
                 filteredLive.slice(0, 4).map((tournament, idx) => (
                   <div
                     key={tournament.id || idx}
-                    className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs hover:shadow-md hover:border-[#CBD5E1] transition-all flex flex-col justify-between"
+                    className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                   >
                     <div>
-                      {/* Card Header */}
-                      <div className="flex items-center justify-between text-[11px] font-bold mb-2">
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
-                          Active War
-                        </span>
-                        <span className="text-[#64748B]">{tournament.category || 'BOTSQUADWAR'}</span>
+                      {/* Esports Card Banner Header */}
+                      <div className="relative h-28 rounded-xl overflow-hidden bg-black/80 p-3 flex flex-col justify-between mb-3 text-white border border-slate-700 shadow-xs group">
+                        {/* Tournament Banner Image */}
+                        <img
+                          src={getTournamentBanner(tournament)}
+                          alt={tournament.title || 'Tournament Banner'}
+                          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.72] contrast-[1.15] group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            e.target.src = '/assets/banners/championship.jpg';
+                          }}
+                        />
+                        {/* Vignette gradients for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/30 pointer-events-none" />
+                        <div className="absolute inset-0 bg-radial from-amber-500/10 via-transparent to-black/40 pointer-events-none" />
+
+                        <div className="flex items-center justify-between z-10">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/25 backdrop-blur-md border border-emerald-400/50 text-emerald-300 text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Live Tournament
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-amber-300 text-[9px] font-mono font-bold uppercase border border-amber-400/30">
+                            {tournament.category || 'PROSQUAD'}
+                          </span>
+                        </div>
+                        <div className="flex items-end justify-between z-10">
+                          <div className="text-[11px] font-semibold text-slate-200 drop-shadow">
+                            Map: <strong className="text-white font-bold">{tournament.map || 'Erangel'}</strong>
+                          </div>
+                          <span className="text-amber-400 font-extrabold font-mono text-sm tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                            {tournament.prizePool || tournament.prize || '₹2,50,000 INR'}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Title */}
@@ -471,31 +497,27 @@ export const FullPageTournamentsOverview = ({
                         {tournament.title}
                       </h3>
 
-                      {/* Details */}
-                      <div className="mt-3 space-y-1.5 text-xs text-[#475569]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#64748B]">Map:</span>
-                          <span className="font-bold text-[#0F172A]">{tournament.map || 'Erangel'}</span>
+                      {/* 3-Column Match Specs Pill */}
+                      <div className="mt-2.5 grid grid-cols-3 gap-1 text-center text-[10px] font-mono bg-[#F8FAFC] p-2 rounded-xl border border-[#E2E8F0]">
+                        <div>
+                          <span className="text-[#64748B] block font-sans text-[9px]">Map</span>
+                          <strong className="text-[#0F172A] truncate block">{tournament.map || 'Erangel'}</strong>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#64748B]">Format:</span>
-                          <span className="font-bold text-[#0F172A]">{tournament.format || 'Squad War'}</span>
+                        <div className="border-x border-[#E2E8F0]">
+                          <span className="text-[#64748B] block font-sans text-[9px]">Format</span>
+                          <strong className="text-teal-700 truncate block">{matchCategory}</strong>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#64748B]">Prize:</span>
-                          <span className="font-bold text-amber-600">{tournament.prizePool || tournament.prize || '₹2,50,000 INR'}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#64748B]">Slots:</span>
-                          <span className="font-bold text-[#0F172A]">{tournament.totalSlots || 25} Squads Limit</span>
+                        <div>
+                          <span className="text-[#64748B] block font-sans text-[9px]">Cap</span>
+                          <strong className="text-amber-700 truncate block">{tournament.totalSlots || 25} Limit</strong>
                         </div>
                       </div>
 
-                      {/* Slot Progress Bar */}
+                      {/* Slot Capacity Progress Bar */}
                       <div className="mt-3">
                         <div className="flex justify-between text-[10px] text-[#64748B] mb-1 font-semibold">
-                          <span>Slots Filled</span>
-                          <span>18 / {tournament.totalSlots || 25} (72%)</span>
+                          <span>Slots Reserved</span>
+                          <span className="font-bold text-[#0F172A]">18 / {tournament.totalSlots || 25} (72%)</span>
                         </div>
                         <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
                           <div className="bg-[#0F172A] h-full rounded-full" style={{ width: '72%' }} />
@@ -509,9 +531,19 @@ export const FullPageTournamentsOverview = ({
                       onClick={() => {
                         soundFx.playModalOpen();
                         if (onOpenRegisterTournament) {
-                          onOpenRegisterTournament(tournament);
+                          onOpenRegisterTournament({
+                            ...tournament,
+                            category: matchCategory,
+                            matchCategory,
+                            format: tournament.format || `${matchCategory} TPP`
+                          });
                         } else {
-                          setRegisteringItem(tournament);
+                          setRegisteringItem({
+                            ...tournament,
+                            category: matchCategory,
+                            matchCategory,
+                            format: tournament.format || `${matchCategory} TPP`
+                          });
                           setRegistrationSuccessData(null);
                         }
                       }}
@@ -532,7 +564,7 @@ export const FullPageTournamentsOverview = ({
         )}
 
         {/* ======================================================== */}
-        {/* SECTION 2: UPCOMING TOURNAMENTS                         */}
+        {/* SECTION 2: UPCOMING TOURNAMENTS (CARD SECTIONS)         */}
         {/* ======================================================== */}
         {(activeTab === 'ALL' || activeTab === 'UPCOMING') && (
           <section className="space-y-4">
@@ -552,36 +584,54 @@ export const FullPageTournamentsOverview = ({
               {filteredUpcoming.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs hover:shadow-md hover:border-[#CBD5E1] transition-all flex flex-col justify-between"
+                  className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between text-[11px] font-bold mb-2">
-                      <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 uppercase">
-                        {item.tag}
-                      </span>
-                      <span className="text-[#64748B]">{item.time}</span>
+                    {/* Card Banner Header */}
+                    <div className="relative h-28 rounded-xl overflow-hidden bg-black/80 p-3 flex flex-col justify-between mb-3 text-white border border-slate-700 shadow-xs group">
+                      {/* Tournament Banner Image */}
+                      <img
+                        src={getTournamentBanner(item)}
+                        alt={item.title || 'Upcoming Tournament Banner'}
+                        className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.72] contrast-[1.15] group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = '/assets/banners/championship.jpg';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/30 pointer-events-none" />
+                      <div className="absolute inset-0 bg-radial from-blue-500/10 via-transparent to-black/40 pointer-events-none" />
+
+                      <div className="flex items-center justify-between z-10">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/25 backdrop-blur-md border border-blue-400/50 text-blue-300 text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                          <Calendar className="w-3 h-3 text-blue-300" />
+                          {item.tag || 'UPCOMING'}
+                        </span>
+                        <span className="text-[10px] text-slate-200 font-mono font-semibold bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                          {item.time}
+                        </span>
+                      </div>
+                      <div className="flex items-end justify-between z-10">
+                        <div className="text-[11px] font-semibold text-slate-200 drop-shadow">
+                          {item.date}
+                        </div>
+                        <span className="text-amber-400 font-extrabold font-mono text-sm tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                          {item.prize}
+                        </span>
+                      </div>
                     </div>
 
                     <h3 className="font-montserrat font-extrabold text-sm text-[#0F172A] leading-snug">
                       {item.title}
                     </h3>
 
-                    <div className="mt-3 space-y-1.5 text-xs text-[#475569]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Schedule:</span>
-                        <span className="font-bold text-[#0F172A]">{item.date}</span>
+                    <div className="mt-2.5 grid grid-cols-2 gap-1 text-center text-[10px] font-mono bg-[#F8FAFC] p-2 rounded-xl border border-[#E2E8F0]">
+                      <div>
+                        <span className="text-[#64748B] block font-sans text-[9px]">Map</span>
+                        <strong className="text-[#0F172A] truncate block">{item.map}</strong>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Format & Map:</span>
-                        <span className="font-bold text-[#0F172A]">{item.format}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Prize Pool:</span>
-                        <span className="font-bold text-amber-600">{item.prize}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Cap:</span>
-                        <span className="font-bold text-[#0F172A]">{item.totalSlots} Slots</span>
+                      <div>
+                        <span className="text-[#64748B] block font-sans text-[9px]">Capacity</span>
+                        <strong className="text-blue-700 truncate block">{item.totalSlots} Slots</strong>
                       </div>
                     </div>
                   </div>
@@ -591,15 +641,26 @@ export const FullPageTournamentsOverview = ({
                     onClick={() => {
                       soundFx.playModalOpen();
                       if (onOpenRegisterTournament) {
-                        onOpenRegisterTournament(item);
+                        onOpenRegisterTournament({
+                          ...item,
+                          category: matchCategory,
+                          matchCategory,
+                          format: item.format || `${matchCategory} TPP`
+                        });
                       } else {
-                        setRegisteringItem(item);
+                        setRegisteringItem({
+                          ...item,
+                          category: matchCategory,
+                          matchCategory,
+                          format: item.format || `${matchCategory} TPP`
+                        });
                         setRegistrationSuccessData(null);
                       }
                     }}
-                    className="mt-4 w-full py-2.5 rounded-xl bg-white border border-[#CBD5E1] hover:bg-slate-100 text-[#0F172A] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                    className="mt-4 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                   >
-                    <span>Pre-Register Now</span>
+                    <Calendar className="w-3.5 h-3.5 text-blue-200" />
+                    <span>Pre-Register {matchCategory}</span>
                   </button>
                 </div>
               ))}
@@ -608,7 +669,7 @@ export const FullPageTournamentsOverview = ({
         )}
 
         {/* ======================================================== */}
-        {/* SECTION 3: DAILY SCRIMS SCHEDULE                        */}
+        {/* SECTION 3: DAILY SCRIMS (SQUAD ONLY • 25 SQUADS LIMIT)  */}
         {/* ======================================================== */}
         {(activeTab === 'ALL' || activeTab === 'SCRIMS') && (
           <section className="space-y-4">
@@ -616,48 +677,71 @@ export const FullPageTournamentsOverview = ({
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-orange-500" />
                 <h2 className="font-montserrat font-bold text-lg text-[#0F172A] uppercase tracking-wide">
-                  Daily Scrims & Custom Room Schedule
+                  Daily Scrims Schedule (Squad Match Only)
                 </h2>
               </div>
-              <span className="text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full">
-                Daily Practice Lobbies
+              <span className="text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <Shield className="w-3 h-3 text-orange-500" />
+                Squad Only • 25 Slots
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {filteredScrims.map((scrim) => (
                 <div
                   key={scrim.id}
-                  className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs hover:border-[#CBD5E1] transition-all flex flex-col justify-between"
+                  className="bg-white border border-[#CBD5E1] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
                 >
                   <div>
-                    <div className="flex items-center justify-between text-xs font-bold mb-2">
-                      <span className="px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 uppercase">
-                        {scrim.category} SCRIM
-                      </span>
-                      <span className="text-emerald-700 font-bold">{scrim.filledSlots}/{scrim.totalSlots} Slots</span>
+                    {/* Scrims Banner Header */}
+                    <div className="relative h-28 rounded-xl overflow-hidden bg-black/80 p-3 flex flex-col justify-between mb-3 text-white border border-slate-700 shadow-xs group">
+                      {/* Scrim Banner Image */}
+                      <img
+                        src={getTournamentBanner(scrim)}
+                        alt={scrim.title || 'Daily Scrim Banner'}
+                        className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.72] contrast-[1.15] group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = '/assets/banners/erangel.jpg';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/30 pointer-events-none" />
+                      <div className="absolute inset-0 bg-radial from-orange-500/10 via-transparent to-black/40 pointer-events-none" />
+
+                      <div className="flex items-center justify-between z-10">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-500/25 backdrop-blur-md border border-orange-400/50 text-orange-300 text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                          <Flame className="w-3 h-3 text-orange-400" />
+                          SQUAD SCRIM
+                        </span>
+                        <span className="text-emerald-400 font-mono font-bold text-[10px] bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-emerald-400/30">
+                          {scrim.filledSlots}/{scrim.totalSlots} Slots
+                        </span>
+                      </div>
+                      <div className="flex items-end justify-between z-10">
+                        <div className="text-[11px] font-semibold text-slate-200 drop-shadow">
+                          Map: <strong className="text-white font-bold">{scrim.map}</strong>
+                        </div>
+                        <span className="text-amber-400 font-extrabold font-mono text-xs tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                          {scrim.time}
+                        </span>
+                      </div>
                     </div>
 
-                    <h3 className="font-montserrat font-extrabold text-sm text-[#0F172A]">
+                    <h3 className="font-montserrat font-extrabold text-sm text-[#0F172A] leading-snug">
                       {scrim.title}
                     </h3>
 
-                    <div className="mt-3 space-y-1.5 text-xs text-[#475569]">
-                      <div className="flex items-center justify-between">
+                    <div className="mt-2.5 space-y-1.5 text-xs text-[#475569] bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
+                      <div className="flex items-center justify-between text-[11px]">
                         <span className="text-[#64748B]">Match Time:</span>
-                        <span className="font-bold text-[#0F172A]">{scrim.time}</span>
+                        <strong className="text-[#0F172A]">{scrim.time}</strong>
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-[11px]">
                         <span className="text-[#64748B]">Check-in Opens:</span>
-                        <span className="font-bold text-[#0F172A]">{scrim.checkinTime}</span>
+                        <strong className="text-[#0F172A]">{scrim.checkinTime}</strong>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Map:</span>
-                        <span className="font-bold text-[#0F172A]">{scrim.map}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Room Release:</span>
-                        <span className="font-bold text-slate-700">15m before start</span>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-[#64748B]">Format:</span>
+                        <strong className="text-amber-700">Squad Only (4P + 1 Sub)</strong>
                       </div>
                     </div>
                   </div>
@@ -667,15 +751,28 @@ export const FullPageTournamentsOverview = ({
                     onClick={() => {
                       soundFx.playModalOpen();
                       if (onOpenRegisterTournament) {
-                        onOpenRegisterTournament(scrim);
+                        onOpenRegisterTournament({
+                          ...scrim,
+                          category: 'SQUAD',
+                          matchCategory: 'SQUAD',
+                          format: scrim.format || 'Squad TPP',
+                          isScrim: true
+                        });
                       } else {
-                        setRegisteringItem(scrim);
+                        setRegisteringItem({
+                          ...scrim,
+                          category: 'SQUAD',
+                          matchCategory: 'SQUAD',
+                          format: scrim.format || 'Squad TPP',
+                          isScrim: true
+                        });
                         setRegistrationSuccessData(null);
                       }
                     }}
                     className="mt-4 w-full py-2.5 rounded-xl bg-[#0F172A] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
                   >
-                    <span>Book Scrim Slot</span>
+                    <Swords className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Book Squad Scrim Slot</span>
                   </button>
                 </div>
               ))}

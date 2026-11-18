@@ -5,7 +5,7 @@ const STORAGE_KEYS = {
   REGISTRATIONS: 'livetournaments_portal_registrations_mongo_v10',
   INQUIRIES: 'livetournaments_portal_inquiries_mongo_v10',
   SEASON_STATE: 'livetournaments_portal_season_state_mongo_v10',
-  TOURNAMENTS: 'livetournaments_portal_tournaments_v11',
+  TOURNAMENTS: 'livetournaments_portal_tournaments_v12',
   HALL_OF_FAME: 'livetournaments_portal_hall_of_fame_v10',
   POLLS: 'livetournaments_portal_polls_v10',
   SPONSORS: 'livetournaments_portal_sponsors_v10',
@@ -107,7 +107,7 @@ export const submitTournamentRegistration = (data) => {
 
   const matchType = data.matchType || 'SQUAD'; // 'SOLO' | 'DUO' | 'SQUAD'
 
-  const cleanIglName = data.iglName || data.captainName || data.player1Name || (matchType === 'SOLO' ? 'Solo Warrior' : 'Anonymous IGL');
+  const cleanIglName = data.iglName || data.captainName || data.player1Name || (matchType === 'SOLO' ? 'Solo Competitor' : 'Anonymous IGL');
   const cleanIglPhone = data.iglPhone || data.captainPhone || '+91 99999 00000';
   const cleanIglDiscord = data.iglDiscord || data.captainDiscord || 'N/A';
 
@@ -122,7 +122,7 @@ export const submitTournamentRegistration = (data) => {
 
   if (matchType === 'SOLO') {
     playersList = [
-      { name: data.player1Name || cleanIglName || 'Solo Player', id: cleanP1Id || 'N/A', role: 'Solo Warrior' }
+      { name: data.player1Name || cleanIglName || 'Solo Player', id: cleanP1Id || 'N/A', role: 'Solo Competitor' }
     ];
     igidList = cleanP1Id || 'N/A';
   } else if (matchType === 'DUO') {
@@ -145,6 +145,9 @@ export const submitTournamentRegistration = (data) => {
   }
 
   const teamDisplayName = data.teamName || (matchType === 'SOLO' ? `${cleanIglName} (Solo)` : 'Custom Team');
+  const cleanManagerName = data.managerName || data.ownerName || '';
+  const cleanManagerPhone = data.managerPhone || data.ownerPhone || '';
+  const cleanEmail = data.email || data.playerEmail || '';
 
   const newSquad = {
     id: genId,
@@ -154,13 +157,18 @@ export const submitTournamentRegistration = (data) => {
     clanLogo: data.clanLogo || '',
     clanLogoName: data.clanLogoName || '',
     clanTag: data.clanTag || '',
+    managerName: cleanManagerName,
+    managerPhone: cleanManagerPhone,
+    ownerName: cleanManagerName,
+    ownerPhone: cleanManagerPhone,
+    email: cleanEmail,
     iglName: cleanIglName,
     iglPhone: cleanIglPhone,
     iglDiscord: cleanIglDiscord,
     captainName: cleanIglName,
     captain: cleanIglName,
     captainPhone: cleanIglPhone,
-    phone: cleanIglPhone,
+    phone: cleanManagerPhone || cleanIglPhone,
     captainDiscord: cleanIglDiscord,
     slot: slotFormatted,
     ticketId: genTicket,
@@ -506,11 +514,27 @@ export const deleteInquiry = (id) => {
 // 10. TOURNAMENTS MANAGER (POSTING & EDITING)
 // ==========================================
 
+export const getTournamentBanner = (tournament) => {
+  if (!tournament) return '/assets/banners/championship.jpg';
+  if (tournament.banner && tournament.banner !== '/assets/conqueror_badge.jpg') {
+    return tournament.banner;
+  }
+  const text = `${tournament.title || ''} ${tournament.category || ''} ${tournament.format || ''} ${tournament.map || ''}`.toUpperCase();
+  if (text.includes('MIRAMAR')) return '/assets/banners/miramar.jpg';
+  if (text.includes('SANHOK')) return '/assets/banners/sanhok.jpg';
+  if (text.includes('VIKENDI')) return '/assets/banners/vikendi.jpg';
+  if (text.includes('SOLO')) return '/assets/banners/solo.jpg';
+  if (text.includes('DUO')) return '/assets/banners/duo.jpg';
+  if (text.includes('PRO SQUAD') || text.includes('PROSQUAD')) return '/assets/banners/prosquad.jpg';
+  if (text.includes('ERANGEL')) return '/assets/banners/erangel.jpg';
+  return '/assets/banners/championship.jpg';
+};
+
 const INITIAL_TOURNAMENTS = [
   {
     id: 'T-1',
-    title: 'TOURNAMENT 1 (SOLO WAR)',
-    category: 'BOTSQUADWAR',
+    title: 'TOURNAMENT 1 (SOLO CLASH)',
+    category: 'SOLOCLASH',
     format: 'Solo TPP Sanhok',
     prizePool: '₹2,50,000 INR',
     prize: '₹2,50,000 INR',
@@ -520,14 +544,14 @@ const INITIAL_TOURNAMENTS = [
     totalSlots: 100,
     filledSlots: 64,
     status: 'ACTIVE',
-    tag: 'BOTSQUADWAR',
-    banner: '/assets/conqueror_badge.jpg',
+    tag: 'SOLO CLASH',
+    banner: '/assets/banners/solo.jpg',
     description: 'Official Live tournaments.in Solo Battle • 100 Slots Limit'
   },
   {
     id: 'T-2',
-    title: 'TOURNAMENT 2 (DUO WAR)',
-    category: 'BOTSQUADWAR',
+    title: 'TOURNAMENT 2 (DUO SHOWDOWN)',
+    category: 'DUOSHOWDOWN',
     format: 'Duo TPP Miramar',
     prizePool: '₹2,50,000 INR',
     prize: '₹2,50,000 INR',
@@ -537,14 +561,14 @@ const INITIAL_TOURNAMENTS = [
     totalSlots: 50,
     filledSlots: 32,
     status: 'ACTIVE',
-    tag: 'BOTSQUADWAR',
-    banner: '/assets/conqueror_badge.jpg',
+    tag: 'DUO SHOWDOWN',
+    banner: '/assets/banners/duo.jpg',
     description: 'Official Live tournaments.in Duo Showdown • 50 Duos Limit'
   },
   {
     id: 'T-3',
-    title: 'TOURNAMENT 3 (SQUAD WAR)',
-    category: 'BOTSQUADWAR',
+    title: 'TOURNAMENT 3 (SQUAD CHAMPIONSHIP)',
+    category: 'PROSQUAD',
     format: 'Squad TPP Erangel',
     prizePool: '₹2,50,000 INR',
     prize: '₹2,50,000 INR',
@@ -554,14 +578,14 @@ const INITIAL_TOURNAMENTS = [
     totalSlots: 25,
     filledSlots: 18,
     status: 'ACTIVE',
-    tag: 'BOTSQUADWAR',
-    banner: '/assets/conqueror_badge.jpg',
+    tag: 'SQUAD CHAMPIONSHIP',
+    banner: '/assets/banners/erangel.jpg',
     description: 'Official Live tournaments.in Squad Championship • 25 Squads Limit'
   },
   {
     id: 'T-4',
-    title: 'TOURNAMENT 4 (SQUAD WAR)',
-    category: 'BOTSQUADWAR',
+    title: 'TOURNAMENT 4 (SQUAD CHAMPIONSHIP)',
+    category: 'PROSQUAD',
     format: 'Squad TPP Erangel',
     prizePool: '₹2,50,000 INR',
     prize: '₹2,50,000 INR',
@@ -571,8 +595,8 @@ const INITIAL_TOURNAMENTS = [
     totalSlots: 25,
     filledSlots: 12,
     status: 'ACTIVE',
-    tag: 'BOTSQUADWAR',
-    banner: '/assets/conqueror_badge.jpg',
+    tag: 'SQUAD CHAMPIONSHIP',
+    banner: '/assets/banners/prosquad.jpg',
     description: 'Official Live tournaments.in Squad Championship • 25 Squads Limit'
   }
 ];
@@ -781,7 +805,7 @@ const INITIAL_POLLS = [
     status: 'ACTIVE',
     createdAt: 'September 2026',
     options: [
-      { text: 'Squad Championship War (25 Squads Limit)', votes: 1420 },
+      { text: 'Squad Championship Series (25 Squads Limit)', votes: 1420 },
       { text: 'Solo Battle Arena (100 Solo Slots Limit)', votes: 890 },
       { text: 'Duo High-Kill Clash (50 Duos Limit)', votes: 640 },
       { text: 'Custom Room Team Scrims (25 Squads Limit)', votes: 410 },
@@ -1079,7 +1103,7 @@ const INITIAL_ROOM_BROADCAST = {
   roomId: '9482103',
   password: 'CONQUEROR2026',
   map: 'Erangel (Day / Clear)',
-  mode: 'TPP Squad War',
+  mode: 'TPP Squad Championship',
   matchTime: 'Tonight @ 09:00 PM IST',
   active: true,
   broadcastNotice: 'Room is live! Enter slot number assigned on your pass. Anti-cheat monitoring is active.'

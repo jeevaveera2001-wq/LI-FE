@@ -1,5 +1,5 @@
 // Cryptographic Salt & Secure Hash for Super Admin & Match Ops Admin
-const PASSWORD_SALT = 'madan_conqueror_esports_2026_salt';
+const PASSWORD_SALT = 'livetournaments_esports_2026_salt';
 
 export const SUPER_ADMIN_USERNAME = 'lastzetas';
 export const SUPER_ADMIN_EMAIL = 'lastzetas@gmail.com';
@@ -9,7 +9,7 @@ export const ADMIN_USERNAME = 'admin';
 export const ADMIN_EMAIL = 'admin@livetournaments.in';
 export const ADMIN_HASH = 'ce028ff1dd39e85c4a6334d2a88bca9de49938790b38cced55a619c1ea6fc3bd'; // Admin@2026
 
-const JWT_SECRET_SALT = 'madan_jwt_secret_key_9fc8e5d1_2026';
+const JWT_SECRET_SALT = 'livetournaments_jwt_secret_key_2026';
 const TOKEN_STORAGE_KEY = 'livetournaments_auth_jwt';
 const USERS_STORAGE_KEY = 'livetournaments_registered_users_v10';
 const OTP_STORAGE_KEY = 'livetournaments_active_email_otps_v10';

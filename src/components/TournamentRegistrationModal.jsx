@@ -36,9 +36,24 @@ export const TournamentRegistrationModal = ({ isOpen, onClose, selectedTournamen
   const [ticketId, setTicketId] = useState('');
   const [copiedPass, setCopiedPass] = useState(false);
 
+  // Check if current tournament is a Scrim (Scrims are strictly Squad Only)
+  const isScrim = Boolean(
+    selectedTournament && (
+      selectedTournament.isScrim ||
+      (selectedTournament.id && String(selectedTournament.id).toLowerCase().includes('scrim')) ||
+      (selectedTournament.title && String(selectedTournament.title).toUpperCase().includes('SCRIM')) ||
+      (selectedTournament.mode && String(selectedTournament.mode).toUpperCase().includes('SCRIM')) ||
+      (selectedTournament.category && String(selectedTournament.category).toUpperCase().includes('SCRIM'))
+    )
+  );
+
   // Auto-detect match format when opening modal for specific tournament
   React.useEffect(() => {
     if (selectedTournament) {
+      if (isScrim) {
+        setMatchType('SQUAD');
+        return;
+      }
       const text = `${selectedTournament.title || ''} ${selectedTournament.category || ''} ${selectedTournament.format || ''}`.toUpperCase();
       if (text.includes('SOLO')) {
         setMatchType('SOLO');
@@ -48,7 +63,7 @@ export const TournamentRegistrationModal = ({ isOpen, onClose, selectedTournamen
         setMatchType('SQUAD');
       }
     }
-  }, [selectedTournament, isOpen]);
+  }, [selectedTournament, isOpen, isScrim]);
 
   if (!isOpen) return null;
 
@@ -298,50 +313,38 @@ export const TournamentRegistrationModal = ({ isOpen, onClose, selectedTournamen
         {step === 1 && (
           <form onSubmit={handleNextStep} className="space-y-4">
             
-            {/* Match Format Selector: SOLO, DUO, SQUAD */}
+            {/* Designated Match Format (Set directly by Tournament Organizers) */}
             <div>
               <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                <span>Select Registration Match Format *</span>
+                <span>Designated Match Format</span>
                 <span className="text-[10px] font-mono text-[#E5C05B] font-bold">
                   {matchType === 'SOLO' ? '1 PLAYER ONLY' : matchType === 'DUO' ? '2 PLAYERS' : '4 PLAYERS + SUB'}
                 </span>
               </label>
 
-              <div className="grid grid-cols-3 gap-2.5">
-                {[
-                  { id: 'SOLO', label: 'Solo', subtitle: '1 Player', icon: User },
-                  { id: 'DUO', label: 'Duo', subtitle: '2 Players', icon: Users },
-                  { id: 'SQUAD', label: 'Squad', subtitle: '4 Players', icon: Shield },
-                ].map((f) => {
-                  const active = matchType === f.id;
-                  const Icon = f.icon;
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => {
-                        soundFx.playClick();
-                        setMatchType(f.id);
-                      }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer text-center relative overflow-hidden ${
-                        active
-                          ? 'bg-gradient-to-b from-[#E5C05B]/20 via-black/90 to-black border-[#E5C05B] text-white shadow-[0_0_20px_rgba(229,192,91,0.25)]'
-                          : 'bg-black/40 hover:bg-black/60 border-gray-800 text-gray-400 hover:text-gray-200'
-                      }`}
-                    >
-                      {active && (
-                        <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E5C05B] animate-pulse" />
-                      )}
-                      <Icon className={`w-5 h-5 mb-1 ${active ? 'text-[#E5C05B]' : 'text-gray-500'}`} />
-                      <span className={`text-xs font-montserrat font-black uppercase ${active ? 'text-[#E5C05B]' : 'text-gray-300'}`}>
-                        {f.label}
-                      </span>
-                      <span className="text-[10px] font-mono text-gray-400 mt-0.5">
-                        {f.subtitle}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="p-3.5 rounded-2xl bg-black/60 border border-[#E5C05B]/40 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-black border border-[#E5C05B] text-[#E5C05B] flex items-center justify-center">
+                    {matchType === 'SQUAD' && <Shield className="w-5 h-5" />}
+                    {matchType === 'DUO' && <Users className="w-5 h-5" />}
+                    {matchType === 'SOLO' && <User className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <span className="text-xs font-montserrat font-extrabold uppercase text-white block">
+                      {matchType === 'SQUAD' && 'SQUAD MATCH FORMAT (4 PLAYERS + 1 SUB)'}
+                      {matchType === 'DUO' && 'DUO MATCH FORMAT (2 PLAYERS)'}
+                      {matchType === 'SOLO' && 'SOLO MATCH FORMAT (1 SOLO PLAYER)'}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      {isScrim
+                        ? 'Daily Scrims are designated exclusively for 4-Player Squads + 1 Reserve.'
+                        : `Format designated directly by tournament organizers (${matchType} only).`}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-[#E5C05B] text-black text-[9px] font-black uppercase font-mono">
+                  {matchType} ONLY
+                </span>
               </div>
             </div>
 
@@ -835,7 +838,7 @@ export const TournamentRegistrationModal = ({ isOpen, onClose, selectedTournamen
               <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
                 <div>
                   <span className="text-gray-400 block text-[10px] font-mono uppercase">
-                    {matchType === 'SOLO' ? 'REGISTERED WARRIOR' : matchType === 'DUO' ? 'REGISTERED DUO' : 'REGISTERED SQUAD'}
+                    {matchType === 'SOLO' ? 'REGISTERED PLAYER' : matchType === 'DUO' ? 'REGISTERED DUO' : 'REGISTERED SQUAD'}
                   </span>
                   <span className="font-montserrat font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
                     {formData.teamName || (formData.iglName || formData.captainName || formData.player1Name)}
@@ -843,7 +846,7 @@ export const TournamentRegistrationModal = ({ isOpen, onClose, selectedTournamen
                 </div>
                 <div>
                   <span className="text-gray-400 block text-[10px] font-mono uppercase">
-                    {matchType === 'SOLO' ? 'WARRIOR CONTACT' : matchType === 'DUO' ? 'DUO LEADER CONTACT' : 'IGL (IN GAME LEADER) CONTACT'}
+                    {matchType === 'SOLO' ? 'PLAYER CONTACT' : matchType === 'DUO' ? 'DUO LEADER CONTACT' : 'IGL (IN GAME LEADER) CONTACT'}
                   </span>
                   <span className="font-mono text-white text-xs">{formData.iglName || formData.captainName || formData.player1Name} ({formData.iglPhone || formData.captainPhone})</span>
                 </div>

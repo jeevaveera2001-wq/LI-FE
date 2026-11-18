@@ -69,13 +69,13 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
   // Forms State - Tournaments
   const [newTourney, setNewTourney] = useState({
     title: '',
-    format: 'Squad War',
+    format: 'Squad Championship',
     map: 'Erangel',
     date: 'June 20, 2026',
     prize: '₹2,50,000 INR',
     totalSlots: 25,
     status: 'OPEN',
-    category: 'BOTSQUADWAR',
+    category: 'PROSQUAD',
     banner: '/assets/conqueror_badge.jpg',
     description: 'Official BGMI Tournament'
   });
@@ -267,13 +267,13 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
     setEditingTourney(null);
     setNewTourney({
       title: '',
-      format: 'Squad War',
+      format: 'Squad Championship',
       map: 'Erangel',
       date: 'June 20, 2026',
       prize: '₹2,50,000 INR',
       totalSlots: 25,
       status: 'OPEN',
-      category: 'BOTSQUADWAR',
+      category: 'PROSQUAD',
       banner: '/assets/conqueror_badge.jpg',
       description: 'Official BGMI Tournament'
     });
@@ -283,13 +283,13 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
     setEditingTourney(tourney);
     setNewTourney({
       title: tourney.title,
-      format: tourney.format || 'Squad War',
+      format: tourney.format || 'Squad Championship',
       map: tourney.map || 'Erangel',
       date: tourney.date,
       prize: tourney.prizePool || tourney.prize || '₹2,50,000 INR',
       totalSlots: tourney.totalSlots || 25,
       status: tourney.status || 'OPEN',
-      category: tourney.category || 'BOTSQUADWAR',
+      category: tourney.category || 'PROSQUAD',
       banner: tourney.banner || '/assets/conqueror_badge.jpg',
       description: tourney.description || ''
     });
@@ -757,6 +757,18 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
                       {/* Captain & Players Details */}
                       <div className="space-y-2 text-xs">
                         <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1 font-sans">
+                          {squad.managerName && (
+                            <div className="flex justify-between">
+                              <span className="text-[#64748B]">Owner / Manager:</span>
+                              <strong className="text-[#0F172A]">{squad.managerName}</strong>
+                            </div>
+                          )}
+                          {squad.managerPhone && (
+                            <div className="flex justify-between">
+                              <span className="text-[#64748B]">Manager Mobile:</span>
+                              <span className="font-mono text-[#0F172A]">{squad.managerPhone}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <span className="text-[#64748B]">Leader / IGL:</span>
                             <strong className="text-[#0F172A]">{squad.iglName || squad.captainName || 'N/A'}</strong>
@@ -765,6 +777,12 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
                             <span className="text-[#64748B]">Mobile Number:</span>
                             <span className="font-mono text-[#0F172A]">{squad.iglPhone || squad.captainPhone || 'N/A'}</span>
                           </div>
+                          {squad.email && (
+                            <div className="flex justify-between">
+                              <span className="text-[#64748B]">Email:</span>
+                              <span className="text-[#0F172A]">{squad.email}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <span className="text-[#64748B]">Passcode PIN:</span>
                             <span className="font-mono font-bold text-teal-700">{squad.passcode || '123456'}</span>
@@ -1082,7 +1100,7 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
                   {[
                     { id: 'SQUAD', label: 'Squad (Top 10 Teams)' },
                     { id: 'DUO', label: 'Duo (Top 10 Pairs)' },
-                    { id: 'SOLO', label: 'Solo (Top 10 Warriors)' }
+                    { id: 'SOLO', label: 'Solo (Top 10 Players)' }
                   ].map((f) => (
                     <button
                       key={f.id}
@@ -1208,13 +1226,13 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
                       setEditingTourney(null);
                       setNewTourney({
                         title: '',
-                        format: 'Squad War',
+                        format: 'Squad Championship',
                         map: 'Erangel',
                         date: 'June 20, 2026',
                         prize: '₹2,50,000 INR',
                         totalSlots: 25,
                         status: 'OPEN',
-                        category: 'BOTSQUADWAR',
+                        category: 'PROSQUAD',
                         banner: '/assets/conqueror_badge.jpg',
                         description: 'Official BGMI Tournament'
                       });
@@ -1235,7 +1253,7 @@ export const SuperAdminDashboard = ({ user, onLogout, onSwitchToAdmin, onBackToP
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold uppercase font-mono">
-                          {t.category || 'BOTSQUADWAR'}
+                          {t.category || 'PROSQUAD'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-500 font-bold">{t.id}</span>
                       </div>

@@ -48,7 +48,6 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
   };
 
   const handleClose = () => {
-    soundFx.playClick();
     setSubmittedRequest(null);
     setFormData({
       name: '',
@@ -63,13 +62,13 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-sans">
-      <div className="relative w-full max-w-lg bg-[#0C0F16] border border-[#232D40] rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.8)] text-[#E2E8F0]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm font-sans">
+      <div className="relative w-full max-w-lg bg-white border border-[#CBD5E1] rounded-3xl p-6 sm:p-7 shadow-2xl text-[#0F172A]">
         
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#161D2A] hover:bg-[#232D40] border border-[#2B374E] flex items-center justify-center text-[#94A3B8] hover:text-white transition-all cursor-pointer"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] transition-all cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -77,47 +76,47 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
         {submittedRequest ? (
           /* Submission Success View */
           <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#E5C05B] to-[#FFD700] mx-auto flex items-center justify-center text-black shadow-[0_0_25px_rgba(229,192,91,0.5)]">
-              <CheckCircle2 className="w-9 h-9 text-black stroke-[2.5]" />
+            <div className="w-16 h-16 rounded-2xl bg-amber-400 mx-auto flex items-center justify-center text-slate-950 shadow-md">
+              <CheckCircle2 className="w-9 h-9 stroke-[2.5]" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="font-montserrat font-black text-xl text-white uppercase tracking-wide">
+              <h3 className="font-montserrat font-black text-xl text-[#0F172A] uppercase tracking-wide">
                 PARTNERSHIP REQUEST SUBMITTED!
               </h3>
-              <p className="text-xs text-[#94A3B8] font-rajdhani max-w-sm mx-auto">
-                Thank you, <strong className="text-white">{submittedRequest.name}</strong>! Your brand sponsorship proposal for <strong className="text-[#E5C05B]">{submittedRequest.business}</strong> has been routed directly to the Match Ops Admin Desk.
+              <p className="text-xs text-[#64748B] font-rajdhani max-w-sm mx-auto">
+                Thank you, <strong className="text-[#0F172A]">{submittedRequest.name}</strong>! Your brand sponsorship proposal for <strong className="text-amber-700">{submittedRequest.business}</strong> has been routed directly to the Match Ops Admin Desk.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#121722] border border-[#1E2536] max-w-xs mx-auto space-y-2 text-left font-mono text-xs">
+            <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] max-w-xs mx-auto space-y-2 text-left font-mono text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">Ticket ID:</span>
-                <span className="text-[#E5C05B] font-bold">{submittedRequest.ticketId}</span>
+                <span className="text-amber-700 font-bold">{submittedRequest.ticketId}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">Brand:</span>
-                <span className="text-white font-bold">{submittedRequest.business}</span>
+                <span className="text-[#0F172A] font-bold">{submittedRequest.business}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">City:</span>
-                <span className="text-white">{submittedRequest.city}</span>
+                <span className="text-[#0F172A]">{submittedRequest.city}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">Status:</span>
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
                   PENDING REVIEW
                 </span>
               </div>
             </div>
 
             <p className="text-[11px] text-[#64748B] font-rajdhani">
-              Our Match Ops team will contact you at <strong className="text-white">{submittedRequest.phone}</strong> shortly.
+              Our Match Ops team will contact you at <strong className="text-[#0F172A]">{submittedRequest.phone}</strong> shortly.
             </p>
 
             <button
               onClick={handleClose}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FFD700] via-[#E5C05B] to-[#D4AF37] text-black font-montserrat font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(229,192,91,0.4)] cursor-pointer hover:brightness-110 transition-all"
+              className="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-montserrat font-black text-xs uppercase tracking-wider shadow-sm cursor-pointer transition-all"
             >
               Done & Return to Portal
             </button>
@@ -128,14 +127,14 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
             
             {/* Header */}
             <div className="text-center mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5C05B]/10 border border-[#E5C05B]/30 text-[#E5C05B] text-[10px] font-montserrat font-bold uppercase tracking-wider mb-2">
-                <HeartHandshake className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-montserrat font-bold uppercase tracking-wider mb-2">
+                <HeartHandshake className="w-3.5 h-3.5 text-amber-600" />
                 <span>OFFICIAL ARENA SPONSORSHIP</span>
               </div>
-              <h3 className="font-montserrat font-black text-lg sm:text-xl text-white uppercase tracking-wide">
+              <h3 className="font-montserrat font-black text-lg sm:text-xl text-[#0F172A] uppercase tracking-wide">
                 PARTNER WITH LIVE TOURNAMENTS.IN
               </h3>
-              <p className="text-xs text-[#94A3B8] font-rajdhani mt-0.5">
+              <p className="text-xs text-[#64748B] font-rajdhani mt-0.5">
                 Fill your brand details below to feature across our arena tournaments and competitive leaderboards.
               </p>
             </div>
@@ -145,8 +144,8 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
               {/* Row 1: Name & Business */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1 flex items-center gap-1">
-                    <User className="w-3 h-3 text-[#E5C05B]" />
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1 flex items-center gap-1">
+                    <User className="w-3 h-3 text-amber-600" />
                     <span>Contact Name *</span>
                   </label>
                   <input
@@ -155,13 +154,13 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                     placeholder="e.g. Ramesh Kumar"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1 flex items-center gap-1">
-                    <Building2 className="w-3 h-3 text-[#E5C05B]" />
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1 flex items-center gap-1">
+                    <Building2 className="w-3 h-3 text-amber-600" />
                     <span>Business / Brand Name *</span>
                   </label>
                   <input
@@ -170,7 +169,7 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                     placeholder="e.g. Esports Gear / Gaming Brand"
                     value={formData.business}
                     onChange={(e) => setFormData({ ...formData, business: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400"
                   />
                 </div>
               </div>
@@ -178,8 +177,8 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
               {/* Row 2: City & Mobile Number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-[#E5C05B]" />
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-amber-600" />
                     <span>City *</span>
                   </label>
                   <input
@@ -188,13 +187,13 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                     placeholder="e.g. Chennai / Bangalore"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1 flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-[#E5C05B]" />
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-amber-600" />
                     <span>Contact Mobile Number *</span>
                   </label>
                   <input
@@ -203,15 +202,15 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                     placeholder="e.g. 9876543210"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400 font-mono"
                   />
                 </div>
               </div>
 
               {/* Row 3: Email Address */}
               <div>
-                <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1 flex items-center gap-1">
-                  <Mail className="w-3 h-3 text-[#E5C05B]" />
+                <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1 flex items-center gap-1">
+                  <Mail className="w-3 h-3 text-amber-600" />
                   <span>Email Address *</span>
                 </label>
                 <input
@@ -220,20 +219,20 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                   placeholder="e.g. sponsor@brand.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400"
                 />
               </div>
 
               {/* Row 4: Sponsorship Tier & Brand Website */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1">
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1">
                     Partnership Tier
                   </label>
                   <select
                     value={formData.tierInterest}
                     onChange={(e) => setFormData({ ...formData, tierInterest: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none text-xs"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:outline-none text-xs"
                   >
                     <option value="TITLE">Title Energy Partner (Exclusive)</option>
                     <option value="PLATINUM">Official Device / Hardware Partner</option>
@@ -243,7 +242,7 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-[#94A3B8] uppercase font-bold mb-1">
+                  <label className="block text-[10px] font-mono text-[#334155] uppercase font-bold mb-1">
                     Website / Brand URL (Optional)
                   </label>
                   <input
@@ -251,7 +250,7 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
                     placeholder="e.g. https://yourbrand.com"
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#121722] border border-[#222C3E] text-white focus:border-[#E5C05B] focus:outline-none placeholder-gray-600"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] focus:border-amber-500 focus:bg-white focus:outline-none placeholder-slate-400"
                   />
                 </div>
               </div>
@@ -263,9 +262,9 @@ export const SponsorRequestModal = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FFD700] via-[#E5C05B] to-[#D4AF37] text-black font-montserrat font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(229,192,91,0.5)] cursor-pointer hover:brightness-110 active:scale-95 transition-all"
+                className="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-montserrat font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95 transition-all"
               >
-                <Sparkles className="w-4 h-4 text-black" />
+                <Sparkles className="w-4 h-4 text-slate-950" />
                 <span>{isSubmitting ? 'SUBMITTING REQUEST...' : 'SUBMIT PARTNERSHIP REQUEST'}</span>
               </button>
             </div>

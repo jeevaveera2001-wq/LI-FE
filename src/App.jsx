@@ -283,7 +283,7 @@ export function App() {
           onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
         />
 
-        {/* Full-Bleed Hero Landing Screen */}
+        {/* Full-Bleed Hero Landing Screen (Retained in Black Mode as requested) */}
         <HeroSection
           onJoinNow={() => {
             soundFx.playModalOpen();
@@ -296,33 +296,36 @@ export function App() {
           onOpenTournamentModal={handleOpenTournamentModal}
         />
 
-        {/* Main Content Sections */}
-        <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1500px] w-full mx-auto space-y-8">
-          
-          {/* Section 2: Featured Tournaments & Championship Metrics */}
-          <TrophiesSection />
+        {/* White Background Wrapper for All Sections Below Hero */}
+        <div className="w-full bg-[#F8FAFC] text-[#0F172A] border-t border-[#CBD5E1]">
+          {/* Main Content Sections */}
+          <main className="p-3 sm:p-5 lg:p-6 max-w-[1500px] w-full mx-auto space-y-10">
+            
+            {/* Section 2: Featured Tournaments & Championship Metrics */}
+            <TrophiesSection />
 
-          {/* Section 3: Tournaments Hub & Live Countdown */}
-          <TournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
+            {/* Section 3: Tournaments Hub & Live Countdown */}
+            <TournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
 
-          {/* Section 4: Winners Cash List & Hall of Fame Squads (Seasonal, Solo, Duo, Squad) */}
-          <WinnersSection onOpenTournamentModal={handleOpenTournamentModal} />
+            {/* Section 4: Winners Cash List & Hall of Fame Squads (Seasonal, Solo, Duo, Squad) */}
+            <WinnersSection onOpenTournamentModal={handleOpenTournamentModal} />
 
-          {/* Section 5: Upcoming Tournaments Section */}
-          <UpcomingTournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
+            {/* Section 5: Upcoming Tournaments Section */}
+            <UpcomingTournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
 
-          {/* Section 6: Sponsors & Supporters Showcase */}
-          <SponsorsSection onOpenSponsorModal={() => setIsSponsorModalOpen(true)} />
+            {/* Section 6: Sponsors & Supporters Showcase */}
+            <SponsorsSection onOpenSponsorModal={() => setIsSponsorModalOpen(true)} />
 
-          {/* Section 7: Contact Us & Official Enquiries Desk */}
-          <ContactSection />
+            {/* Section 7: Contact Us & Official Enquiries Desk */}
+            <ContactSection />
 
-        </main>
+          </main>
 
-        {/* Bottom Copyright Strip */}
-        <footer className="py-6 px-6 border-t border-[#161C26] text-center text-xs font-rajdhani text-gray-500 bg-[#06080B]">
-          © {new Date().getFullYear()} Live tournaments.in. Official Competitive Arena.
-        </footer>
+          {/* Bottom Copyright Strip */}
+          <footer className="py-7 px-6 border-t border-[#E2E8F0] text-center text-xs font-rajdhani text-[#64748B] bg-white">
+            © {new Date().getFullYear()} Live tournaments.in. Official Competitive Arena.
+          </footer>
+        </div>
 
       </div>
 

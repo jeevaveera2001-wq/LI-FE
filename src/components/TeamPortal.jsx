@@ -277,7 +277,7 @@ export const TeamPortal = ({ team: initialTeam, onLogout, onBackToPortal }) => {
             </div>
             <div>
               <span className="text-[#64748B] block text-[10px] uppercase font-bold">Lobby Mode:</span>
-              <strong className="text-white">{broadcast?.mode || 'TPP Squad War'}</strong>
+              <strong className="text-white">{broadcast?.mode || 'TPP Squad Championship'}</strong>
             </div>
             <div>
               <span className="text-[#64748B] block text-[10px] uppercase font-bold">Your Match Passcode:</span>
