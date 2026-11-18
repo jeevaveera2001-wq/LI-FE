@@ -10,12 +10,29 @@ import RecapsSection from './components/RecapsSection';
 import PartnersSection from './components/PartnersSection';
 import Footer from './components/Footer';
 import AuthPage from './components/AuthPage';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
+import UserDashboard from './components/UserDashboard';
+import UserMenu from './components/UserMenu';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('lt_user');
+        return stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
+      if (path.includes('admin') || hash.includes('admin')) return 'admin-dashboard';
+      if (path.includes('dashboard') || hash.includes('dashboard')) return 'user-dashboard';
       if (path.includes('login') || hash.includes('login')) return 'login';
       if (path.includes('register') || hash.includes('register')) return 'register';
     }
@@ -25,17 +42,42 @@ export default function App() {
   const navigateTo = (page) => {
     setCurrentPage(page);
     if (typeof window !== 'undefined') {
-      const targetUrl = page === 'home' ? '/' : `/${page}`;
+      let targetUrl = '/';
+      if (page === 'admin-dashboard') targetUrl = '/admin';
+      else if (page === 'user-dashboard') targetUrl = '/dashboard';
+      else if (page !== 'home') targetUrl = `/${page}`;
+
       window.history.pushState({ page }, '', targetUrl);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    if (user && (user.role === 'superadmin' || user.email === 'superadmin@lt.in')) {
+      navigateTo('admin-dashboard');
+    } else {
+      navigateTo('user-dashboard');
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('lt_user');
+    } catch (e) {}
+    setCurrentUser(null);
+    navigateTo('home');
   };
 
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (path.includes('login') || hash.includes('login')) {
+      if (path.includes('admin') || hash.includes('admin')) {
+        setCurrentPage('admin-dashboard');
+      } else if (path.includes('dashboard') || hash.includes('dashboard')) {
+        setCurrentPage('user-dashboard');
+      } else if (path.includes('login') || hash.includes('login')) {
         setCurrentPage('login');
       } else if (path.includes('register') || hash.includes('register')) {
         setCurrentPage('register');
@@ -54,15 +96,44 @@ export default function App() {
         Skip to main content
       </a>
 
-      {currentPage === 'login' || currentPage === 'register' ? (
+      {/* SUPER ADMIN DASHBOARD */}
+      {currentPage === 'admin-dashboard' ? (
+        <SuperAdminDashboard
+          currentUser={currentUser}
+          onNavigate={navigateTo}
+          onLogout={handleLogout}
+        />
+      ) : currentPage === 'user-dashboard' ? (
+        /* NORMAL USER DASHBOARD */
+        <UserDashboard
+          currentUser={currentUser}
+          onNavigate={navigateTo}
+          onLogout={handleLogout}
+        />
+      ) : currentPage === 'login' || currentPage === 'register' ? (
+        /* AUTHENTICATION (LOGIN / REGISTER) */
         <AuthPage
           initialMode={currentPage === 'register' ? 'register' : 'login'}
+          onNavigate={navigateTo}
           onNavigateHome={() => navigateTo('home')}
+          onLoginSuccess={handleLoginSuccess}
         />
       ) : (
+        /* HOME / MAIN PUBLIC ARENA */
         <>
-          {/* Sidebar Navigation */}
-          <Sidebar onNavigate={navigateTo} currentPage={currentPage} />
+          {/* User Menu Header Dropdown Option */}
+          <UserMenu
+            currentUser={currentUser}
+            onNavigate={navigateTo}
+            onLogout={handleLogout}
+          />
+
+          {/* Left Sidebar Navigation */}
+          <Sidebar
+            onNavigate={navigateTo}
+            currentPage={currentPage}
+            currentUser={currentUser}
+          />
 
           {/* Main Content */}
           <main

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
+export default function AuthPage({ initialMode = 'login', onNavigate, onNavigateHome, onLoginSuccess }) {
   const [mode, setMode] = useState(initialMode); // 'login' or 'register'
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -107,21 +107,43 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
         password: loginPassword,
       });
 
-      if (response.data && response.data.user) {
-        localStorage.setItem('lt_user', JSON.stringify(response.data.user));
+      const user = response.data?.user;
+      if (user) {
+        localStorage.setItem('lt_user', JSON.stringify(user));
+        if (onLoginSuccess) onLoginSuccess(user);
       }
 
-      setSuccessMessage('Login successful! Redirecting...');
+      const isSuper = user && (user.role === 'superadmin' || user.email === 'superadmin@lt.in');
+
+      setSuccessMessage(isSuper ? '👑 Super Admin Authenticated! Redirecting to Dashboard...' : 'Login successful! Redirecting to your Dashboard...');
       setTimeout(() => {
-        if (onNavigateHome) onNavigateHome();
-      }, 1000);
+        if (isSuper) {
+          if (onNavigate) onNavigate('admin-dashboard');
+          else if (onNavigateHome) onNavigateHome();
+        } else {
+          if (onNavigate) onNavigate('user-dashboard');
+          else if (onNavigateHome) onNavigateHome();
+        }
+      }, 800);
     } catch (err) {
-      if (loginEmail.toLowerCase() === 'lastzetas@gmail.com' && loginPassword === 'Hacker@21') {
-        localStorage.setItem('lt_user', JSON.stringify({ email: loginEmail, role: 'superadmin', name: 'Super Admin' }));
-        setSuccessMessage('Super Admin Authenticated! Redirecting...');
+      if (
+        (loginEmail.toLowerCase() === 'superadmin@lt.in' || loginEmail.toLowerCase() === 'superadmin') &&
+        loginPassword === 'SuperAdmin@21'
+      ) {
+        const superUser = {
+          username: 'superadmin',
+          email: 'superadmin@lt.in',
+          name: 'Super Admin',
+          role: 'superadmin',
+          displayName: 'Super Admin'
+        };
+        localStorage.setItem('lt_user', JSON.stringify(superUser));
+        if (onLoginSuccess) onLoginSuccess(superUser);
+        setSuccessMessage('👑 Super Admin Authenticated! Redirecting to Dashboard...');
         setTimeout(() => {
-          if (onNavigateHome) onNavigateHome();
-        }, 1000);
+          if (onNavigate) onNavigate('admin-dashboard');
+          else if (onNavigateHome) onNavigateHome();
+        }, 800);
       } else {
         const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Invalid credentials. Please verify your email and password.';
         setErrorMessage(errorDetail);

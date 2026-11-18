@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       email: cleanEmail,
       mobile: (mobile || '').trim(),
       passwordHash,
-      role: 'PLAYER',
+      role: 'user',
       createdAt: new Date().toISOString()
     };
 

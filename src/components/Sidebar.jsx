@@ -1,12 +1,15 @@
 import React from 'react';
 
-export default function Sidebar({ onNavigate, currentPage = 'home' }) {
+export default function Sidebar({ onNavigate, currentPage = 'home', currentUser }) {
   const handleNav = (page) => (e) => {
     e.preventDefault();
     if (onNavigate) {
       onNavigate(page);
     }
   };
+
+  const isSuperAdmin = currentUser && (currentUser.role === 'superadmin' || currentUser.email === 'superadmin@lt.in');
+  const isUser = currentUser && !isSuperAdmin;
 
   return (
     <div className="hidden lg:contents">
@@ -90,22 +93,28 @@ export default function Sidebar({ onNavigate, currentPage = 'home' }) {
             </div>
           </div>
 
-          {/* Login Action in Sidebar */}
+          {/* User / Login Action in Sidebar */}
           <div className="relative flex w-full flex-col">
             <a
-              href="/en/login"
-              onClick={handleNav('login')}
+              href={isSuperAdmin ? "/admin" : isUser ? "/dashboard" : "/en/login"}
+              onClick={handleNav(isSuperAdmin ? 'admin-dashboard' : isUser ? 'user-dashboard' : 'login')}
               className={`flex cursor-pointer flex-col items-center gap-1 px-3 py-4 transition-colors ${
-                currentPage === 'login' || currentPage === 'register'
+                currentPage === 'admin-dashboard' || currentPage === 'user-dashboard' || currentPage === 'login' || currentPage === 'register'
                   ? 'bg-gold-primary text-black font-bold'
                   : 'bg-dark-default text-white hover:bg-gold-primary hover:text-black'
               }`}
             >
-              <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" className="size-[26px]" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M399 384.2C376.9 345.8 335.4 320 288 320l-64 0c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z"></path>
-              </svg>
+              {isSuperAdmin ? (
+                <span className="text-[20px]">👑</span>
+              ) : isUser ? (
+                <span className="text-[20px]">👤</span>
+              ) : (
+                <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" className="size-[26px]" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M399 384.2C376.9 345.8 335.4 320 288 320l-64 0c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z"></path>
+                </svg>
+              )}
               <p className="primary-bold-s10-lh130 max-w-full truncate capitalize">
-                {currentPage === 'login' || currentPage === 'register' ? 'Portal' : 'Login'}
+                {isSuperAdmin ? 'Admin' : isUser ? 'Dashboard' : (currentPage === 'login' || currentPage === 'register' ? 'Portal' : 'Login')}
               </p>
             </a>
           </div>

@@ -1,9 +1,9 @@
 import crypto from 'node:crypto';
 import { connectToDatabase } from '../lib/mongodb.js';
 
-const ADMIN_USERNAME = 'admin';
-const ADMIN_EMAIL = 'admin@livetournaments.in';
-const ADMIN_HASH = 'ce028ff1dd39e85c4a6334d2a88bca9de49938790b38cced55a619c1ea6fc3bd';
+const SUPERADMIN_USERNAME = 'superadmin';
+const SUPERADMIN_EMAIL = 'superadmin@lt.in';
+const SUPERADMIN_PASS = 'SuperAdmin@21';
 const PASSWORD_SALT = 'livetournaments_esports_2026_salt';
 
 function hashPassword(password) {
@@ -34,22 +34,22 @@ export default async function handler(req, res) {
     }
 
     const cleanInput = usernameOrEmail.toLowerCase().trim();
-    const inputHash = crypto.createHash('sha256').update(password).digest('hex');
 
-    // Admin match check
-    if ((cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL) && inputHash === ADMIN_HASH) {
+    // Super Admin Direct Auth Check
+    if ((cleanInput === SUPERADMIN_USERNAME || cleanInput === SUPERADMIN_EMAIL) && password === SUPERADMIN_PASS) {
       return res.status(200).json({
         success: true,
         user: {
-          username: ADMIN_USERNAME,
-          email: ADMIN_EMAIL,
-          role: 'ADMIN',
-          displayName: 'Match Ops Admin'
+          username: SUPERADMIN_USERNAME,
+          email: SUPERADMIN_EMAIL,
+          name: 'Super Admin',
+          role: 'superadmin',
+          displayName: 'Super Admin'
         }
       });
     }
 
-    // Database check
+    // Database check for registered users
     try {
       const { db } = await connectToDatabase();
       const user = await db.collection('users').findOne({
@@ -57,6 +57,7 @@ export default async function handler(req, res) {
       });
 
       if (user && user.passwordHash === hashPassword(password)) {
+        const userRole = (user.role === 'superadmin' || user.email === SUPERADMIN_EMAIL) ? 'superadmin' : 'user';
         return res.status(200).json({
           success: true,
           user: {
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
             email: user.email,
             name: user.name,
             mobile: user.mobile,
-            role: user.role || 'PLAYER'
+            role: userRole
           }
         });
       }
