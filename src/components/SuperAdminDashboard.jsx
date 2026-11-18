@@ -1,21 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
+/**
+ * NAGULAN Unisex Salon & LiveTournaments.in Command Center
+ * Built strictly against the NAGULAN Design System Specification:
+ * - Colors: #F3F4F6 (Bg), #1F2937 (Text Primary), #4B5563 (Text Secondary), #6B7280 (Muted), #9CA3AF (Metadata), #D1D1D1 (Border)
+ * - Accents: #D4AF37, #C5A059, #DFBD78 (Golds), #3B82F6 (Blue), #9333EA (Purple), #10B981, #059669 (Emeralds), #EF4444 (Red), #F59E0B (Amber)
+ * - Typography: Inter, JetBrains Mono (Scale: 9px, 11px, 14px, 16px, 24px/28px)
+ * - Shapes: radius-md (6px), radius-lg (8px), radius-xl (12px), radius-full (16px), radius-pill (9999px)
+ * - Elevation: shadow-sm, shadow-md
+ */
 export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout }) {
-  // Active navigation tab: default to 'dashboard' matching the newly requested image!
+  // Navigation active tab: defaults to exact Nagulan Salon Dashboard ('dashboard')
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Trigger brief toast notification
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Sync Live Handler
+  // Sync Telemetry Handler
   const handleSyncLive = () => {
     setIsSyncing(true);
     setTimeout(() => {
@@ -376,14 +383,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     ];
   });
 
-  // New Tournament Form State
+  // Modal State
   const [newTitle, setNewTitle] = useState('');
   const [newGame, setNewGame] = useState('Battlegrounds Mobile India');
   const [newPrize, setNewPrize] = useState('');
   const [newSlots, setNewSlots] = useState('32');
   const [newDate, setNewDate] = useState('');
 
-  // Persist state to localStorage
+  // Persist State
   useEffect(() => { localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(hostingRequests)); }, [hostingRequests]);
   useEffect(() => { localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(scrimsRequests)); }, [scrimsRequests]);
   useEffect(() => { localStorage.setItem('lt_admin_partner_hostings', JSON.stringify(partnerHostingRequests)); }, [partnerHostingRequests]);
@@ -398,7 +405,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const pendingFeaturedCount = useMemo(() => featuredRequests.filter(r => r.status === 'PENDING').length, [featuredRequests]);
   const pendingAdCount = useMemo(() => adRequests.filter(r => r.status === 'PENDING').length, [adRequests]);
 
-  // Actions for Requests
+  // Decision Handlers
   const handleApproveHosting = (id) => {
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'APPROVED' } : r));
     showToast('✅ Tournament Hosting Request Approved & Automated Room Generated!');
@@ -467,141 +474,141 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-[#111827] font-sans antialiased flex flex-col">
+    <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex flex-col font-['Inter',sans-serif] antialiased">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl bg-[#111217] text-white shadow-2xl border border-[#D4AF37]/40 animate-fade-in">
-          <span className="material-symbols-outlined text-[#D4AF37] text-lg">verified</span>
-          <span className="text-xs font-semibold tracking-wide">{toastMessage}</span>
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-[8px] bg-[#1F2937] text-white shadow-md border border-[#C5A059]/40 text-[11px] font-semibold tracking-wide animate-fade-in">
+          <span className="material-symbols-outlined text-[#DFBD78] text-base">verified</span>
+          <span>{toastMessage}</span>
         </div>
       )}
 
       {/* ========================================================
-          TOP HEADER BAR (EXACT MATCH FOR media_1795010667791_992d00b3.jpg)
+          TOP HEADER BAR (EXACT media_1795010667791_992d00b3.jpg)
           ======================================================== */}
-      <header className="bg-white border-b border-[#E5E7EB] px-6 lg:px-10 py-3.5 flex items-center justify-between sticky top-0 z-40">
+      <header className="bg-white border-b border-[#D1D1D1]/60 px-6 lg:px-10 py-3.5 flex items-center justify-between sticky top-0 z-40">
         <div className="flex flex-col">
-          <h1 className="text-base md:text-lg font-bold text-[#111827] tracking-tight flex items-center gap-1.5">
+          <h1 className="text-[16px] md:text-[18px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5 leading-[24px]">
             <span>Welcome,</span>
-            <span className="text-[#C59B27] font-extrabold">Super Administrator</span>
+            <span className="text-[#C5A059] font-bold">Super Administrator</span>
           </h1>
-          <span className="text-[11px] text-neutral-400 font-medium tracking-wide">
+          <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px]">
             Wed, 18 Nov, 2026
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Black Pill Action Button (Matches [+ New Bill] in image) */}
+          {/* Black Action Button (Matches [+ New Bill] in image) */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0E1015] hover:bg-black text-white text-xs font-bold tracking-wide shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-sm font-bold">add</span>
-            <span>New Tournament</span>
+            <span className="material-symbols-outlined text-[15px]">add</span>
+            <span>New Bill</span>
           </button>
 
           {/* User Profile Pill with Avatar Circle */}
-          <div className="flex items-center gap-2 pl-3 border-l border-neutral-200">
-            <div className="size-8 rounded-full bg-[#111217] text-[#D4AF37] flex items-center justify-center font-bold text-xs shadow-xs border border-[#D4AF37]/30">
+          <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
+            <div className="size-7 rounded-full bg-[#1F2937] text-[#DFBD78] flex items-center justify-center font-bold text-[11px] shadow-sm">
               S
             </div>
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-xs font-bold text-neutral-900 leading-tight">Super Administrator</span>
-              <span className="text-[10px] text-neutral-400 font-medium leading-none">Superadmin</span>
+              <span className="text-[11px] font-bold text-[#1F2937] leading-tight">Super Administrator</span>
+              <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Superadmin</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* ========================================================
-          SUB-NAVIGATION TABS (CLEAN, NEAT, PROFESSIONAL)
+          SUB-NAVIGATION TABS (CLEAN, NEAT, PROFESSIONAL TOKENS)
           ======================================================== */}
-      <nav className="bg-white border-b border-[#E5E7EB] px-6 lg:px-10 py-2.5 flex items-center gap-2 overflow-x-auto text-xs font-bold scrollbar-none">
+      <nav className="bg-white border-b border-[#D1D1D1]/60 px-6 lg:px-10 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span className="material-symbols-outlined text-sm">dashboard</span>
+          <span className="material-symbols-outlined text-[14px]">dashboard</span>
           <span>Dashboard</span>
         </button>
 
         <button
           onClick={() => setActiveTab('present-day')}
-          className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'present-day' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'present-day' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span className="material-symbols-outlined text-sm text-[#D4AF37]">calendar_today</span>
+          <span className="material-symbols-outlined text-[14px] text-[#DFBD78]">calendar_today</span>
           <span>Present Day Live</span>
-          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
+          <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse ml-0.5"></span>
         </button>
 
         <button
           onClick={() => setActiveTab('hosting-requests')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'hosting-requests' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'hosting-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Hosting Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
             {pendingHostingCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('scrims-requests')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'scrims-requests' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'scrims-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Scrims Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#3B82F6] text-[9px] font-bold">
             {pendingScrimsCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('partner-hostings')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'partner-hostings' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'partner-hostings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Partner Hostings</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-[#059669] text-[9px] font-bold">
             {pendingPartnerCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('featured-requests')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'featured-requests' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'featured-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Featured Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-[#9333EA] text-[9px] font-bold">
             {pendingFeaturedCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('ad-requests')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'ad-requests' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'ad-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Ad & Sponsor Deals</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-[#EF4444] text-[9px] font-bold">
             {pendingAdCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('all-in-one')}
-          className={`px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'all-in-one' ? 'bg-[#0E1015] text-white shadow-xs' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'all-in-one' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>All in One</span>
         </button>
 
-        <div className="ml-auto flex items-center gap-2 pl-4 border-l border-neutral-200">
+        <div className="ml-auto flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
           <button
             onClick={() => onNavigate && onNavigate('home')}
-            className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+            className="px-2.5 py-1 rounded-[6px] bg-[#F3F4F6] hover:bg-neutral-200 text-[#4B5563] text-[11px] font-semibold transition-colors cursor-pointer shrink-0 flex items-center gap-1"
           >
-            <span className="material-symbols-outlined text-xs">public</span>
+            <span className="material-symbols-outlined text-[13px]">public</span>
             <span>Home Arena</span>
           </button>
           <button
             onClick={() => onLogout && onLogout()}
-            className="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors cursor-pointer shrink-0"
+            className="px-2.5 py-1 rounded-[6px] text-[#EF4444] hover:bg-rose-50 text-[11px] font-semibold transition-colors cursor-pointer shrink-0"
           >
             Sign Out
           </button>
@@ -611,107 +618,107 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       {/* ========================================================
           MAIN SCROLLABLE BODY
           ======================================================== */}
-      <main className="flex-1 p-5 lg:p-8 space-y-6 max-w-[1520px] w-full mx-auto">
+      <main className="flex-1 p-5 lg:p-7 space-y-5 max-w-[1520px] w-full mx-auto">
         {/* ========================================================
             VIEW: MAIN DASHBOARD (EXACT media_1795010667791_992d00b3.jpg REPLICA)
             ======================================================== */}
         {(activeTab === 'dashboard' || activeTab === 'all-in-one') && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             {/* ROW 1: 4 TOP HERO STAT CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Card 1: Today's Revenue */}
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
                       TODAY'S REVENUE
                     </span>
-                    <h2 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight mt-1">
+                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
                       ₹ 6,004
                     </h2>
-                    <p className="text-xs text-neutral-400 font-medium mt-0.5">
+                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
                       29 Bills Today
                     </p>
                   </div>
-                  <div className="size-9 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-700">
-                    <span className="material-symbols-outlined text-lg">attach_money</span>
+                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
+                    <span className="material-symbols-outlined text-[18px]">attach_money</span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-neutral-100 flex items-center gap-1.5 text-xs">
-                  <span className="text-rose-500 font-semibold">↘ -15.4%</span>
-                  <span className="text-neutral-400">vs yesterday</span>
+                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
+                  <span className="text-[#EF4444] font-semibold">↘ -15.4%</span>
+                  <span className="text-[#9CA3AF]">vs yesterday</span>
                 </div>
               </div>
 
               {/* Card 2: Weekly Sales */}
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
                       WEEKLY SALES
                     </span>
-                    <h2 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight mt-1">
+                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
                       ₹ 32,468
                     </h2>
-                    <p className="text-xs text-neutral-400 font-medium mt-0.5">
+                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
                       149 Bills this week
                     </p>
                   </div>
-                  <div className="size-9 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-700">
-                    <span className="material-symbols-outlined text-lg">receipt_long</span>
+                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
+                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-neutral-100 flex items-center gap-1.5 text-xs">
-                  <span className="text-rose-500 font-semibold">↘ -40.6%</span>
-                  <span className="text-neutral-400">vs last week</span>
+                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
+                  <span className="text-[#EF4444] font-semibold">↘ -40.6%</span>
+                  <span className="text-[#9CA3AF]">vs last week</span>
                 </div>
               </div>
 
               {/* Card 3: Monthly Sales */}
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
                       MONTHLY SALES
                     </span>
-                    <h2 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight mt-1">
+                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
                       ₹ 1,69,400
                     </h2>
-                    <p className="text-xs text-neutral-400 font-medium mt-0.5">
+                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
                       724 Bills this month
                     </p>
                   </div>
-                  <div className="size-9 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-700">
-                    <span className="material-symbols-outlined text-lg">trending_up</span>
+                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
+                    <span className="material-symbols-outlined text-[18px]">trending_up</span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-neutral-100 flex items-center gap-1.5 text-xs">
-                  <span className="text-emerald-500 font-semibold">↗ +1025.1%</span>
-                  <span className="text-neutral-400">vs last month</span>
+                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
+                  <span className="text-[#10B981] font-semibold">↗ +1025.1%</span>
+                  <span className="text-[#9CA3AF]">vs last month</span>
                 </div>
               </div>
 
-              {/* Card 4: Styling Stations / Tournament Arenas */}
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
+              {/* Card 4: Styling Stations */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
                       STYLING STATIONS
                     </span>
-                    <h2 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight mt-1">
+                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
                       0 / 9
                     </h2>
-                    <p className="text-xs text-neutral-400 font-medium mt-0.5">
+                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
                       9 Stations Free
                     </p>
                   </div>
-                  <div className="size-9 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-700">
-                    <span className="material-symbols-outlined text-lg">chair</span>
+                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
+                    <span className="material-symbols-outlined text-[18px]">chair</span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-neutral-100 flex items-center gap-1.5 text-xs">
-                  <span className="text-rose-500 font-semibold">↘ 0%</span>
-                  <span className="text-neutral-400">Occupancy Rate</span>
+                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
+                  <span className="text-[#EF4444] font-semibold">↘ 0%</span>
+                  <span className="text-[#9CA3AF]">Occupancy Rate</span>
                 </div>
               </div>
             </div>
@@ -719,107 +726,107 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             {/* ROW 2: 4 COMPACT REVENUE & CLIENT CARDS */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Cash Collections */}
-              <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-xs flex items-center justify-between">
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
                     CASH COLLECTIONS
                   </span>
-                  <p className="text-lg font-extrabold text-neutral-900 tracking-tight mt-0.5">
+                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
                     ₹ 73,151
                   </p>
                 </div>
-                <span className="size-2.5 rounded-full bg-blue-500"></span>
+                <span className="size-2 rounded-full bg-[#3B82F6]"></span>
               </div>
 
               {/* UPI / QR Payments */}
-              <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-xs flex items-center justify-between">
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
                     UPI / QR PAYMENTS
                   </span>
-                  <p className="text-lg font-extrabold text-neutral-900 tracking-tight mt-0.5">
+                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
                     ₹ 85,484
                   </p>
                 </div>
-                <span className="size-2.5 rounded-full bg-purple-500"></span>
+                <span className="size-2 rounded-full bg-[#9333EA]"></span>
               </div>
 
               {/* Card Payments */}
-              <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-xs flex items-center justify-between">
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
                     CARD PAYMENTS
                   </span>
-                  <p className="text-lg font-extrabold text-neutral-900 tracking-tight mt-0.5">
+                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
                     ₹ 0
                   </p>
                 </div>
-                <span className="size-2.5 rounded-full bg-amber-500"></span>
+                <span className="size-2 rounded-full bg-[#F59E0B]"></span>
               </div>
 
-              {/* Total Clients / Registered Gamers */}
-              <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-xs flex items-center justify-between">
+              {/* Total Clients */}
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
                     TOTAL CLIENTS
                   </span>
-                  <p className="text-lg font-extrabold text-emerald-600 tracking-tight mt-0.5">
+                  <p className="text-[16px] font-bold text-[#059669] tracking-tight mt-0.5 nagulan-mono">
                     702 Registered
                   </p>
                 </div>
-                <span className="size-2.5 rounded-full bg-emerald-500"></span>
+                <span className="size-2 rounded-full bg-[#10B981]"></span>
               </div>
             </div>
 
             {/* ROW 3: CHARTS (7-DAY REVENUE TREND + DONUT PAYMENT SHARE) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Chart (2 Columns): 7-Day Revenue Trend */}
-              <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
-                <div className="flex items-center justify-between pb-3">
+              <div className="lg:col-span-2 bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2">
                   <div>
-                    <h3 className="text-sm md:text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                      <span className="material-symbols-outlined text-amber-500 text-lg">show_chart</span>
+                    <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">show_chart</span>
                       7-Day Revenue Trend
                     </h3>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">Daily gross turnover</p>
+                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">Daily gross turnover</p>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[9px] font-semibold border border-[#D1D1D1]/40">
                     Live
                   </span>
                 </div>
 
-                {/* SVG Smooth Golden Spline Area Chart */}
-                <div className="relative w-full h-[260px] pt-4">
-                  <svg className="w-full h-full overflow-visible" viewBox="0 0 600 220" preserveAspectRatio="none">
+                {/* SVG Smooth Spline Chart */}
+                <div className="relative w-full h-[240px] pt-4">
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="goldAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#E5A93C" stopOpacity="0.45" />
-                        <stop offset="100%" stopColor="#E5A93C" stopOpacity="0.02" />
+                      <linearGradient id="nagulanGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#DFBD78" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#DFBD78" stopOpacity="0.02" />
                       </linearGradient>
                     </defs>
 
-                    {/* Y-axis subtle gridlines */}
-                    <line x1="0" y1="20" x2="600" y2="20" stroke="#F1F5F9" />
-                    <line x1="0" y1="70" x2="600" y2="70" stroke="#F1F5F9" />
-                    <line x1="0" y1="120" x2="600" y2="120" stroke="#F1F5F9" />
-                    <line x1="0" y1="170" x2="600" y2="170" stroke="#F1F5F9" />
-                    <line x1="0" y1="200" x2="600" y2="200" stroke="#E2E8F0" />
+                    {/* Subtle gridlines */}
+                    <line x1="0" y1="20" x2="600" y2="20" stroke="#F3F4F6" />
+                    <line x1="0" y1="65" x2="600" y2="65" stroke="#F3F4F6" />
+                    <line x1="0" y1="110" x2="600" y2="110" stroke="#F3F4F6" />
+                    <line x1="0" y1="155" x2="600" y2="155" stroke="#F3F4F6" />
+                    <line x1="0" y1="180" x2="600" y2="180" stroke="#E5E7EB" />
 
-                    {/* Smooth Golden Spline (Matching the exact curve in media_1795010667791_992d00b3.jpg) */}
+                    {/* Exact curve from media_1795010667791_992d00b3.jpg */}
                     <path
-                      d="M 0,135 Q 100,130 200,120 T 350,110 T 450,140 T 550,160 L 600,165 L 600,200 L 0,200 Z"
-                      fill="url(#goldAreaGrad)"
+                      d="M 0,130 Q 120,125 240,115 T 380,105 T 480,135 T 560,150 L 600,155 L 600,180 L 0,180 Z"
+                      fill="url(#nagulanGoldGrad)"
                     />
                     <path
-                      d="M 0,135 Q 100,130 200,120 T 350,110 T 450,140 T 550,160 L 600,165"
+                      d="M 0,130 Q 120,125 240,115 T 380,105 T 480,135 T 560,150 L 600,155"
                       fill="none"
-                      stroke="#C59B27"
+                      stroke="#C5A059"
                       strokeWidth="2.5"
                     />
                   </svg>
 
                   {/* Y-axis Labels on Left */}
-                  <div className="absolute top-4 left-0 text-[10px] text-neutral-400 font-medium space-y-9 pointer-events-none">
+                  <div className="absolute top-3 left-0 text-[9px] text-[#9CA3AF] font-medium space-y-8 pointer-events-none nagulan-mono">
                     <div>12000</div>
                     <div>9000</div>
                     <div>6000</div>
@@ -828,7 +835,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </div>
 
                   {/* X-axis Day Labels */}
-                  <div className="flex justify-between text-[11px] text-neutral-400 font-medium mt-2 px-1">
+                  <div className="flex justify-between text-[11px] text-[#6B7280] font-medium mt-2 px-1">
                     <span>Thu</span>
                     <span>Fri</span>
                     <span>Sat</span>
@@ -841,70 +848,66 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </div>
 
               {/* Right Chart (1 Column): Payment Share Donut */}
-              <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs flex flex-col justify-between">
-                <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                  <h3 className="text-sm md:text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                    <span className="material-symbols-outlined text-amber-500 text-lg">pie_chart</span>
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">pie_chart</span>
                     Payment Share
                   </h3>
-                  <span className="text-[11px] text-neutral-400 font-medium hover:text-neutral-700 cursor-pointer">
+                  <span className="text-[11px] text-[#9CA3AF] font-medium hover:text-[#1F2937] cursor-pointer">
                     By Mode
                   </span>
                 </div>
 
                 {/* Donut Chart SVG */}
-                <div className="flex items-center justify-center py-4">
-                  <svg className="size-40 overflow-visible" viewBox="0 0 100 100">
-                    {/* Ring background */}
-                    <circle cx="50" cy="50" r="38" fill="none" stroke="#F1F5F9" strokeWidth="14" />
-                    {/* Segment 1: Gold (Cash 45%) */}
+                <div className="flex items-center justify-center py-3">
+                  <svg className="size-36 overflow-visible" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#F3F4F6" strokeWidth="13" />
                     <circle
                       cx="50" cy="50" r="38" fill="none"
-                      stroke="#D4AF37" strokeWidth="14"
+                      stroke="#DFBD78" strokeWidth="13"
                       strokeDasharray="107 238"
                       strokeDashoffset="60"
                     />
-                    {/* Segment 2: Blue (UPI 48%) */}
                     <circle
                       cx="50" cy="50" r="38" fill="none"
-                      stroke="#3B82F6" strokeWidth="14"
+                      stroke="#3B82F6" strokeWidth="13"
                       strokeDasharray="114 238"
                       strokeDashoffset="-47"
                     />
-                    {/* Segment 3: Green (Split/Other 7%) */}
                     <circle
                       cx="50" cy="50" r="38" fill="none"
-                      stroke="#10B981" strokeWidth="14"
+                      stroke="#10B981" strokeWidth="13"
                       strokeDasharray="17 238"
                       strokeDashoffset="-161"
                     />
                   </svg>
                 </div>
 
-                {/* Donut Legend (Exact items from media_1795010667791_992d00b3.jpg) */}
-                <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] pt-3 border-t border-neutral-100 font-medium">
-                  <div className="flex items-center gap-1.5 text-neutral-700">
-                    <span className="size-2 rounded-full bg-[#D4AF37]"></span>
-                    <span>Cash: <strong>₹73,151</strong></span>
+                {/* Donut Legend */}
+                <div className="grid grid-cols-2 gap-y-1.5 gap-x-3 text-[11px] pt-3 border-t border-[#F3F4F6] font-medium">
+                  <div className="flex items-center gap-1.5 text-[#1F2937]">
+                    <span className="size-2 rounded-full bg-[#DFBD78]"></span>
+                    <span>Cash: <strong className="nagulan-mono">₹73151</strong></span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-neutral-700">
+                  <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#3B82F6]"></span>
-                    <span>UPI: <strong>₹85,484</strong></span>
+                    <span>UPI: <strong className="nagulan-mono">₹85484</strong></span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-neutral-400">
-                    <span className="size-2 rounded-full bg-emerald-500"></span>
+                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                    <span className="size-2 rounded-full bg-[#10B981]"></span>
                     <span>Debit card: ₹0</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-neutral-400">
-                    <span className="size-2 rounded-full bg-purple-500"></span>
+                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                    <span className="size-2 rounded-full bg-[#9333EA]"></span>
                     <span>Credit card: ₹0</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-neutral-700">
-                    <span className="size-2 rounded-full bg-amber-500"></span>
-                    <span>Split: <strong>₹18,765</strong></span>
+                  <div className="flex items-center gap-1.5 text-[#1F2937]">
+                    <span className="size-2 rounded-full bg-[#F59E0B]"></span>
+                    <span>Split: <strong className="nagulan-mono">₹18765</strong></span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-neutral-400">
-                    <span className="size-2 rounded-full bg-rose-500"></span>
+                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                    <span className="size-2 rounded-full bg-[#EC4899]"></span>
                     <span>Other: ₹0</span>
                   </div>
                 </div>
@@ -912,112 +915,112 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             </div>
 
             {/* ROW 4: BOTTOM 2 RANKED BREAKDOWN CARDS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Bottom Left Card: Top Stylists & Attendants (Top Tournament Hosts) */}
-              <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-                  <h3 className="text-sm md:text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                    <span className="material-symbols-outlined text-amber-500 text-lg">star</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Bottom Left Card: Top Stylists & Attendants */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">star</span>
                     Top Stylists & Attendants
                   </h3>
-                  <button className="text-xs font-bold text-[#C59B27] hover:underline cursor-pointer">
+                  <button className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
                     View All &rarr;
                   </button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {/* Rank 1 */}
-                  <div className="flex items-center justify-between py-2 border-b border-neutral-50">
-                    <div className="flex items-center gap-3">
-                      <div className="size-7 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="flex items-center justify-between py-1.5 border-b border-[#F3F4F6]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                         1
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-neutral-900 leading-snug">mohan</h4>
-                        <p className="text-[11px] text-neutral-400">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">mohan</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-extrabold text-neutral-900 tracking-tight">₹ 1,10,528</p>
-                      <p className="text-[10px] text-neutral-400">485 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 1,10,528</p>
+                      <p className="text-[9px] text-[#9CA3AF]">485 services</p>
                     </div>
                   </div>
 
                   {/* Rank 2 */}
-                  <div className="flex items-center justify-between py-2 border-b border-neutral-50">
-                    <div className="flex items-center gap-3">
-                      <div className="size-7 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="flex items-center justify-between py-1.5 border-b border-[#F3F4F6]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                         2
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-neutral-900 leading-snug">SAKTHI 1031</h4>
-                        <p className="text-[11px] text-neutral-400">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">SAKTHI 1031</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-extrabold text-neutral-900 tracking-tight">₹ 51,881</p>
-                      <p className="text-[10px] text-neutral-400">286 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 51,881</p>
+                      <p className="text-[9px] text-[#9CA3AF]">286 services</p>
                     </div>
                   </div>
 
                   {/* Rank 3 */}
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="size-7 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                         3
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-neutral-900 leading-snug">SANU</h4>
-                        <p className="text-[11px] text-neutral-400">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">SANU</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-extrabold text-neutral-900 tracking-tight">₹ 10,203</p>
-                      <p className="text-[10px] text-neutral-400">63 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 10,203</p>
+                      <p className="text-[9px] text-[#9CA3AF]">63 services</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Right Card: Most Popular Services (Most Popular Formats) */}
-              <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-                  <h3 className="text-sm md:text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                    <span className="material-symbols-outlined text-amber-500 text-lg">local_fire_department</span>
+              {/* Bottom Right Card: Most Popular Services */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">local_fire_department</span>
                     Most Popular Services
                   </h3>
-                  <button className="text-xs font-bold text-[#C59B27] hover:underline cursor-pointer">
+                  <button className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
                     Menu &rarr;
                   </button>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2.5 border-b border-neutral-50">
-                    <div className="flex items-center gap-2 text-sm font-medium text-neutral-800">
-                      <span className="size-2 rounded-full bg-emerald-500"></span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
+                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
                       <span>Haircut,Trimming(or)shaving</span>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-amber-50 text-[#C59B27] text-xs font-bold border border-amber-200">
+                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
                       451 Bookings
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-2.5 border-b border-neutral-50">
-                    <div className="flex items-center gap-2 text-sm font-medium text-neutral-800">
-                      <span className="size-2 rounded-full bg-emerald-500"></span>
+                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
+                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
                       <span>beard trimming (OR) shaving</span>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-amber-50 text-[#C59B27] text-xs font-bold border border-amber-200">
+                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
                       94 Bookings
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-2.5">
-                    <div className="flex items-center gap-2 text-sm font-medium text-neutral-800">
-                      <span className="size-2 rounded-full bg-emerald-500"></span>
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
+                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
                       <span>haircut only</span>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-amber-50 text-[#C59B27] text-xs font-bold border border-amber-200">
+                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
                       79 Bookings
                     </span>
                   </div>
@@ -1028,61 +1031,81 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {/* ========================================================
-            VIEW: PRESENT DAY LIVE (FROM FIRST REFERENCE IMAGE)
+            VIEW: PRESENT DAY LIVE OVERVIEW (ESPORTS & REVENUE PACING)
             ======================================================== */}
         {(activeTab === 'present-day' || activeTab === 'all-in-one') && (
-          <div className="space-y-6 pt-4 animate-fade-in">
+          <div className="space-y-4 pt-3 animate-fade-in">
             {/* Present Day Hero Card */}
-            <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-neutral-800 text-2xl">event_available</span>
-                  <h2 className="text-lg md:text-xl font-bold tracking-tight text-neutral-900">
+            <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#1F2937] text-[20px]">event_available</span>
+                  <h2 className="text-[16px] font-bold tracking-tight text-[#1F2937]">
                     Present Day Live Overview
                   </h2>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#059669] text-[9px] font-bold border border-emerald-200">
+                    <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
                     LIVE
                   </span>
                 </div>
-                <p className="text-xs md:text-sm text-neutral-500 font-normal">
-                  Real-time performance for <strong className="text-neutral-700 font-semibold">Wednesday, 18 Nov 2026</strong> compared against yesterday.
+                <p className="text-[11px] text-[#6B7280]">
+                  Real-time performance for <strong className="text-[#1F2937] font-semibold">Wednesday, 18 Nov 2026</strong> compared against yesterday.
                 </p>
               </div>
 
               <button
                 onClick={handleSyncLive}
                 disabled={isSyncing}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 text-neutral-700 text-xs font-semibold border border-neutral-200 transition-colors cursor-pointer self-start md:self-auto"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] bg-[#F3F4F6] hover:bg-neutral-200 text-[#4B5563] text-[11px] font-semibold border border-[#D1D1D1]/60 transition-colors cursor-pointer self-start md:self-auto"
               >
-                <span className={`material-symbols-outlined text-base ${isSyncing ? 'animate-spin text-[#D4AF37]' : ''}`}>
+                <span className={`material-symbols-outlined text-[14px] ${isSyncing ? 'animate-spin text-[#DFBD78]' : ''}`}>
                   sync
                 </span>
                 <span>{isSyncing ? 'Syncing...' : 'Sync Live'}</span>
               </button>
             </div>
 
-            {/* Live Counts Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">OVERALL USERS</span>
-                <p className="text-2xl font-extrabold text-neutral-900 mt-1">52,480</p>
-                <p className="text-[11px] text-emerald-600 font-semibold mt-1">↗ +13.6% vs yesterday</p>
+            {/* 8 Live Metric Cards with Nagulan Design Tokens */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">OVERALL USERS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">52,480</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +13.6% vs yesterday</p>
               </div>
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">LIVE TOURNAMENTS</span>
-                <p className="text-2xl font-extrabold text-neutral-900 mt-1">18 Live</p>
-                <p className="text-[11px] text-emerald-600 font-semibold mt-1">↗ +20.0% vs yesterday</p>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">LIVE TOURNAMENTS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">18 Live</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +20.0% vs yesterday</p>
               </div>
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">TODAY TOURNAMENTS</span>
-                <p className="text-2xl font-extrabold text-neutral-900 mt-1">42 Matches</p>
-                <p className="text-[11px] text-emerald-600 font-semibold mt-1">↗ +16.7% vs yesterday</p>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY TOURNAMENTS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">42 Matches</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.7% vs yesterday</p>
               </div>
-              <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">TODAY HOSTINGS</span>
-                <p className="text-2xl font-extrabold text-neutral-900 mt-1">29 Hostings</p>
-                <p className="text-[11px] text-emerald-600 font-semibold mt-1">↗ +20.8% vs yesterday</p>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY HOSTINGS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">29 Hostings</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +20.8% vs yesterday</p>
+              </div>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">MONTHLY SUB HOSTINGS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">148 Pro Hosts</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +12.1% vs last month</p>
+              </div>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">DAILY SCRIMS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">36 Scrims</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.1% vs yesterday</p>
+              </div>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">WEEKLY SCRIMS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">14 Leagues</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.7% vs last week</p>
+              </div>
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">MONTHLY SCRIMS</span>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">8 Mega Cups</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +33.3% vs last month</p>
               </div>
             </div>
           </div>
@@ -1092,45 +1115,45 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             VIEW: REQUEST SECTIONS (USER HOSTING, SCRIMS, PARTNER, FEATURED, ADS)
             ======================================================== */}
         {(activeTab === 'hosting-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-500">hub</span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#DFBD78] text-[18px]">hub</span>
                 Tournament Hosting Requests by Users
               </h3>
-              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97706] text-[10px] font-bold border border-amber-200">
                 {pendingHostingCount} Pending
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {hostingRequests.map(req => (
-                <div key={req.id} className="rounded-xl border border-neutral-200 p-4 bg-neutral-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
+                <div key={req.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-sm font-bold text-neutral-900">{req.title}</h4>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${req.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : req.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <h4 className="text-[13px] font-bold text-[#1F2937]">{req.title}</h4>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${req.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669]' : req.status === 'REJECTED' ? 'bg-rose-50 text-[#EF4444]' : 'bg-amber-50 text-[#D97706]'}`}>
                         {req.status}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-600 font-medium">{req.organizer} &bull; <strong className="text-[#C59B27]">{req.clan}</strong></p>
-                    <div className="text-[11px] text-neutral-500 space-y-1 bg-white p-2.5 rounded-lg border border-neutral-100">
+                    <p className="text-[11px] text-[#4B5563]">{req.organizer} &bull; <strong className="text-[#C5A059]">{req.clan}</strong></p>
+                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
                       <p><strong>Game:</strong> {req.game} ({req.format})</p>
                       <p><strong>Slots:</strong> {req.slots}</p>
-                      <p><strong>Prize Pool:</strong> <span className="text-emerald-600 font-bold">{req.prizePool}</span></p>
+                      <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold">{req.prizePool}</span></p>
                     </div>
                   </div>
                   {req.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
-                      <button onClick={() => handleApproveHosting(req.id)} className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
+                      <button onClick={() => handleApproveHosting(req.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#10B981] hover:bg-[#059669] text-white text-[11px] font-bold transition-colors cursor-pointer">
                         Approve & Create
                       </button>
-                      <button onClick={() => handleRejectHosting(req.id)} className="py-2 px-3 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer">
+                      <button onClick={() => handleRejectHosting(req.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
                         Decline
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-xs font-bold text-neutral-400 py-1">Decision Broadcasted</div>
+                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Decision Broadcasted</div>
                   )}
                 </div>
               ))}
@@ -1139,42 +1162,42 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {(activeTab === 'scrims-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-500">timer</span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#3B82F6] text-[18px]">timer</span>
                 Scrims Requests (Daily / Weekly / Monthly)
               </h3>
-              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#3B82F6] text-[10px] font-bold border border-blue-200">
                 {pendingScrimsCount} Pending
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {scrimsRequests.map(scrim => (
-                <div key={scrim.id} className="rounded-xl border border-neutral-200 p-4 bg-neutral-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
+                <div key={scrim.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">{scrim.frequencyBadge}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${scrim.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : scrim.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{scrim.status}</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-50 text-[#3B82F6] text-[9px] font-bold uppercase">{scrim.frequencyBadge}</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${scrim.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669]' : 'bg-amber-50 text-[#D97706]'}`}>{scrim.status}</span>
                     </div>
-                    <h4 className="text-sm font-bold text-neutral-900">{scrim.clan}</h4>
-                    <div className="text-[11px] text-neutral-500 space-y-1 bg-white p-2.5 rounded-lg border border-neutral-100">
+                    <h4 className="text-[13px] font-bold text-[#1F2937]">{scrim.clan}</h4>
+                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
                       <p><strong>Game:</strong> {scrim.game} &bull; {scrim.format}</p>
                       <p><strong>Schedule:</strong> {scrim.schedule}</p>
                     </div>
                   </div>
                   {scrim.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
-                      <button onClick={() => handleApproveScrim(scrim.id)} className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
+                      <button onClick={() => handleApproveScrim(scrim.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#3B82F6] hover:bg-blue-700 text-white text-[11px] font-bold transition-colors cursor-pointer">
                         Approve Schedule
                       </button>
-                      <button onClick={() => handleRejectScrim(scrim.id)} className="py-2 px-3 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer">
+                      <button onClick={() => handleRejectScrim(scrim.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
                         Decline
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-xs font-bold text-neutral-400 py-1">Slot Scheduled</div>
+                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Slot Scheduled</div>
                   )}
                 </div>
               ))}
@@ -1183,43 +1206,43 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {(activeTab === 'partner-hostings' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-500">verified</span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#059669] text-[18px]">verified</span>
                 Partner Hosting Tournaments Requests
               </h3>
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#059669] text-[10px] font-bold border border-emerald-200">
                 {pendingPartnerCount} Proposals
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {partnerHostingRequests.map(part => (
-                <div key={part.id} className="rounded-xl border border-neutral-200 p-4 bg-neutral-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
+                <div key={part.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Verified Partner</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${part.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{part.status}</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-50 text-[#059669] text-[9px] font-bold uppercase">Verified Partner</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${part.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669]' : 'bg-amber-50 text-[#D97706]'}`}>{part.status}</span>
                     </div>
-                    <h4 className="text-sm font-bold text-neutral-900">{part.title}</h4>
-                    <p className="text-xs font-bold text-[#C59B27]">{part.organization}</p>
-                    <div className="text-[11px] text-neutral-500 space-y-1 bg-white p-2.5 rounded-lg border border-neutral-100">
-                      <p><strong>Prize Pool:</strong> <span className="text-emerald-600 font-bold">{part.prizePool}</span></p>
+                    <h4 className="text-[13px] font-bold text-[#1F2937]">{part.title}</h4>
+                    <p className="text-[11px] font-bold text-[#C5A059]">{part.organization}</p>
+                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
+                      <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold">{part.prizePool}</span></p>
                       <p><strong>Dates:</strong> {part.dates}</p>
                     </div>
                   </div>
                   {part.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
-                      <button onClick={() => handleApprovePartner(part.id)} className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
+                      <button onClick={() => handleApprovePartner(part.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#059669] hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer">
                         Grant License
                       </button>
-                      <button onClick={() => handleRejectPartner(part.id)} className="py-2 px-3 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer">
+                      <button onClick={() => handleRejectPartner(part.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
                         Decline
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-xs font-bold text-neutral-400 py-1">Partner Approved</div>
+                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Partner Approved</div>
                   )}
                 </div>
               ))}
@@ -1228,40 +1251,40 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {(activeTab === 'featured-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-purple-500">star</span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#9333EA] text-[18px]">star</span>
                 Featured Tournaments Requests
               </h3>
-              <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-[#9333EA] text-[10px] font-bold border border-purple-200">
                 {pendingFeaturedCount} Requests
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {featuredRequests.map(feat => (
-                <div key={feat.id} className="rounded-xl border border-neutral-200 p-4 bg-neutral-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-neutral-900">{feat.tournament}</h4>
-                    <p className="text-xs text-neutral-600 font-semibold">{feat.organizer}</p>
-                    <div className="text-[11px] text-neutral-500 space-y-1 bg-white p-2.5 rounded-lg border border-neutral-100">
+                <div key={feat.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <h4 className="text-[13px] font-bold text-[#1F2937]">{feat.tournament}</h4>
+                    <p className="text-[11px] text-[#4B5563] font-semibold">{feat.organizer}</p>
+                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
                       <p><strong>Game:</strong> {feat.game}</p>
                       <p><strong>Placement:</strong> {feat.placement}</p>
-                      <p><strong>Budget:</strong> <span className="text-purple-600 font-bold">{feat.budget}</span></p>
+                      <p><strong>Budget:</strong> <span className="text-[#9333EA] font-bold">{feat.budget}</span></p>
                     </div>
                   </div>
                   {feat.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
-                      <button onClick={() => handleApproveFeatured(feat.id)} className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
+                      <button onClick={() => handleApproveFeatured(feat.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#9333EA] hover:bg-purple-700 text-white text-[11px] font-bold transition-colors cursor-pointer">
                         Pin to Featured
                       </button>
-                      <button onClick={() => handleRejectFeatured(feat.id)} className="py-2 px-3 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer">
+                      <button onClick={() => handleRejectFeatured(feat.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
                         Decline
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-xs font-bold text-neutral-400 py-1">Featured Active</div>
+                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Featured Active</div>
                   )}
                 </div>
               ))}
@@ -1270,39 +1293,39 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {(activeTab === 'ad-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-rose-500">campaign</span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#EF4444] text-[18px]">campaign</span>
                 Advertisement & Sponsorship Requests
               </h3>
-              <span className="px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-[#EF4444] text-[10px] font-bold border border-rose-200">
                 {pendingAdCount} Active Proposals
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {adRequests.map(ad => (
-                <div key={ad.id} className="rounded-xl border border-neutral-200 p-4 bg-neutral-50/50 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-neutral-900">{ad.sponsor}</h4>
-                    <div className="text-[11px] text-neutral-500 space-y-1 bg-white p-2.5 rounded-lg border border-neutral-100">
+                <div key={ad.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <h4 className="text-[13px] font-bold text-[#1F2937]">{ad.sponsor}</h4>
+                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
                       <p><strong>Campaign:</strong> {ad.type}</p>
-                      <p><strong>Budget:</strong> <span className="text-emerald-600 font-bold">{ad.budget}</span></p>
+                      <p><strong>Proposed Budget:</strong> <span className="text-[#059669] font-bold">{ad.budget}</span></p>
                       <p><strong>Representative:</strong> {ad.representative}</p>
                     </div>
                   </div>
                   {ad.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-neutral-200">
-                      <button onClick={() => handleApproveAd(ad.id)} className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
+                      <button onClick={() => handleApproveAd(ad.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#10B981] hover:bg-[#059669] text-white text-[11px] font-bold transition-colors cursor-pointer">
                         Accept Proposal
                       </button>
-                      <button onClick={() => handleRejectAd(ad.id)} className="py-2 px-3 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer">
+                      <button onClick={() => handleRejectAd(ad.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
                         Decline
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-xs font-bold text-neutral-400 py-1">Sponsorship Confirmed</div>
+                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Sponsorship Confirmed</div>
                   )}
                 </div>
               ))}
@@ -1311,93 +1334,81 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
       </main>
 
-      {/* CREATE TOURNAMENT MODAL */}
+      {/* CREATE MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-scale-up">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-              <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#C59B27]">emoji_events</span>
-                Create New Tournament
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-[16px] border border-[#D1D1D1] shadow-xl max-w-md w-full p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
+              <h3 className="text-[16px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#C5A059]">add_circle</span>
+                New Tournament / Bill
               </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-neutral-400 hover:text-neutral-600 p-1">
-                <span className="material-symbols-outlined text-lg">close</span>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#9CA3AF] hover:text-[#1F2937] p-1">
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleCreateTournament} className="space-y-3.5 text-xs">
+            <form onSubmit={handleCreateTournament} className="space-y-3 text-[11px]">
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">Tournament Title</label>
+                <label className="block font-bold text-[#1F2937] mb-1">Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. BGMI Pro Winter Cup"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 focus:border-[#C59B27] outline-hidden text-neutral-900 font-medium"
+                  className="w-full px-3 py-2 rounded-[6px] border border-[#D1D1D1] focus:border-[#C5A059] outline-hidden text-[#1F2937] font-medium"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">Game Title</label>
+                <label className="block font-bold text-[#1F2937] mb-1">Game / Service</label>
                 <select
                   value={newGame}
                   onChange={(e) => setNewGame(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 focus:border-[#C59B27] outline-hidden text-neutral-900 font-medium"
+                  className="w-full px-3 py-2 rounded-[6px] border border-[#D1D1D1] focus:border-[#C5A059] outline-hidden text-[#1F2937] font-medium"
                 >
                   <option value="Battlegrounds Mobile India">Battlegrounds Mobile India (BGMI)</option>
                   <option value="Free Fire MAX">Free Fire MAX</option>
                   <option value="Valorant">Valorant</option>
                   <option value="COD Mobile">Call of Duty: Mobile</option>
-                  <option value="Apex Legends">Apex Legends</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Prize Pool</label>
+                  <label className="block font-bold text-[#1F2937] mb-1">Prize / Amount</label>
                   <input
                     type="text"
                     required
                     placeholder="₹50,000"
                     value={newPrize}
                     onChange={(e) => setNewPrize(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-neutral-200 focus:border-[#C59B27] outline-hidden text-neutral-900 font-medium"
+                    className="w-full px-3 py-2 rounded-[6px] border border-[#D1D1D1] focus:border-[#C5A059] outline-hidden text-[#1F2937] font-medium"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Slots / Teams</label>
+                  <label className="block font-bold text-[#1F2937] mb-1">Slots / Quantity</label>
                   <input
                     type="text"
                     value={newSlots}
                     onChange={(e) => setNewSlots(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-neutral-200 focus:border-[#C59B27] outline-hidden text-neutral-900 font-medium"
+                    className="w-full px-3 py-2 rounded-[6px] border border-[#D1D1D1] focus:border-[#C5A059] outline-hidden text-[#1F2937] font-medium"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Schedule Dates</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dec 05 - Dec 10, 2026"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 focus:border-[#C59B27] outline-hidden text-neutral-900 font-medium"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-3 border-t border-neutral-100">
+              <div className="flex items-center gap-2 pt-3 border-t border-[#F3F4F6]">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#0E1015] hover:bg-black text-white text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                  className="flex-1 py-2 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold transition-colors cursor-pointer shadow-sm"
                 >
-                  Publish Tournament
+                  Save & Publish
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="py-2.5 px-4 rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 text-xs font-bold transition-colors cursor-pointer"
+                  className="py-2 px-3 rounded-[6px] border border-[#D1D1D1] text-[#4B5563] hover:bg-[#F3F4F6] text-[11px] font-bold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

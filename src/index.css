@@ -47,6 +47,28 @@ img {
   height: auto;
 }
 
+/* Scoped Nagulan Dashboard Typography */
+.nagulan-dashboard,
+.nagulan-dashboard h1,
+.nagulan-dashboard h2,
+.nagulan-dashboard h3,
+.nagulan-dashboard h4,
+.nagulan-dashboard h5,
+.nagulan-dashboard h6,
+.nagulan-dashboard p,
+.nagulan-dashboard span,
+.nagulan-dashboard div,
+.nagulan-dashboard button,
+.nagulan-dashboard table,
+.nagulan-dashboard th,
+.nagulan-dashboard td {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.nagulan-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
 @media (min-width: 1024px) {
   .shadow-mobile-navigation {
     display: none !important;
