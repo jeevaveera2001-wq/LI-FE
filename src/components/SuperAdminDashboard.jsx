@@ -508,12 +508,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               LT
             </div>
             <div className="flex flex-col">
-              <span className="text-[12px] font-bold tracking-tight text-white uppercase leading-tight">NAGULAN</span>
-              <span className="text-[8px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">UNISEX SALON & POS</span>
+              <span className="text-[12px] font-bold tracking-tight text-white uppercase leading-tight">LiveTournaments</span>
+              <span className="text-[8px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">OFFICIAL ESPORTS HUB</span>
             </div>
           </div>
           <div className="size-7 rounded-[6px] bg-[#1E1911] border border-[#DFBD78]/50 flex items-center justify-center text-[#DFBD78] font-bold text-[10px]">
-            MR
+            HQ
           </div>
         </div>
 
@@ -647,43 +647,52 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Divider */}
           <div className="pt-2 pb-1">
             <div className="h-px bg-[#1F2937]/80 my-1"></div>
-            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Salon & Billing Modules</span>
+            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Platform Modules</span>
           </div>
 
-          {/* Billing / POS */}
+          {/* All Tournaments */}
           <button
-            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            onClick={() => { setActiveTab('all-in-one'); setSidebarOpen(false); }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">payments</span>
-            <span className="flex-1">Billing / POS</span>
+            <span className="material-symbols-outlined text-[16px]">emoji_events</span>
+            <span className="flex-1">All Tournaments</span>
           </button>
 
-          {/* Sales History */}
+          {/* Daily & Weekly Scrims */}
           <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-            <span className="flex-1">Sales History</span>
+            <span className="material-symbols-outlined text-[16px]">sports_esports</span>
+            <span className="flex-1">Daily & Weekly Scrims</span>
           </button>
 
-          {/* Chairs & Stations */}
+          {/* Active Match Rooms */}
           <button
-            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            onClick={() => { showToast('Active automated rooms online'); setSidebarOpen(false); }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">chair</span>
-            <span className="flex-1">Chairs & Stations</span>
+            <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+            <span className="flex-1">Active Match Rooms</span>
           </button>
 
-          {/* Attendants */}
+          {/* Player Database */}
           <button
-            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            onClick={() => { showToast('52,480 registered players indexed'); setSidebarOpen(false); }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">badge</span>
-            <span className="flex-1">Attendants</span>
+            <span className="material-symbols-outlined text-[16px]">groups</span>
+            <span className="flex-1">Player Database</span>
+          </button>
+
+          {/* Broadcast & Stream POS */}
+          <button
+            onClick={() => { showToast('Production streaming console active'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">live_tv</span>
+            <span className="flex-1">Broadcast & Stream POS</span>
           </button>
 
           {/* Reports & Analytics */}
@@ -695,22 +704,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="flex-1">Reports & Analytics</span>
           </button>
 
-          {/* Activity Logs */}
+          {/* Platform Settings */}
           <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">event_note</span>
-            <span className="flex-1">Activity Logs</span>
-          </button>
-
-          {/* Salon Settings */}
-          <button
-            onClick={() => { showToast('Salon & Hub configurations loaded'); setSidebarOpen(false); }}
+            onClick={() => { showToast('Esports Hub system settings loaded'); setSidebarOpen(false); }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">settings</span>
-            <span className="flex-1">Salon Settings</span>
+            <span className="flex-1">Platform Settings</span>
           </button>
         </div>
 
@@ -759,14 +759,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Black Action Button (Matches [+ New Bill] in image) */}
+            {/* Black Action Button */}
             <button
               onClick={() => setShowCreateModal(true)}
               style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px] !text-white">add</span>
-              <span className="!text-white">New Bill</span>
+              <span className="!text-white">Host Tournament</span>
             </button>
 
             {/* User Profile Pill with Avatar Circle */}
@@ -886,169 +886,169 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           <div className="space-y-4 animate-fade-in">
             {/* ROW 1: 4 TOP HERO STAT CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1: Today's Revenue */}
+              {/* Card 1: Overall Users */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      TODAY'S REVENUE
+                      OVERALL USERS
                     </span>
                     <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      ₹ 6,004
+                      52,480
                     </h2>
                     <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      29 Bills Today
+                      1,420 Active Today
                     </p>
                   </div>
                   <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">attach_money</span>
+                    <span className="material-symbols-outlined text-[18px]">groups</span>
                   </div>
                 </div>
                 <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#EF4444] font-semibold">↘ -15.4%</span>
+                  <span className="text-[#10B981] font-semibold">↗ +13.6%</span>
                   <span className="text-[#9CA3AF]">vs yesterday</span>
                 </div>
               </div>
 
-              {/* Card 2: Weekly Sales */}
+              {/* Card 2: Live Tournaments */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      WEEKLY SALES
+                      LIVE TOURNAMENTS
                     </span>
                     <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      ₹ 32,468
+                      18 Live
                     </h2>
                     <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      149 Bills this week
+                      42 Matches Today
                     </p>
                   </div>
                   <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                    <span className="material-symbols-outlined text-[18px]">sports_esports</span>
                   </div>
                 </div>
                 <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#EF4444] font-semibold">↘ -40.6%</span>
+                  <span className="text-[#10B981] font-semibold">↗ +20.0%</span>
+                  <span className="text-[#9CA3AF]">vs yesterday</span>
+                </div>
+              </div>
+
+              {/* Card 3: Today Hostings */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
+                      TODAY HOSTINGS
+                    </span>
+                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
+                      29 Hostings
+                    </h2>
+                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
+                      148 Monthly Pro Hosts
+                    </p>
+                  </div>
+                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
+                    <span className="material-symbols-outlined text-[18px]">hub</span>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
+                  <span className="text-[#10B981] font-semibold">↗ +20.8%</span>
                   <span className="text-[#9CA3AF]">vs last week</span>
                 </div>
               </div>
 
-              {/* Card 3: Monthly Sales */}
+              {/* Card 4: Monthly Subscription Hostings */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      MONTHLY SALES
+                      MONTHLY SUB HOSTINGS
                     </span>
                     <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      ₹ 1,69,400
+                      148 / 200
                     </h2>
                     <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      724 Bills this month
+                      52 Slots Free
                     </p>
                   </div>
                   <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">trending_up</span>
+                    <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
                   </div>
                 </div>
                 <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#10B981] font-semibold">↗ +1025.1%</span>
-                  <span className="text-[#9CA3AF]">vs last month</span>
-                </div>
-              </div>
-
-              {/* Card 4: Styling Stations */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      STYLING STATIONS
-                    </span>
-                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      0 / 9
-                    </h2>
-                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      9 Stations Free
-                    </p>
-                  </div>
-                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">chair</span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#EF4444] font-semibold">↘ 0%</span>
-                  <span className="text-[#9CA3AF]">Occupancy Rate</span>
+                  <span className="text-[#10B981] font-semibold">↗ +12.1%</span>
+                  <span className="text-[#9CA3AF]">Growth Rate</span>
                 </div>
               </div>
             </div>
 
-            {/* ROW 2: 4 COMPACT REVENUE & CLIENT CARDS */}
+            {/* ROW 2: 4 COMPACT REVENUE & SCRIMS CARDS */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Cash Collections */}
+              {/* Daily Scrims */}
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    CASH COLLECTIONS
+                    DAILY SCRIMS
                   </span>
                   <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    ₹ 73,151
+                    36 Active Scrims
                   </p>
                 </div>
                 <span className="size-2 rounded-full bg-[#3B82F6]"></span>
               </div>
 
-              {/* UPI / QR Payments */}
+              {/* Weekly Scrims */}
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    UPI / QR PAYMENTS
+                    WEEKLY SCRIMS
                   </span>
                   <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    ₹ 85,484
+                    14 Pro Leagues
                   </p>
                 </div>
                 <span className="size-2 rounded-full bg-[#9333EA]"></span>
               </div>
 
-              {/* Card Payments */}
+              {/* Monthly Scrims */}
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    CARD PAYMENTS
+                    MONTHLY SCRIMS
                   </span>
                   <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    ₹ 0
+                    8 Mega Cups
                   </p>
                 </div>
                 <span className="size-2 rounded-full bg-[#F59E0B]"></span>
               </div>
 
-              {/* Total Clients */}
+              {/* Total Registered Clans */}
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    TOTAL CLIENTS
+                    TOTAL REGISTERED CLANS
                   </span>
                   <p className="text-[16px] font-bold text-[#059669] tracking-tight mt-0.5 nagulan-mono">
-                    702 Registered
+                    702 Verified Teams
                   </p>
                 </div>
                 <span className="size-2 rounded-full bg-[#10B981]"></span>
               </div>
             </div>
 
-            {/* ROW 3: CHARTS (7-DAY REVENUE TREND + DONUT PAYMENT SHARE) */}
+            {/* ROW 3: CHARTS (7-DAY ESPORTS ACTIVITY TREND + DONUT GAME SHARE) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Left Chart (2 Columns): 7-Day Revenue Trend */}
+              {/* Left Chart (2 Columns): 7-Day Activity Trend */}
               <div className="lg:col-span-2 bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-center justify-between pb-2">
                   <div>
                     <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">show_chart</span>
-                      7-Day Revenue Trend
+                      7-Day Tournament & Match Trend
                     </h3>
-                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">Daily gross turnover</p>
+                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">Daily competitor registrations & match turnover</p>
                   </div>
                   <span className="px-2 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[9px] font-semibold border border-[#D1D1D1]/40">
                     Live
@@ -1072,7 +1072,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <line x1="0" y1="155" x2="600" y2="155" stroke="#F3F4F6" />
                     <line x1="0" y1="180" x2="600" y2="180" stroke="#E5E7EB" />
 
-                    {/* Exact curve from media_1795010667791_992d00b3.jpg */}
+                    {/* Exact curve from reference image */}
                     <path
                       d="M 0,130 Q 120,125 240,115 T 380,105 T 480,135 T 560,150 L 600,155 L 600,180 L 0,180 Z"
                       fill="url(#nagulanGoldGrad)"
@@ -1107,15 +1107,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </div>
               </div>
 
-              {/* Right Chart (1 Column): Payment Share Donut */}
+              {/* Right Chart (1 Column): Game Share Donut */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
                   <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">pie_chart</span>
-                    Payment Share
+                    Tournament Share
                   </h3>
                   <span className="text-[11px] text-[#9CA3AF] font-medium hover:text-[#1F2937] cursor-pointer">
-                    By Mode
+                    By Game Title
                   </span>
                 </div>
 
@@ -1148,27 +1148,27 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <div className="grid grid-cols-2 gap-y-1.5 gap-x-3 text-[11px] pt-3 border-t border-[#F3F4F6] font-medium">
                   <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#DFBD78]"></span>
-                    <span>Cash: <strong className="nagulan-mono">₹73151</strong></span>
+                    <span>BGMI: <strong className="nagulan-mono">48%</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#3B82F6]"></span>
-                    <span>UPI: <strong className="nagulan-mono">₹85484</strong></span>
+                    <span>Free Fire: <strong className="nagulan-mono">28%</strong></span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                  <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#10B981]"></span>
-                    <span>Debit card: ₹0</span>
+                    <span>Valorant: <strong className="nagulan-mono">14%</strong></span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
+                  <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#9333EA]"></span>
-                    <span>Credit card: ₹0</span>
+                    <span>CODM: <strong className="nagulan-mono">6%</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[#1F2937]">
                     <span className="size-2 rounded-full bg-[#F59E0B]"></span>
-                    <span>Split: <strong className="nagulan-mono">₹18765</strong></span>
+                    <span>Apex: <strong className="nagulan-mono">4%</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[#9CA3AF]">
                     <span className="size-2 rounded-full bg-[#EC4899]"></span>
-                    <span>Other: ₹0</span>
+                    <span>Others: 0%</span>
                   </div>
                 </div>
               </div>
@@ -1176,14 +1176,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
             {/* ROW 4: BOTTOM 2 RANKED BREAKDOWN CARDS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Bottom Left Card: Top Stylists & Attendants */}
+              {/* Bottom Left Card: Top Tournament Organizers & Hosts */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
                   <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">star</span>
-                    Top Stylists & Attendants
+                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">military_tech</span>
+                    Top Organizers & Hosts
                   </h3>
-                  <button className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
+                  <button onClick={() => setActiveTab('hosting-requests')} className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
                     View All &rarr;
                   </button>
                 </div>
@@ -1196,13 +1196,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         1
                       </div>
                       <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">mohan</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Clan Hydra Esports</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">BGMI Battle Royale Pro</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 1,10,528</p>
-                      <p className="text-[9px] text-[#9CA3AF]">485 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 1,10,500</p>
+                      <p className="text-[9px] text-[#9CA3AF]">486 matches</p>
                     </div>
                   </div>
 
@@ -1213,13 +1213,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         2
                       </div>
                       <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">SAKTHI 1031</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Team Venom Gaming</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">Free Fire MAX Clash Squad</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 51,881</p>
-                      <p className="text-[9px] text-[#9CA3AF]">286 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 51,800</p>
+                      <p className="text-[9px] text-[#9CA3AF]">286 matches</p>
                     </div>
                   </div>
 
@@ -1230,27 +1230,27 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         3
                       </div>
                       <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">SANU</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">Hair Cut, Beard Styling</p>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Deadly 5 Esports</h4>
+                        <p className="text-[9px] text-[#9CA3AF]">Valorant Mumbai Spike League</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 10,203</p>
-                      <p className="text-[9px] text-[#9CA3AF]">63 services</p>
+                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 10,200</p>
+                      <p className="text-[9px] text-[#9CA3AF]">63 matches</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Right Card: Most Popular Services */}
+              {/* Bottom Right Card: Most Popular Esports Formats */}
               <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
                   <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">local_fire_department</span>
-                    Most Popular Services
+                    Most Popular Esports Formats
                   </h3>
-                  <button className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
-                    Menu &rarr;
+                  <button onClick={() => setActiveTab('all-in-one')} className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
+                    All Modes &rarr;
                   </button>
                 </div>
 
@@ -1258,30 +1258,30 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
                       <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>Haircut,Trimming(or)shaving</span>
+                      <span>BGMI Battle Royale (Squad Erangel / Miramar)</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      451 Bookings
+                      451 Tournaments
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                     <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
                       <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>beard trimming (OR) shaving</span>
+                      <span>Free Fire MAX (Clash Squad 4v4 Knockout)</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      94 Bookings
+                      94 Tournaments
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
                       <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>haircut only</span>
+                      <span>Valorant (5v5 Spike Plant Competitive Custom)</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      79 Bookings
+                      79 Tournaments
                     </span>
                   </div>
                 </div>
