@@ -17,6 +17,7 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
   const [regStep, setRegStep] = useState('details'); // 'details' or 'verify'
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
+  const [regMobile, setRegMobile] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(true);
@@ -136,6 +137,10 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
+    if (!regMobile || regMobile.trim().length < 7) {
+      setErrorMessage('Please enter a valid mobile number.');
+      return;
+    }
     if (regPassword !== regConfirmPassword) {
       setErrorMessage('Passwords do not match.');
       return;
@@ -237,6 +242,7 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
       await axios.post('/api/auth/register', {
         name: regName,
         email: regEmail,
+        mobile: regMobile,
         password: regPassword,
       });
 
@@ -526,6 +532,20 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
                 placeholder="champion@gmail.com"
+                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-white/70 mb-0.5">
+                Mobile Number
+              </label>
+              <input
+                type="tel"
+                value={regMobile}
+                onChange={(e) => setRegMobile(e.target.value)}
+                placeholder="e.g. +91 98765 43210"
                 className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
                 required
               />
