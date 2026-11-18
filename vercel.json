@@ -1,8 +1,9 @@
 {
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://li-be.onrender.com/api/$1"
+      "destination": "/api/$1"
     },
     {
       "source": "/(.*)",
