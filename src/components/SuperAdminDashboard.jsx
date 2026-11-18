@@ -6,7 +6,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [tournamentFilter, setTournamentFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Initial tournaments with editable state
+  // Editable tournaments
   const [tournaments, setTournaments] = useState(() => {
     const saved = localStorage.getItem('lt_admin_tournaments');
     if (saved) {
@@ -21,7 +21,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     ];
   });
 
-  // Initial users with editable state
+  // Editable users (Strict 2-role hierarchy)
   const [usersList, setUsersList] = useState(() => {
     const saved = localStorage.getItem('lt_admin_users');
     if (saved) {
@@ -43,7 +43,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [newSlots, setNewSlots] = useState('32');
   const [newDate, setNewDate] = useState('');
 
-  // Persist tournaments & users
+  // Persist changes
   useEffect(() => {
     localStorage.setItem('lt_admin_tournaments', JSON.stringify(tournaments));
   }, [tournaments]);
@@ -100,106 +100,97 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-gold-primary selection:text-white">
-      {/* Top Executive Header */}
-      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div
-            className="px-3.5 py-1.5 rounded-xl bg-black flex items-center shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => onNavigate && onNavigate('home')}
-            title="LiveTournaments.in Home"
-          >
-            <img
-              src="/assets/lt_wordmark_custom.png"
-              alt="LiveTournaments Logo"
-              style={{ height: '24px', maxHeight: '24px', width: 'auto' }}
-              className="object-contain"
-            />
+    <section className="relative block-default-horizontal-spacing block-default-vertical-spacing w-full">
+      <div className="block-default-content-width mx-auto flex flex-col gap-6 md:gap-8">
+        {/* Navigation Breadcrumb / Top Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate && onNavigate('home')}
+              className="flex items-center gap-1.5 text-dark-default hover:text-gold-primary primary-bold-s12-lh120 uppercase transition-colors cursor-pointer"
+            >
+              <span>← Home Arena</span>
+            </button>
+            <span className="text-[#858585]">&bull;</span>
+            <span className="primary-bold-s12-lh120 uppercase tracking-wider text-gold-primary">
+              Super Admin Control
+            </span>
           </div>
-          <span className="h-5 w-[1px] bg-slate-300 hidden sm:block"></span>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-[11px] font-black uppercase tracking-wider shadow-xs">
-            <span>👑</span>
-            <span>SUPER ADMIN PORTAL</span>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate && onNavigate('home')}
+              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-white-dirty border border-[#EBEBEB] text-dark-default primary-bold-s10-lh130 uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+            >
+              🌐 View Site
+            </button>
+            <button
+              onClick={onLogout}
+              className="px-3.5 py-1.5 rounded-xl bg-red-accent/10 hover:bg-red-accent/20 border border-red-accent/20 text-red-accent primary-bold-s10-lh130 uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+            >
+              🚪 Sign Out
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex flex-col text-right">
-            <span className="text-xs font-bold text-slate-900">{currentUser?.email || 'superadmin@lt.in'}</span>
-            <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Role: Super Admin (Direct Control)</span>
-          </div>
-
-          <button
-            onClick={() => onNavigate && onNavigate('home')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-          >
-            <span>🌐</span>
-            <span className="hidden sm:inline">View Site</span>
-          </button>
-
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-          >
-            <span>🚪</span>
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Admin Content */}
-      <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
-        {/* Welcome & Quick Stats */}
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 md:p-8 shadow-sm bg-gradient-to-br from-amber-50/40 via-white to-sky-50/20">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-amber-700">Championship Control Room</p>
-              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mt-1">
-                Welcome, Super Admin
+        {/* Section Title Header (Exact EWC Home Page Pattern) */}
+        <div className="rounded-2xl lg:rounded-3xl bg-white p-6 md:p-8 shadow-md border border-[#EBEBEB]">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="text-dark-default section-title flex flex-col gap-1 text-left">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/30 text-gold-primary primary-bold-s10-lh130 uppercase tracking-wider">
+                  👑 Super Admin Portal
+                </span>
+                <span className="primary-regular-s12-lh130 text-[#858585]">
+                  Role: Super Admin (Direct Control)
+                </span>
+              </div>
+              <h1 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90 uppercase mt-2">
+                LiveTournaments Control Center
               </h1>
-              <p className="text-xs text-slate-600 mt-1">
-                You have exclusive platform-wide authority. All user registrations and tournament ops are live.
+              <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 text-[#858585]">
+                Exclusive platform-wide management for esports tournaments, player rosters, and live operations &bull; <strong className="text-dark-default">{currentUser?.email || 'superadmin@lt.in'}</strong>
               </p>
             </div>
 
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-primary hover:brightness-110 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer self-start md:self-auto"
+              className="self-start lg:self-center px-6 py-3.5 rounded-xl bg-gradient-primary not-disabled:bg-gradient-primary-button text-white primary-bold-s12-lh120 uppercase tracking-wider shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <span>+ Create Tournament</span>
+              + Create Tournament
             </button>
           </div>
 
-          {/* Stat Cards Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Registered Users</div>
-              <div className="text-2xl md:text-3xl font-black text-slate-900 mt-1">{usersList.length}</div>
-              <div className="text-[10px] text-emerald-700 mt-1 font-semibold">● 100% Live Verified in Atlas</div>
+          {/* Quick Stat Cards Grid (Same as Home Page Cards) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#F0F0F0]">
+            <div className="p-4 rounded-2xl bg-white-dirty border border-[#EBEBEB]">
+              <div className="primary-bold-s10-lh130 uppercase tracking-wider text-[#858585]">Total Registered Users</div>
+              <div className="primary-bold-s28-lh100 md:primary-bold-s32-lh100 text-dark-default mt-1">{usersList.length}</div>
+              <div className="primary-regular-s10-lh130 text-green-accent mt-1 font-bold">● 100% Live in Atlas</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Tournaments</div>
-              <div className="text-2xl md:text-3xl font-black text-slate-900 mt-1">{tournaments.length}</div>
-              <div className="text-[10px] text-amber-700 mt-1 font-semibold">● BGMI, Free Fire, Valorant</div>
+            <div className="p-4 rounded-2xl bg-white-dirty border border-[#EBEBEB]">
+              <div className="primary-bold-s10-lh130 uppercase tracking-wider text-[#858585]">Active Tournaments</div>
+              <div className="primary-bold-s28-lh100 md:primary-bold-s32-lh100 text-dark-default mt-1">{tournaments.length}</div>
+              <div className="primary-regular-s10-lh130 text-gold-primary mt-1 font-bold">● BGMI, Free Fire, Valorant</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Prize Pool</div>
-              <div className="text-2xl md:text-3xl font-black text-amber-800 mt-1">₹18,00,000</div>
-              <div className="text-[10px] text-emerald-700 mt-1 font-semibold">● Ready for Payouts</div>
+            <div className="p-4 rounded-2xl bg-white-dirty border border-[#EBEBEB]">
+              <div className="primary-bold-s10-lh130 uppercase tracking-wider text-[#858585]">Total Prize Pool</div>
+              <div className="primary-bold-s28-lh100 md:primary-bold-s32-lh100 text-gold-primary mt-1">₹18,00,000</div>
+              <div className="primary-regular-s10-lh130 text-green-accent mt-1 font-bold">● Ready for Payouts</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Platform Authority</div>
-              <div className="text-2xl md:text-3xl font-black text-amber-900 mt-1">SUPER ADMIN</div>
-              <div className="text-[10px] text-slate-600 mt-1 font-semibold">● superadmin@lt.in</div>
+            <div className="p-4 rounded-2xl bg-white-dirty border border-[#EBEBEB]">
+              <div className="primary-bold-s10-lh130 uppercase tracking-wider text-[#858585]">Platform Authority</div>
+              <div className="primary-bold-s20-lh120 md:primary-bold-s24-lh120 text-dark-default uppercase mt-2">SUPER ADMIN</div>
+              <div className="primary-regular-s10-lh130 text-gold-primary mt-1">superadmin@lt.in</div>
             </div>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+        {/* Tab Switcher (Matching Home Page Tabs) */}
+        <div className="flex items-center gap-2 border-b border-[#EBEBEB] pb-3 overflow-x-auto">
           {[
             { id: 'overview', label: '🏆 Tournaments Hub' },
             { id: 'users', label: '👥 User Accounts (2 Roles)' },
@@ -208,10 +199,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2.5 rounded-xl primary-bold-s12-lh120 uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-gradient-primary text-white font-black shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-gradient-primary not-disabled:bg-gradient-primary-button text-white shadow-sm'
+                  : 'bg-white border border-[#EBEBEB] text-[#858585] hover:text-dark-default hover:bg-white-dirty'
               }`}
             >
               {tab.label}
@@ -229,7 +220,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search tournaments by game or title..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-gold-primary text-slate-900 text-xs shadow-xs outline-none transition-all placeholder-slate-400"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 shadow-xs outline-none transition-all placeholder-[#858585]"
                 />
               </div>
 
@@ -238,10 +229,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <button
                     key={status}
                     onClick={() => setTournamentFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`px-3 py-1.5 rounded-lg primary-bold-s10-lh130 uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${
                       tournamentFilter === status
-                        ? 'bg-amber-100 border border-amber-400 text-amber-900 shadow-xs'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'bg-gold-primary/10 border border-gold-primary text-gold-primary shadow-xs'
+                        : 'bg-white border border-[#EBEBEB] text-[#858585] hover:bg-white-dirty'
                     }`}
                   >
                     {status}
@@ -250,48 +241,48 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100/90 uppercase text-[10px] font-black tracking-wider text-slate-700 border-b border-slate-200">
+            <div className="overflow-x-auto rounded-2xl lg:rounded-3xl border border-[#EBEBEB] bg-white shadow-md">
+              <table className="w-full text-left">
+                <thead className="bg-white-dirty uppercase primary-bold-s10-lh130 tracking-wider text-[#858585] border-b border-[#EBEBEB]">
                   <tr>
-                    <th className="px-5 py-3.5">Tournament Title</th>
-                    <th className="px-4 py-3.5">Game Title</th>
-                    <th className="px-4 py-3.5">Prize Pool</th>
-                    <th className="px-4 py-3.5">Slots Filled</th>
-                    <th className="px-4 py-3.5">Status</th>
-                    <th className="px-5 py-3.5 text-right">Actions</th>
+                    <th className="px-5 py-4">Tournament Title</th>
+                    <th className="px-4 py-4">Game Title</th>
+                    <th className="px-4 py-4">Prize Pool</th>
+                    <th className="px-4 py-4">Slots Filled</th>
+                    <th className="px-4 py-4">Status</th>
+                    <th className="px-5 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-800">
+                <tbody className="divide-y divide-[#F0F0F0] text-dark-default">
                   {filteredTournaments.map(t => (
-                    <tr key={t.id} className="hover:bg-slate-50/90 transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                    <tr key={t.id} className="hover:bg-white-dirty/60 transition-colors">
+                      <td className="px-5 py-4 primary-bold-s14-lh120 text-dark-default flex items-center gap-2">
                         <span>⚔️</span>
                         <span>{t.title}</span>
                       </td>
-                      <td className="px-4 py-3.5 text-slate-600">{t.game}</td>
-                      <td className="px-4 py-3.5 font-black text-amber-700">{t.prize}</td>
-                      <td className="px-4 py-3.5 text-slate-600">{t.teams}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                          t.status === 'LIVE' ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse' :
-                          t.status === 'REGISTRATION OPEN' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                          t.status === 'UPCOMING' ? 'bg-amber-50 text-amber-800 border border-amber-300' :
-                          'bg-slate-100 text-slate-600 border border-slate-200'
+                      <td className="px-4 py-4 primary-regular-s12-lh130 text-[#858585]">{t.game}</td>
+                      <td className="px-4 py-4 primary-bold-s14-lh120 text-gold-primary">{t.prize}</td>
+                      <td className="px-4 py-4 primary-regular-s12-lh130 text-[#858585]">{t.teams}</td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full primary-bold-s10-lh130 uppercase tracking-wider ${
+                          t.status === 'LIVE' ? 'bg-red-accent/10 text-red-accent border border-red-accent/30 animate-pulse' :
+                          t.status === 'REGISTRATION OPEN' ? 'bg-green-accent/10 text-green-accent border border-green-accent/30' :
+                          t.status === 'UPCOMING' ? 'bg-gold-primary/10 text-gold-primary border border-gold-primary/30' :
+                          'bg-gray-easy text-[#858585] border border-gray-mild'
                         }`}>
                           {t.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-right space-x-2">
+                      <td className="px-5 py-4 text-right space-x-2">
                         <button
                           onClick={() => toggleTournamentStatus(t.id)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                          className="px-3 py-1 rounded-lg bg-white-dirty hover:bg-gray-easy text-dark-default border border-[#EBEBEB] primary-bold-s10-lh130 uppercase transition-colors cursor-pointer"
                         >
                           Toggle Status
                         </button>
                         <button
                           onClick={() => handleDeleteTournament(t.id)}
-                          className="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-red-accent/10 hover:bg-red-accent/20 text-red-accent border border-red-accent/20 primary-bold-s10-lh130 uppercase transition-colors cursor-pointer"
                         >
                           Delete
                         </button>
@@ -307,61 +298,61 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* TAB 2: USER ACCOUNTS (2 ROLES ONLY) */}
         {activeTab === 'users' && (
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="p-5 rounded-2xl bg-white border border-gold-primary/30 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                <h3 className="primary-bold-s14-lh120 uppercase tracking-wider text-dark-default">
                   Two-Role User Hierarchy Active
                 </h3>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  1. <strong className="text-amber-800">superadmin</strong> (Direct dashboard authority) &bull; 
-                  2. <strong className="text-slate-900">user</strong> (Normal competitor with menu & user dashboard)
+                <p className="primary-regular-s12-lh130 text-[#858585] mt-0.5">
+                  1. <strong className="text-gold-primary">superadmin</strong> (Direct dashboard authority) &bull; 
+                  2. <strong className="text-dark-default">user</strong> (Normal competitor with menu & user dashboard)
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-black uppercase">
+                <span className="px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/30 text-gold-primary primary-bold-s10-lh130 uppercase">
                   1 Super Admin
                 </span>
-                <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-bold uppercase">
+                <span className="px-3 py-1 rounded-full bg-white-dirty border border-[#EBEBEB] text-[#858585] primary-bold-s10-lh130 uppercase">
                   {usersList.length - 1} Normal Users
                 </span>
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100/90 uppercase text-[10px] font-black tracking-wider text-slate-700 border-b border-slate-200">
+            <div className="overflow-x-auto rounded-2xl lg:rounded-3xl border border-[#EBEBEB] bg-white shadow-md">
+              <table className="w-full text-left">
+                <thead className="bg-white-dirty uppercase primary-bold-s10-lh130 tracking-wider text-[#858585] border-b border-[#EBEBEB]">
                   <tr>
-                    <th className="px-5 py-3.5">Name / Gamer Tag</th>
-                    <th className="px-4 py-3.5">Email Address</th>
-                    <th className="px-4 py-3.5">Mobile Number</th>
-                    <th className="px-4 py-3.5">Assigned Role</th>
-                    <th className="px-4 py-3.5">Status</th>
-                    <th className="px-5 py-3.5 text-right">Joined Date</th>
+                    <th className="px-5 py-4">Name / Gamer Tag</th>
+                    <th className="px-4 py-4">Email Address</th>
+                    <th className="px-4 py-4">Mobile Number</th>
+                    <th className="px-4 py-4">Assigned Role</th>
+                    <th className="px-4 py-4">Status</th>
+                    <th className="px-5 py-4 text-right">Joined Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-800">
+                <tbody className="divide-y divide-[#F0F0F0] text-dark-default">
                   {filteredUsers.map(u => (
-                    <tr key={u.id} className="hover:bg-slate-50/90 transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-slate-900 flex items-center gap-2">
+                    <tr key={u.id} className="hover:bg-white-dirty/60 transition-colors">
+                      <td className="px-5 py-4 primary-bold-s14-lh120 text-dark-default flex items-center gap-2">
                         {u.role === 'superadmin' ? '👑' : '👤'}
                         <span>{u.name}</span>
                       </td>
-                      <td className="px-4 py-3.5 text-slate-700 font-mono text-[11px]">{u.email}</td>
-                      <td className="px-4 py-3.5 text-slate-600">{u.mobile}</td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      <td className="px-4 py-4 primary-regular-s12-lh130 text-dark-default font-mono">{u.email}</td>
+                      <td className="px-4 py-4 primary-regular-s12-lh130 text-[#858585]">{u.mobile}</td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full primary-bold-s10-lh130 uppercase tracking-wider ${
                           u.role === 'superadmin'
-                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                            ? 'bg-gold-primary/15 text-gold-primary border border-gold-primary/40'
+                            : 'bg-white-dirty text-dark-default border border-[#EBEBEB]'
                         }`}>
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="inline-block size-2 rounded-full bg-emerald-500 mr-1.5" />
-                        <span className="text-[10px] font-bold text-emerald-700">{u.status}</span>
+                      <td className="px-4 py-4">
+                        <span className="inline-block size-2 rounded-full bg-green-accent mr-1.5" />
+                        <span className="primary-bold-s10-lh130 text-green-accent">{u.status}</span>
                       </td>
-                      <td className="px-5 py-3.5 text-right text-slate-500 text-[11px]">{u.joined}</td>
+                      <td className="px-5 py-4 text-right primary-regular-s10-lh130 text-[#858585]">{u.joined}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -373,95 +364,95 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* TAB 3: SYSTEM SETTINGS & EMAIL OPS */}
         {activeTab === 'system' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+            <div className="p-6 rounded-2xl lg:rounded-3xl bg-white border border-[#EBEBEB] shadow-md space-y-4">
+              <h3 className="primary-bold-s14-lh120 uppercase tracking-wider text-dark-default flex items-center gap-2">
                 <span>⚡</span>
                 <span>Platform Controls</span>
               </h3>
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white-dirty border border-[#EBEBEB]">
                   <div>
-                    <div className="font-bold text-slate-900">Public Player Registration</div>
-                    <div className="text-[10px] text-slate-500">Allow new users to register via email OTP</div>
+                    <div className="primary-bold-s12-lh120 text-dark-default">Public Player Registration</div>
+                    <div className="primary-regular-s10-lh130 text-[#858585]">Allow new users to register via email OTP</div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">ENABLED</span>
+                  <span className="px-2.5 py-1 rounded-full bg-green-accent/10 text-green-accent border border-green-accent/30 primary-bold-s10-lh130 uppercase">ENABLED</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white-dirty border border-[#EBEBEB]">
                   <div>
-                    <div className="font-bold text-slate-900">Email Verification via Port 465</div>
-                    <div className="text-[10px] text-slate-500">Vercel serverless with Gmail Implicit SSL/TLS</div>
+                    <div className="primary-bold-s12-lh120 text-dark-default">Email Verification via Port 465</div>
+                    <div className="primary-regular-s10-lh130 text-[#858585]">Vercel serverless with Gmail Implicit SSL/TLS</div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">ACTIVE (100% OK)</span>
+                  <span className="px-2.5 py-1 rounded-full bg-green-accent/10 text-green-accent border border-green-accent/30 primary-bold-s10-lh130 uppercase">ACTIVE (100% OK)</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white-dirty border border-[#EBEBEB]">
                   <div>
-                    <div className="font-bold text-slate-900">MongoDB Atlas Multi-Region Sync</div>
-                    <div className="text-[10px] text-slate-500">Database cluster0.x5vmife.mongodb.net</div>
+                    <div className="primary-bold-s12-lh120 text-dark-default">MongoDB Atlas Multi-Region Sync</div>
+                    <div className="primary-regular-s10-lh130 text-[#858585]">Database cluster0.x5vmife.mongodb.net</div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">CONNECTED</span>
+                  <span className="px-2.5 py-1 rounded-full bg-green-accent/10 text-green-accent border border-green-accent/30 primary-bold-s10-lh130 uppercase">CONNECTED</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+            <div className="p-6 rounded-2xl lg:rounded-3xl bg-white border border-[#EBEBEB] shadow-md space-y-4">
+              <h3 className="primary-bold-s14-lh120 uppercase tracking-wider text-dark-default flex items-center gap-2">
                 <span>🔐</span>
                 <span>Super Admin Credentials</span>
               </h3>
-              <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 space-y-2.5 text-xs">
+              <div className="p-4 rounded-xl bg-gold-primary/10 border border-gold-primary/30 space-y-2.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Username / Email:</span>
-                  <span className="font-mono font-bold text-amber-900">superadmin@lt.in</span>
+                  <span className="primary-regular-s12-lh130 text-[#858585]">Username / Email:</span>
+                  <span className="primary-bold-s12-lh120 text-gold-primary font-mono">superadmin@lt.in</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Password Status:</span>
-                  <span className="font-mono font-bold text-emerald-700">Configured (SuperAdmin@21)</span>
+                  <span className="primary-regular-s12-lh130 text-[#858585]">Password Status:</span>
+                  <span className="primary-bold-s12-lh120 text-green-accent font-mono">Configured (SuperAdmin@21)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Assigned Privilege:</span>
-                  <span className="font-bold text-amber-900 uppercase">Full Superadmin Dashboard</span>
+                  <span className="primary-regular-s12-lh130 text-[#858585]">Assigned Privilege:</span>
+                  <span className="primary-bold-s12-lh120 text-gold-primary uppercase">Full Superadmin Dashboard</span>
                 </div>
               </div>
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* CREATE TOURNAMENT MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl bg-white border border-slate-200 p-6 shadow-2xl space-y-4 text-slate-900">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Create New Tournament</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-default/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl lg:rounded-3xl bg-white border border-[#EBEBEB] p-6 shadow-2xl space-y-4 text-dark-default">
+            <div className="flex items-center justify-between border-b border-[#F0F0F0] pb-3">
+              <h3 className="primary-bold-s16-lh120 uppercase tracking-wider text-dark-default">Create New Tournament</h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="size-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-200 cursor-pointer"
+                className="size-7 rounded-full bg-white-dirty flex items-center justify-center text-[#858585] hover:text-dark-default hover:bg-gray-easy cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateTournament} className="space-y-3 text-xs">
+            <form onSubmit={handleCreateTournament} className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Tournament Title</label>
+                <label className="block primary-bold-s10-lh130 uppercase tracking-wider text-dark-default mb-1">Tournament Title</label>
                 <input
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. BGMI Winter Clash 2026"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-300 focus:border-gold-primary text-slate-900 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white-dirty border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Game</label>
+                <label className="block primary-bold-s10-lh130 uppercase tracking-wider text-dark-default mb-1">Game</label>
                 <select
                   value={newGame}
                   onChange={(e) => setNewGame(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-300 focus:border-gold-primary text-slate-900 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white-dirty border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 outline-none"
                 >
                   <option value="Battlegrounds Mobile India">Battlegrounds Mobile India (BGMI)</option>
                   <option value="Free Fire MAX">Free Fire MAX</option>
@@ -473,43 +464,43 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Prize Pool</label>
+                  <label className="block primary-bold-s10-lh130 uppercase tracking-wider text-dark-default mb-1">Prize Pool</label>
                   <input
                     type="text"
                     value={newPrize}
                     onChange={(e) => setNewPrize(e.target.value)}
                     placeholder="e.g. ₹2,00,000"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 focus:border-gold-primary text-slate-900 outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white-dirty border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Team Slots</label>
+                  <label className="block primary-bold-s10-lh130 uppercase tracking-wider text-dark-default mb-1">Team Slots</label>
                   <input
                     type="number"
                     value={newSlots}
                     onChange={(e) => setNewSlots(e.target.value)}
                     placeholder="32"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 focus:border-gold-primary text-slate-900 outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white-dirty border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Event Dates</label>
+                <label className="block primary-bold-s10-lh130 uppercase tracking-wider text-dark-default mb-1">Event Dates</label>
                 <input
                   type="text"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
                   placeholder="e.g. Dec 10 - Dec 14, 2026"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-300 focus:border-gold-primary text-slate-900 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white-dirty border border-[#EBEBEB] focus:border-gold-primary text-dark-default primary-regular-s14-lh120 outline-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full mt-2 py-3 rounded-xl bg-gradient-primary hover:brightness-110 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                className="w-full mt-2 py-3 rounded-xl bg-gradient-primary not-disabled:bg-gradient-primary-button hover:brightness-105 active:scale-95 text-white primary-bold-s12-lh120 uppercase tracking-wider shadow-md transition-all cursor-pointer"
               >
                 Launch Tournament 🚀
               </button>
@@ -517,6 +508,6 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

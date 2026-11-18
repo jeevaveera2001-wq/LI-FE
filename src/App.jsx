@@ -96,22 +96,8 @@ export default function App() {
         Skip to main content
       </a>
 
-      {/* SUPER ADMIN DASHBOARD */}
-      {currentPage === 'admin-dashboard' ? (
-        <SuperAdminDashboard
-          currentUser={currentUser}
-          onNavigate={navigateTo}
-          onLogout={handleLogout}
-        />
-      ) : currentPage === 'user-dashboard' ? (
-        /* NORMAL USER DASHBOARD */
-        <UserDashboard
-          currentUser={currentUser}
-          onNavigate={navigateTo}
-          onLogout={handleLogout}
-        />
-      ) : currentPage === 'login' || currentPage === 'register' ? (
-        /* AUTHENTICATION (LOGIN / REGISTER) */
+      {/* AUTHENTICATION (LOGIN / REGISTER) - Dedicated Fullscreen Arena */}
+      {currentPage === 'login' || currentPage === 'register' ? (
         <AuthPage
           initialMode={currentPage === 'register' ? 'register' : 'login'}
           onNavigate={navigateTo}
@@ -119,7 +105,7 @@ export default function App() {
           onLoginSuccess={handleLoginSuccess}
         />
       ) : (
-        /* HOME / MAIN PUBLIC ARENA */
+        /* HOME, SUPER ADMIN, & USER DASHBOARDS SHARE THE IDENTICAL EWC UI & DESIGN SHELL */
         <>
           {/* User Menu Header Dropdown Option */}
           <UserMenu
@@ -135,20 +121,36 @@ export default function App() {
             currentUser={currentUser}
           />
 
-          {/* Main Content */}
+          {/* Main Content Area */}
           <main
-            className="bg-white-dirty flex h-full flex-1 flex-col lg:ps-sidebar-width"
+            className="bg-white-dirty flex h-full flex-1 flex-col lg:ps-sidebar-width min-h-screen"
             id="main-content"
             tabIndex={-1}
           >
-            <HeroSection onNavigate={navigateTo} />
-            <NewsletterSection />
-            <GamesSection />
-            <FeaturedTournamentsSection />
-            <ChampionshipTrophySection />
-            <HostTournamentsSection />
-            <RecapsSection />
-            <PartnersSection />
+            {currentPage === 'admin-dashboard' ? (
+              <SuperAdminDashboard
+                currentUser={currentUser}
+                onNavigate={navigateTo}
+                onLogout={handleLogout}
+              />
+            ) : currentPage === 'user-dashboard' ? (
+              <UserDashboard
+                currentUser={currentUser}
+                onNavigate={navigateTo}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <>
+                <HeroSection onNavigate={navigateTo} />
+                <NewsletterSection />
+                <GamesSection />
+                <FeaturedTournamentsSection />
+                <ChampionshipTrophySection />
+                <HostTournamentsSection />
+                <RecapsSection />
+                <PartnersSection />
+              </>
+            )}
           </main>
 
           {/* Footer */}
