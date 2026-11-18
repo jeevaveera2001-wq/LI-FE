@@ -53,11 +53,18 @@ export default function HeroSection({ onNavigate }) {
           loop
           muted
           playsInline
-          className="size-full object-cover"
+          style={{
+            filter: 'hue-rotate(175deg) saturate(1.35) brightness(1.08) contrast(1.18)',
+          }}
+          className="size-full object-cover transition-all duration-700"
         >
           <source src="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" type="video/mp4" />
-          Your browser does not support HTML video. <a className="text-gold-primary cursor-pointer underline" href="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" rel="noopener" target="_blank">Download the video from the link instead</a>.
+          Your browser does not support HTML video. <a className="text-cyan-400 cursor-pointer underline" href="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" rel="noopener" target="_blank">Download the video from the link instead</a>.
         </video>
+
+        {/* Luminous Glacier Atmospheric Effects */}
+        <div className="absolute inset-0 bg-radial from-transparent via-cyan-950/20 to-black/60 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-cyan-400/12 blur-[140px] rounded-full pointer-events-none" />
       </div>
 
       <div className="px-4 pt-[160px] pb-[40px] lg:px-8 lg:pt-[140px] xl:pt-[160px] 2xl:pt-[200px] flex-1 flex flex-col items-center justify-center">

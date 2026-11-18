@@ -382,7 +382,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-x-hidden bg-black text-white px-4 py-8 select-none">
-      {/* 3D Rotating Hero Video Background */}
+      {/* 3D Rotating Hero Video Background - Glacier Ice Edition */}
       <div className="fixed inset-0 -z-20 size-full overflow-hidden pointer-events-none">
         <video
           ref={videoRef}
@@ -390,16 +390,19 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           loop
           muted
           playsInline
-          className="size-full object-cover scale-105 filter brightness-[0.7] contrast-[1.15]"
+          style={{
+            filter: 'hue-rotate(175deg) saturate(1.35) brightness(0.75) contrast(1.18)',
+          }}
+          className="size-full object-cover scale-105 transition-all duration-700"
         >
           <source src="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" type="video/mp4" />
         </video>
       </div>
 
       {/* Atmospheric Overlays */}
-      <div className="fixed inset-0 -z-10 bg-radial from-transparent via-black/55 to-black/90 pointer-events-none" />
+      <div className="fixed inset-0 -z-10 bg-radial from-transparent via-cyan-950/20 to-black/90 pointer-events-none" />
       <div className="fixed inset-0 -z-10 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
-      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 w-[450px] h-[300px] bg-gold-primary/12 blur-[100px] rounded-full pointer-events-none" />
+      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 w-[450px] h-[300px] bg-cyan-400/12 blur-[110px] rounded-full pointer-events-none" />
 
       {/* Top Left: Clean Back to Home Pill */}
       <div className="fixed top-5 left-5 md:left-8 z-30">
