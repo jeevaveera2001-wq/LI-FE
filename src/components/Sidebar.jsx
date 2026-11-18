@@ -12,7 +12,7 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
   const isUser = currentUser && !isSuperAdmin;
 
   return (
-    <div className="hidden lg:contents">
+    <div className="hidden lg:block">
       <nav aria-label="Main navigation" className="fixed z-90 flex h-full max-h-dvh items-center justify-center webview-hide">
         <div className="shadow-sidebar w-sidebar-width flex h-full flex-col items-center justify-between bg-white">
           <a href="/en/" onClick={handleNav('home')} className="block w-full focus:outline-none cursor-pointer">

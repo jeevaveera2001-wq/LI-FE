@@ -51,6 +51,9 @@ img {
   .shadow-mobile-navigation {
     display: none !important;
   }
+  .lg\:contents {
+    display: contents !important;
+  }
 }
 @media (max-width: 1023px) {
   .shadow-sidebar {

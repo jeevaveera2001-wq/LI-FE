@@ -102,35 +102,18 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   return (
     <section className="relative block-default-horizontal-spacing block-default-vertical-spacing w-full">
       <div className="block-default-content-width mx-auto flex flex-col gap-6 md:gap-8">
-        {/* Navigation Breadcrumb / Top Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigate && onNavigate('home')}
-              className="flex items-center gap-1.5 text-dark-default hover:text-gold-primary primary-bold-s12-lh120 uppercase transition-colors cursor-pointer"
-            >
-              <span>← Home Arena</span>
-            </button>
-            <span className="text-[#858585]">&bull;</span>
-            <span className="primary-bold-s12-lh120 uppercase tracking-wider text-gold-primary">
-              Super Admin Control
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigate && onNavigate('home')}
-              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-white-dirty border border-[#EBEBEB] text-dark-default primary-bold-s10-lh130 uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
-            >
-              🌐 View Site
-            </button>
-            <button
-              onClick={onLogout}
-              className="px-3.5 py-1.5 rounded-xl bg-red-accent/10 hover:bg-red-accent/20 border border-red-accent/20 text-red-accent primary-bold-s10-lh130 uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
-            >
-              🚪 Sign Out
-            </button>
-          </div>
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            onClick={() => onNavigate && onNavigate('home')}
+            className="flex items-center gap-1.5 text-dark-default hover:text-gold-primary primary-bold-s12-lh120 uppercase transition-colors cursor-pointer"
+          >
+            <span>← Home Arena</span>
+          </button>
+          <span className="text-[#858585]">&bull;</span>
+          <span className="primary-bold-s12-lh120 uppercase tracking-wider text-gold-primary">
+            Super Admin Control
+          </span>
         </div>
 
         {/* Section Title Header (Exact EWC Home Page Pattern) */}
