@@ -101,8 +101,14 @@ export default function App() {
         Skip to main content
       </a>
 
-      {/* AUTHENTICATION (LOGIN / REGISTER) - Dedicated Fullscreen Arena */}
-      {currentPage === 'login' || currentPage === 'register' ? (
+      {/* SUPER ADMIN LIVE DASHBOARD - Dedicated SaaS Command Portal (Exact Nagulan Layout) */}
+      {currentPage === 'admin-dashboard' ? (
+        <SuperAdminDashboard
+          currentUser={currentUser}
+          onNavigate={navigateTo}
+          onLogout={handleLogout}
+        />
+      ) : currentPage === 'login' || currentPage === 'register' ? (
         <AuthPage
           initialMode={currentPage === 'register' ? 'register' : 'login'}
           onNavigate={navigateTo}
@@ -110,7 +116,7 @@ export default function App() {
           onLoginSuccess={handleLoginSuccess}
         />
       ) : (
-        /* HOME, ABOUT, SUPER ADMIN, & USER DASHBOARDS SHARE THE IDENTICAL EWC UI & DESIGN SHELL */
+        /* HOME, ABOUT, & USER DASHBOARD ARENA SHELL */
         <>
           {/* User Menu Header Dropdown Option */}
           <UserMenu
@@ -132,13 +138,7 @@ export default function App() {
             id="main-content"
             tabIndex={-1}
           >
-            {currentPage === 'admin-dashboard' ? (
-              <SuperAdminDashboard
-                currentUser={currentUser}
-                onNavigate={navigateTo}
-                onLogout={handleLogout}
-              />
-            ) : currentPage === 'user-dashboard' ? (
+            {currentPage === 'user-dashboard' ? (
               <UserDashboard
                 currentUser={currentUser}
                 onNavigate={navigateTo}
