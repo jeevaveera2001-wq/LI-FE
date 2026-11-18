@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function HeroSection() {
+export default function HeroSection({ onNavigate }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -38,6 +38,12 @@ export default function HeroSection() {
     window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
   };
 
+  const handleRegisterClick = () => {
+    if (onNavigate) {
+      onNavigate('register');
+    }
+  };
+
   return (
     <section className="relative z-10 overflow-hidden min-h-screen flex flex-col justify-between">
       <div className="absolute start-0 top-0 -z-10 size-full overflow-hidden">
@@ -56,7 +62,14 @@ export default function HeroSection() {
 
       <div className="px-4 pt-[160px] pb-[40px] lg:px-8 lg:pt-[140px] xl:pt-[160px] 2xl:pt-[200px] flex-1 flex flex-col items-center justify-center">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center gap-5 md:gap-6">
-          <div className="bg-gradient-primary rounded-[9px] px-4 py-1.5 cursor-pointer hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(168,137,78,0.4)] animate-pulse">
+          
+          {/* Register Now Button - Click to navigate to Register Page */}
+          <div 
+            onClick={handleRegisterClick}
+            className="bg-gradient-primary rounded-[9px] px-4 py-1.5 cursor-pointer hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_20px_rgba(168,137,78,0.4)] animate-pulse"
+            role="button"
+            tabIndex={0}
+          >
             <p className="primary-bold-s14-lh120 md:primary-bold-s16-lh120 text-white uppercase tracking-wider">Register Now</p>
           </div>
 
@@ -69,6 +82,7 @@ export default function HeroSection() {
             <p className="primary-bold-s14-lh120 md:primary-bold-s21-lh120 text-white uppercase text-center">Join us from now to participate and host your tournaments via LT.IN.</p>
           </div>
 
+          {/* Bouncing Scroll Indicator */}
           <div className="mt-6 flex items-center justify-center">
             <div 
               onClick={handleScrollDown}
