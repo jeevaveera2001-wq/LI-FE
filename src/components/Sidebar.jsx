@@ -33,17 +33,6 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
 
             <div>
               <div className="relative">
-                <a href="/en/road-to-lt-in" onClick={handleNav('home')} className="cursor-pointer">
-                  <div className="lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3">
-                    <span className="material-symbols-outlined text-dark-default lg:group-hover:text-gold-primary! text-[24px]! lg:text-[26px]!">conversion_path</span>
-                    <span className="text-dark-default primary-regular-s10-lh130 lg:primary-bold-s10-lh130 capitalize">Road to LT.IN</span>
-                  </div>
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <div className="relative">
                 <a href="/en/play/dashboard" onClick={handleNav('register')} className="cursor-pointer">
                   <div className="lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3">
                     <svg aria-hidden="true" className="text-dark-default lg:group-hover:text-gold-primary! size-6 shrink-0 lg:size-6.5" fill="none" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
@@ -83,10 +72,10 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
 
             <div>
               <div className="relative">
-                <a href="/en/about" onClick={handleNav('home')} className="cursor-pointer">
-                  <div className="lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3">
-                    <span className="material-symbols-outlined text-dark-default lg:group-hover:text-gold-primary! text-[24px]! lg:text-[26px]!">help</span>
-                    <span className="text-dark-default primary-regular-s10-lh130 lg:primary-bold-s10-lh130 capitalize">About</span>
+                <a href="/about" onClick={handleNav('about')} className="cursor-pointer">
+                  <div className={`lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3 ${currentPage === 'about' ? 'lg:bg-white-dirty' : ''}`}>
+                    <span className={`material-symbols-outlined text-dark-default lg:group-hover:text-gold-primary! text-[24px]! lg:text-[26px]! ${currentPage === 'about' ? 'text-gold-primary lg:text-gold-primary' : ''}`}>help</span>
+                    <span className={`text-dark-default primary-regular-s10-lh130 lg:primary-bold-s10-lh130 capitalize ${currentPage === 'about' ? 'font-bold text-gold-primary' : ''}`}>About</span>
                   </div>
                 </a>
               </div>

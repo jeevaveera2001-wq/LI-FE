@@ -13,6 +13,7 @@ import AuthPage from './components/AuthPage';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
+import AboutPage from './components/AboutPage';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -35,6 +36,7 @@ export default function App() {
       if (path.includes('dashboard') || hash.includes('dashboard')) return 'user-dashboard';
       if (path.includes('login') || hash.includes('login')) return 'login';
       if (path.includes('register') || hash.includes('register')) return 'register';
+      if (path.includes('about') || hash.includes('about')) return 'about';
     }
     return 'home';
   });
@@ -45,6 +47,7 @@ export default function App() {
       let targetUrl = '/';
       if (page === 'admin-dashboard') targetUrl = '/admin';
       else if (page === 'user-dashboard') targetUrl = '/dashboard';
+      else if (page === 'about') targetUrl = '/about';
       else if (page !== 'home') targetUrl = `/${page}`;
 
       window.history.pushState({ page }, '', targetUrl);
@@ -81,6 +84,8 @@ export default function App() {
         setCurrentPage('login');
       } else if (path.includes('register') || hash.includes('register')) {
         setCurrentPage('register');
+      } else if (path.includes('about') || hash.includes('about')) {
+        setCurrentPage('about');
       } else {
         setCurrentPage('home');
       }
@@ -105,7 +110,7 @@ export default function App() {
           onLoginSuccess={handleLoginSuccess}
         />
       ) : (
-        /* HOME, SUPER ADMIN, & USER DASHBOARDS SHARE THE IDENTICAL EWC UI & DESIGN SHELL */
+        /* HOME, ABOUT, SUPER ADMIN, & USER DASHBOARDS SHARE THE IDENTICAL EWC UI & DESIGN SHELL */
         <>
           {/* User Menu Header Dropdown Option */}
           <UserMenu
@@ -138,6 +143,11 @@ export default function App() {
                 currentUser={currentUser}
                 onNavigate={navigateTo}
                 onLogout={handleLogout}
+              />
+            ) : currentPage === 'about' ? (
+              <AboutPage
+                currentUser={currentUser}
+                onNavigate={navigateTo}
               />
             ) : (
               <>
