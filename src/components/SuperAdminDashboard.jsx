@@ -107,7 +107,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       <header className="sticky top-0 z-40 w-full bg-neutral-950/90 backdrop-blur-xl border-b border-gold-primary/30 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate && onNavigate('home')}>
-            <img src="/assets/lt_wordmark_custom.png" alt="LiveTournaments Logo" className="h-7 w-auto object-contain" />
+            <img
+              src="/assets/lt_wordmark_custom.png"
+              alt="LiveTournaments Logo"
+              style={{ height: '28px', maxHeight: '28px', width: 'auto' }}
+              className="object-contain"
+            />
           </div>
           <span className="h-4 w-[1px] bg-white/20 hidden sm:block"></span>
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold-primary/20 border border-gold-primary/60 text-gold-light text-[11px] font-black uppercase tracking-widest">
