@@ -19,12 +19,13 @@ import { MobileDrawer } from './components/MobileDrawer';
 import { FullPageAuth } from './components/FullPageAuth';
 import { FullPageTournamentsOverview } from './components/FullPageTournamentsOverview';
 import { FullPageTournamentRegistration } from './components/FullPageTournamentRegistration';
+import { FullPageTournamentDetail } from './components/FullPageTournamentDetail';
 import { getActiveSession, logoutUser } from './utils/auth';
 import { soundFx } from './utils/audio';
 
 export function App() {
   const [activeSection, setActiveSection] = useState('hero');
-  // Full-page View Router: 'portal' | 'auth' | 'overview' | 'registration' | 'superadmin' | 'admin' | 'team'
+  // Full-page View Router: 'portal' | 'auth' | 'overview' | 'registration' | 'detail' | 'superadmin' | 'admin' | 'team'
   const [currentView, setCurrentView] = useState('portal');
 
   // Interactive Modals State
@@ -255,7 +256,22 @@ export function App() {
     );
   }
 
-  // VIEW 7: PUBLIC PORTAL (FULL SCREEN)
+  // VIEW 7: FULL-PAGE TOURNAMENT DETAILS (EXPLAINING CLEARLY IN FULL-PAGE FORMAT)
+  if (currentView === 'detail') {
+    return (
+      <FullPageTournamentDetail
+        tournament={selectedTournament}
+        currentUser={currentUser}
+        onBack={() => setCurrentView('portal')}
+        onRegister={(t) => {
+          setSelectedTournament(t);
+          setCurrentView('registration');
+        }}
+      />
+    );
+  }
+
+  // VIEW 8: PUBLIC PORTAL (FULL SCREEN)
   return (
     <div className="min-h-screen bg-[#090B0E] text-[#E2E8F0] font-sans flex antialiased selection:bg-[#E5C05B]/30 selection:text-[#E5C05B]">
       
@@ -305,13 +321,27 @@ export function App() {
             <TrophiesSection />
 
             {/* Section 3: Tournaments Hub & Live Countdown */}
-            <TournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
+            <TournamentsSection
+              onOpenTournamentModal={handleOpenTournamentModal}
+              onOpenTournamentDetail={(t) => {
+                setSelectedTournament(t);
+                setCurrentView('detail');
+              }}
+              onOpenOverview={() => setCurrentView('overview')}
+            />
 
             {/* Section 4: Winners Cash List & Hall of Fame Squads (Seasonal, Solo, Duo, Squad) */}
             <WinnersSection onOpenTournamentModal={handleOpenTournamentModal} />
 
             {/* Section 5: Upcoming Tournaments Section */}
-            <UpcomingTournamentsSection onOpenTournamentModal={handleOpenTournamentModal} />
+            <UpcomingTournamentsSection
+              onOpenTournamentModal={handleOpenTournamentModal}
+              onOpenTournamentDetail={(t) => {
+                setSelectedTournament(t);
+                setCurrentView('detail');
+              }}
+              onOpenOverview={() => setCurrentView('overview')}
+            />
 
             {/* Section 6: Sponsors & Supporters Showcase */}
             <SponsorsSection onOpenSponsorModal={() => setIsSponsorModalOpen(true)} />
