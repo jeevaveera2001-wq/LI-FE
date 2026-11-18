@@ -1319,6 +1319,349 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
+            {/* ROW 1: 5 Nagulan Salon Direct Metrics (media_1795009600879_721f2f3a.jpg) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY TOTAL</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 6,004</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 7,099</p>
+                </div>
+                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                  <span className="text-[#EF4444] font-semibold">↘ -15.4%</span>
+                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY BILLS</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">29 Bills</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: 26 Bills</p>
+                </div>
+                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                  <span className="text-[#10B981] font-semibold">↗ +11.5%</span>
+                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CASH</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 1,523</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 2,610</p>
+                </div>
+                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                  <span className="text-[#EF4444] font-semibold">↘ -41.6%</span>
+                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY UPI</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 4,481</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 4,489</p>
+                </div>
+                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                  <span className="text-[#EF4444] font-semibold">↘ -0.2%</span>
+                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CARD</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 0</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 0</p>
+                </div>
+                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                  <span className="text-[#6B7280] font-semibold">↗ 0.0%</span>
+                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ROW 2: 2 SIDE-BY-SIDE CHARTS (Hourly Sales Pacing + Payment Channels) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Hourly Sales Pacing (Today vs Yesterday) */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                  <div>
+                    <h3 className="text-[13px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                      <span className="size-2 rounded-full bg-[#DFBD78]"></span>
+                      Hourly Sales Pacing (Today vs Yesterday)
+                    </h3>
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">Hour-by-hour revenue pacing</p>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-semibold">
+                    <span className="flex items-center gap-1 text-[#1F2937]">
+                      <span className="size-2 rounded-full bg-[#DFBD78]"></span> Today
+                    </span>
+                    <span className="flex items-center gap-1 text-[#4B5563]">
+                      <span className="size-2 rounded-full bg-[#3B82F6]"></span> Yesterday
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative w-full h-[220px] pt-3">
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 600 180" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="pacingGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#DFBD78" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#DFBD78" stopOpacity="0.02" />
+                      </linearGradient>
+                      <linearGradient id="pacingBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.01" />
+                      </linearGradient>
+                    </defs>
+
+                    <line x1="0" y1="20" x2="600" y2="20" stroke="#F3F4F6" strokeDasharray="3 3" />
+                    <line x1="0" y1="65" x2="600" y2="65" stroke="#F3F4F6" strokeDasharray="3 3" />
+                    <line x1="0" y1="110" x2="600" y2="110" stroke="#F3F4F6" strokeDasharray="3 3" />
+                    <line x1="0" y1="155" x2="600" y2="155" stroke="#E5E7EB" />
+
+                    {/* Today Gold Spline (Peaking at 12 PM) */}
+                    <path
+                      d="M 0,140 Q 60,150 120,110 T 200,60 T 260,150 T 360,155 L 600,155 L 600,155 L 0,155 Z"
+                      fill="url(#pacingGoldGrad)"
+                    />
+                    <path
+                      d="M 0,140 Q 60,150 120,110 T 200,60 T 260,150 T 360,155 L 600,155"
+                      fill="none"
+                      stroke="#C5A059"
+                      strokeWidth="2.5"
+                    />
+
+                    {/* Yesterday Blue Spline (Peaking at 2 PM) */}
+                    <path
+                      d="M 0,150 Q 80,145 150,115 T 240,150 T 320,100 T 400,155 L 600,155 L 600,155 L 0,155 Z"
+                      fill="url(#pacingBlueGrad)"
+                    />
+                    <path
+                      d="M 0,150 Q 80,145 150,115 T 240,150 T 320,100 T 400,155 L 600,155"
+                      fill="none"
+                      stroke="#3B82F6"
+                      strokeWidth="2"
+                      strokeDasharray="4 3"
+                    />
+                  </svg>
+
+                  <div className="absolute top-1 left-0 text-[8px] text-[#9CA3AF] font-medium space-y-7 pointer-events-none nagulan-mono">
+                    <div>1.2k</div>
+                    <div>800</div>
+                    <div>400</div>
+                    <div>0</div>
+                  </div>
+
+                  <div className="flex justify-between text-[9px] text-[#9CA3AF] font-medium mt-2 px-1">
+                    <span>8 AM</span>
+                    <span>10 AM</span>
+                    <span>12 PM</span>
+                    <span>2 PM</span>
+                    <span>4 PM</span>
+                    <span>6 PM</span>
+                    <span>8 PM</span>
+                    <span>10 PM</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Channels (Today vs Yesterday) */}
+              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                  <div>
+                    <h3 className="text-[13px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                      <span className="size-2 rounded-full bg-[#3B82F6]"></span>
+                      Payment Channels (Today vs Yesterday)
+                    </h3>
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">Cash, UPI and Card comparison</p>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-semibold">
+                    <span className="flex items-center gap-1 text-[#1F2937]">
+                      <span className="size-2 rounded-sm bg-[#C5A059]"></span> Today
+                    </span>
+                    <span className="flex items-center gap-1 text-[#4B5563]">
+                      <span className="size-2 rounded-sm bg-[#3B82F6]"></span> Yesterday
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative w-full h-[220px] pt-3">
+                  <div className="h-[180px] w-full flex items-end justify-around border-b border-[#E5E7EB] pb-1 px-4">
+                    {/* Cash */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-end gap-1.5 h-36">
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[35%]" title="Today: ₹1,523"></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[60%]" title="Yesterday: ₹2,610"></div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Cash</span>
+                    </div>
+
+                    {/* UPI / QR */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-end gap-1.5 h-36">
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[98%]" title="Today: ₹4,481"></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[100%]" title="Yesterday: ₹4,489"></div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">UPI / QR</span>
+                    </div>
+
+                    {/* Card (Debit/Credit) */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-end gap-1.5 h-36">
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[3%]" title="Today: ₹0"></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[3%]" title="Yesterday: ₹0"></div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Card (Debit/Credit)</span>
+                    </div>
+
+                    {/* Other / Split */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-end gap-1.5 h-36">
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[2%]" title="Today: ₹0"></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[5%]" title="Yesterday: ₹0"></div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Other / Split</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ROW 3: Direct Daily Variance Analysis (Today vs Yesterday) */}
+            <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
+                <h3 className="text-[13px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">stars</span>
+                  Direct Daily Variance Analysis (Today vs Yesterday)
+                </h3>
+                <span className="text-[10px] text-[#9CA3AF] font-medium">Real-Time Ledger Audit</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[11px]">
+                  <thead>
+                    <tr className="border-b border-[#F3F4F6] text-[9px] uppercase tracking-wider text-[#9CA3AF]">
+                      <th className="py-2.5 font-bold">METRIC DIMENSION</th>
+                      <th className="py-2.5 font-bold">PRESENT DAY (TODAY)</th>
+                      <th className="py-2.5 font-bold">PREVIOUS DAY (YESTERDAY)</th>
+                      <th className="py-2.5 font-bold">NET VARIANCE (₹ / COUNT)</th>
+                      <th className="py-2.5 font-bold text-right">TREND STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6] font-medium text-[#1F2937]">
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#DFBD78] text-[15px]">trending_down</span>
+                        Total Sales Revenue
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ 6,004</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 7,099</td>
+                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -1,095</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
+                          Low (-15.4%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#10B981] text-[15px]">receipt</span>
+                        Total Sales Invoices
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">29 Bills</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">26 Bills</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+3 Bills</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
+                          High (+11.5%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">payments</span>
+                        Cash Collections
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ 1,523</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 2,610</td>
+                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -1,087</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
+                          Low (-41.6%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#9333EA] text-[15px]">qr_code_2</span>
+                        UPI / QR Collections
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ 4,481</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 4,489</td>
+                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -8</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
+                          Low (-0.2%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#F59E0B] text-[15px]">credit_card</span>
+                        Card Payments
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ 0</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 0</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono font-semibold">₹ 0</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-gray-50 text-[#6B7280] text-[9px] font-bold border border-gray-200">
+                          Flat (0.0%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#10B981] text-[15px]">sports_esports</span>
+                        Tournament Hostings
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">29 Hostings</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">24 Hostings</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+5 Hostings</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
+                          High (+20.8%)
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">group</span>
+                        Active Competitors
+                      </td>
+                      <td className="py-2.5 nagulan-mono font-semibold">52,480</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">46,200</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+6,280</td>
+                      <td className="py-2.5 text-right">
+                        <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
+                          High (+13.6%)
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* ROW 4: 8 Live Tournament & Scrims Metrics */}
+            <div className="pt-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] px-1">
+                Live Platform & Esports Telemetry
+              </span>
+            </div>
+
             {/* 8 Live Metric Cards with Nagulan Design Tokens */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
