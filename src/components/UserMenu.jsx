@@ -40,7 +40,10 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
 
   if (!currentUser) {
     return (
-      <div className="fixed top-5 right-5 z-40 flex items-center gap-2">
+      <div
+        style={{ position: 'fixed', top: '20px', right: '20px', left: 'auto', zIndex: 100 }}
+        className="flex items-center gap-2"
+      >
         <button
           onClick={() => onNavigate && onNavigate('login')}
           className="px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-white/15 border border-white/20 hover:border-gold-primary/60 backdrop-blur-xl text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg cursor-pointer"
@@ -61,7 +64,11 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
   const displayName = currentUser.name || currentUser.username || (isSuperAdmin ? 'Super Admin' : 'User');
 
   return (
-    <div ref={menuRef} className="fixed top-5 right-5 z-40 select-none">
+    <div
+      ref={menuRef}
+      style={{ position: 'fixed', top: '20px', right: '20px', left: 'auto', zIndex: 100 }}
+      className="select-none"
+    >
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -103,7 +110,10 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
 
       {/* Glossy Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-neutral-950/95 border border-gold-primary/40 backdrop-blur-2xl p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(168,137,78,0.2)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          style={{ position: 'absolute', top: '100%', right: '0', left: 'auto', marginTop: '8px', width: '260px' }}
+          className="rounded-2xl bg-neutral-950/95 border border-gold-primary/40 backdrop-blur-2xl p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(168,137,78,0.2)] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        >
           {/* Header Card in Dropdown */}
           <div className="p-3 rounded-xl bg-white/5 border border-white/10 mb-2">
             <div className="text-xs font-bold text-white truncate">{displayName}</div>
