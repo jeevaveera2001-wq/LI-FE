@@ -24,7 +24,6 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
 
   // OTP Verification state
   const [verificationCode, setVerificationCode] = useState('');
-  const [serverOtp, setServerOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
 
   const videoRef = useRef(null);
@@ -152,25 +151,17 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/auth/send-otp', {
+      await axios.post('/api/auth/send-otp', {
         email: regEmail,
         purpose: 'registration',
       });
 
-      if (response.data?.otp) {
-        setServerOtp(response.data.otp);
-      }
-
       setRegStep('verify');
       setResendTimer(60);
-      setSuccessMessage(`Verification code sent to ${regEmail}! Please check your inbox.`);
+      setSuccessMessage(`Verification code sent to ${regEmail}! Please check your email inbox.`);
     } catch (err) {
-      // Even if network fails, allow test flow with a generated code
-      const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      setServerOtp(fallbackOtp);
-      setRegStep('verify');
-      setResendTimer(60);
-      setSuccessMessage(`Verification code dispatched to ${regEmail}.`);
+      const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Failed to dispatch verification code. Please try again.';
+      setErrorMessage(errorDetail);
     } finally {
       setLoading(false);
     }
@@ -182,18 +173,15 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
     setErrorMessage('');
     setLoading(true);
     try {
-      const response = await axios.post('/api/auth/send-otp', {
+      await axios.post('/api/auth/send-otp', {
         email: regEmail,
         purpose: 'registration',
       });
-      if (response.data?.otp) {
-        setServerOtp(response.data.otp);
-      }
       setResendTimer(60);
-      setSuccessMessage(`New code sent to ${regEmail}!`);
+      setSuccessMessage(`New code sent to ${regEmail}! Please check your inbox.`);
     } catch (err) {
-      setResendTimer(60);
-      setSuccessMessage(`Code re-sent to ${regEmail}!`);
+      const errorDetail = err.response?.data?.error || 'Failed to resend code. Please try again.';
+      setErrorMessage(errorDetail);
     } finally {
       setLoading(false);
     }
@@ -207,33 +195,20 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
 
     const cleanCode = verificationCode.replace(/\D/g, '').trim();
     if (!cleanCode || cleanCode.length < 6) {
-      setErrorMessage('Please enter the 6-digit verification code.');
+      setErrorMessage('Please enter the 6-digit verification code sent to your email.');
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Verify OTP with backend
-      let otpValid = false;
-      try {
-        const verifyRes = await axios.post('/api/auth/verify-otp', {
-          email: regEmail,
-          otp: cleanCode,
-        });
-        if (verifyRes.data?.success) {
-          otpValid = true;
-        }
-      } catch (otpErr) {
-        // Fallback match if serverOtp matches
-        if (serverOtp && cleanCode === serverOtp) {
-          otpValid = true;
-        } else {
-          throw otpErr;
-        }
-      }
+      // 1. Strictly verify OTP with backend
+      const verifyRes = await axios.post('/api/auth/verify-otp', {
+        email: regEmail,
+        otp: cleanCode,
+      });
 
-      if (!otpValid && serverOtp && cleanCode !== serverOtp) {
-        setErrorMessage('Invalid verification code. Please check your email.');
+      if (!verifyRes.data?.success) {
+        setErrorMessage(verifyRes.data?.error || 'Invalid verification code. Please check your email.');
         setLoading(false);
         return;
       }
@@ -255,7 +230,7 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
         setSuccessMessage('Account verified! Please sign in below.');
       }, 1500);
     } catch (err) {
-      const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Verification failed. Please verify the code and try again.';
+      const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Verification failed. Please check the code in your email.';
       setErrorMessage(errorDetail);
     } finally {
       setLoading(false);
@@ -266,12 +241,6 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
     setLoginEmail('lastzetas@gmail.com');
     setLoginPassword('Hacker@21');
     setErrorMessage('');
-  };
-
-  const fillTestOtp = () => {
-    if (serverOtp) {
-      setVerificationCode(serverOtp);
-    }
   };
 
   return (
@@ -677,17 +646,6 @@ export default function AuthPage({ initialMode = 'login', onNavigateHome }) {
                   className="text-gold-primary hover:text-gold-light hover:underline font-bold text-[10px] cursor-pointer"
                 >
                   Resend Verification Code
-                </button>
-              )}
-
-              {serverOtp && (
-                <button
-                  type="button"
-                  onClick={fillTestOtp}
-                  className="text-white/50 hover:text-white text-[10px] underline cursor-pointer"
-                  title="Auto-fill code for testing"
-                >
-                  Auto-fill code
                 </button>
               )}
             </div>
