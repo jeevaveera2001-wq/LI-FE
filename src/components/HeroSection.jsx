@@ -34,8 +34,12 @@ export default function HeroSection() {
     playVideo();
   }, []);
 
+  const handleScrollDown = () => {
+    window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative z-10">
+    <section className="relative z-10 overflow-hidden min-h-screen flex flex-col justify-between">
       <div className="absolute start-0 top-0 -z-10 size-full overflow-hidden">
         <video
           ref={videoRef}
@@ -50,9 +54,9 @@ export default function HeroSection() {
         </video>
       </div>
 
-      <div className="px-4 pt-[200px] pb-[100px] lg:px-8 lg:py-[126px] xl:py-[120px] 2xl:py-[204px]">
+      <div className="px-4 pt-[160px] pb-[40px] lg:px-8 lg:pt-[140px] xl:pt-[160px] 2xl:pt-[200px] flex-1 flex flex-col items-center justify-center">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center gap-5 md:gap-6">
-          <div className="bg-gradient-primary rounded-[9px] px-3.5 py-1.5 cursor-pointer hover:brightness-110 transition-all shadow-[0_4px_15px_rgba(168,137,78,0.3)]">
+          <div className="bg-gradient-primary rounded-[9px] px-4 py-1.5 cursor-pointer hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(168,137,78,0.4)] animate-pulse">
             <p className="primary-bold-s14-lh120 md:primary-bold-s16-lh120 text-white uppercase tracking-wider">Register Now</p>
           </div>
 
@@ -64,18 +68,21 @@ export default function HeroSection() {
           <div className="mx-auto w-full max-w-[850px] text-center flex items-center justify-center">
             <p className="primary-bold-s14-lh120 md:primary-bold-s21-lh120 text-white uppercase text-center">Join us from now to participate and host your tournaments via LT.IN.</p>
           </div>
-        </div>
-      </div>
 
-      <div className="hidden xl:contents">
-        <div className="absolute inset-x-0 bottom-7">
-          <div className="mx-auto w-fit rounded-[18px] bg-white/15 p-1.5 ps-[25px] backdrop-blur-[32px]">
-            <div className="flex items-center gap-3.5">
-              <p className="primary-bold-s12-lh120 text-white uppercase">scroll for more info</p>
-              <div className="flex size-[42px] items-center justify-center overflow-hidden rounded-full bg-white/10">
-                <div className="relative -top-[15px] flex flex-col items-center gap-4 animate-bounce">
-                  <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-6 text-white" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 15l-4.243-4.243 1.415-1.414L12 12.172l2.828-2.829 1.415 1.414z"></path></svg>
-                  <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-6 text-white" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 15l-4.243-4.243 1.415-1.414L12 12.172l2.828-2.829 1.415 1.414z"></path></svg>
+          <div className="mt-6 flex items-center justify-center">
+            <div 
+              onClick={handleScrollDown}
+              className="mx-auto w-fit rounded-[18px] bg-white/15 hover:bg-white/25 p-1.5 ps-[25px] backdrop-blur-[32px] cursor-pointer transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)] border border-white/10 group"
+            >
+              <div className="flex items-center gap-3.5">
+                <p className="primary-bold-s12-lh120 text-white uppercase tracking-wider group-hover:text-gold-light transition-colors">scroll for more info</p>
+                <div className="flex size-[42px] items-center justify-center overflow-hidden rounded-full bg-white/10 group-hover:bg-gold-primary/30 transition-colors">
+                  <div className="flex flex-col items-center gap-1 animate-bounce">
+                    <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-5 text-white" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                      <path fill="none" d="M0 0h24v24H0z"></path>
+                      <path d="M12 15l-4.243-4.243 1.415-1.414L12 12.172l2.828-2.829 1.415 1.414z"></path>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
