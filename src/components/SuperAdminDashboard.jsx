@@ -530,11 +530,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Present Day (Exact gold outline/fill from screenshot) */}
           <button
             onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'present-day'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'present-day' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">calendar_today</span>
             <span className="flex-1">Present Day</span>
@@ -544,11 +540,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Dashboard */}
           <button
             onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">dashboard</span>
             <span className="flex-1">Dashboard</span>
@@ -557,16 +549,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Hosting Requests */}
           <button
             onClick={() => { setActiveTab('hosting-requests'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'hosting-requests'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'hosting-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
             <span className="flex-1">Hosting Requests</span>
             {pendingHostingCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
                 {pendingHostingCount}
               </span>
             )}
@@ -575,16 +563,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Scrims Requests */}
           <button
             onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'scrims-requests'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'scrims-requests' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">target</span>
+            <span className="material-symbols-outlined text-[16px]">sports_esports</span>
             <span className="flex-1">Scrims Requests</span>
             {pendingScrimsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
+              <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
                 {pendingScrimsCount}
               </span>
             )}
@@ -593,16 +577,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Partner Hostings */}
           <button
             onClick={() => { setActiveTab('partner-hostings'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'partner-hostings'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'partner-hostings' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
             <span className="flex-1">Partner Hostings</span>
             {pendingPartnerCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
                 {pendingPartnerCount}
               </span>
             )}
@@ -611,16 +591,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Featured Requests */}
           <button
             onClick={() => { setActiveTab('featured-requests'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'featured-requests'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'featured-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">star</span>
             <span className="flex-1">Featured Requests</span>
             {pendingFeaturedCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
+              <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
                 {pendingFeaturedCount}
               </span>
             )}
@@ -629,16 +605,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Ad & Sponsor Deals */}
           <button
             onClick={() => { setActiveTab('ad-requests'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
-              activeTab === 'ad-requests'
-                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
-                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
-            }`}
+            className={`nagulan-sidebar-btn ${activeTab === 'ad-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">campaign</span>
             <span className="flex-1">Ad & Sponsor Deals</span>
             {pendingAdCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-500/30">
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-500/30">
                 {pendingAdCount}
               </span>
             )}
@@ -653,7 +625,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* All Tournaments */}
           <button
             onClick={() => { setActiveTab('all-in-one'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className={`nagulan-sidebar-btn ${activeTab === 'all-in-one' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">emoji_events</span>
             <span className="flex-1">All Tournaments</span>
@@ -662,7 +634,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Daily & Weekly Scrims */}
           <button
             onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">sports_esports</span>
             <span className="flex-1">Daily & Weekly Scrims</span>
@@ -671,7 +643,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Active Match Rooms */}
           <button
             onClick={() => { showToast('Active automated rooms online'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">meeting_room</span>
             <span className="flex-1">Active Match Rooms</span>
@@ -680,7 +652,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Player Database */}
           <button
             onClick={() => { showToast('52,480 registered players indexed'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">groups</span>
             <span className="flex-1">Player Database</span>
@@ -689,7 +661,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Broadcast & Stream POS */}
           <button
             onClick={() => { showToast('Production streaming console active'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">live_tv</span>
             <span className="flex-1">Broadcast & Stream POS</span>
@@ -698,7 +670,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Reports & Analytics */}
           <button
             onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">bar_chart</span>
             <span className="flex-1">Reports & Analytics</span>
@@ -707,7 +679,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           {/* Platform Settings */}
           <button
             onClick={() => { showToast('Esports Hub system settings loaded'); setSidebarOpen(false); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+            className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">settings</span>
             <span className="flex-1">Platform Settings</span>
@@ -718,7 +690,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         <div className="p-3 border-t border-[#1F2937]/80 flex flex-col gap-1.5">
           <button
             onClick={() => onNavigate && onNavigate('home')}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] bg-[#18181B] hover:bg-[#222226] text-white text-[11px] font-semibold transition-colors cursor-pointer"
+            style={{ backgroundColor: '#18181B', color: '#ffffff' }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] hover:bg-[#222226] text-white text-[11px] font-semibold transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px] text-[#DFBD78]">public</span>
             <span>Home Arena</span>
@@ -782,8 +755,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
         </header>
 
-        {/* SUB-NAVIGATION TABS (CLEAN, NEAT, PROFESSIONAL TOKENS) */}
-        <nav className="bg-white border-b border-[#D1D1D1]/60 px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
+        {/* SUB-NAVIGATION TABS (Mobile / Small Screen Only) */}
+        <nav className="lg:hidden bg-white border-b border-[#D1D1D1]/60 px-4 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}

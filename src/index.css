@@ -47,7 +47,7 @@ img {
   height: auto;
 }
 
-/* Scoped Nagulan Dashboard Typography */
+/* Scoped Nagulan Dashboard Typography and Custom Classes */
 .nagulan-dashboard,
 .nagulan-dashboard h1,
 .nagulan-dashboard h2,
@@ -70,7 +70,7 @@ img {
   font-family: 'Material Symbols Outlined' !important;
   font-weight: normal;
   font-style: normal;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -79,6 +79,61 @@ img {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Explicit Nagulan Color Utilities */
+.nagulan-sidebar {
+  background-color: #0E0E10 !important;
+  color: #9CA3AF !important;
+  width: 240px !important;
+  min-width: 240px !important;
+}
+
+.nagulan-sidebar-btn {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #9CA3AF !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+  text-align: left !important;
+}
+
+.nagulan-sidebar-btn:hover {
+  color: #FFFFFF !important;
+  background-color: #1A1A1E !important;
+}
+
+.nagulan-sidebar-btn:hover .material-symbols-outlined {
+  color: #FFFFFF !important;
+}
+
+.nagulan-sidebar-btn.active {
+  background-color: #2A2415 !important;
+  color: #DFBD78 !important;
+  border: 1px solid rgba(223, 189, 120, 0.7) !important;
+  font-weight: 600 !important;
+}
+
+.nagulan-sidebar-btn.active .material-symbols-outlined {
+  color: #DFBD78 !important;
+}
+
+.nagulan-gold-text {
+  color: #DFBD78 !important;
+}
+
+.nagulan-gold-badge {
+  background-color: #2A2312 !important;
+  color: #DFBD78 !important;
+  border: 1px solid rgba(223, 189, 120, 0.4) !important;
 }
 
 .nagulan-mono {
