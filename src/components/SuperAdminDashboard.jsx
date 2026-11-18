@@ -12,6 +12,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout }) {
   // Navigation active tab: defaults to exact Nagulan Salon Dashboard ('dashboard')
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -474,7 +475,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   return (
-    <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex flex-col font-['Inter',sans-serif] antialiased">
+    <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex font-['Inter',sans-serif] antialiased selection:bg-[#DFBD78]/30">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-[8px] bg-[#1F2937] text-white shadow-md border border-[#C5A059]/40 text-[11px] font-semibold tracking-wide animate-fade-in">
@@ -483,47 +484,300 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </div>
       )}
 
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+        />
+      )}
+
       {/* ========================================================
-          TOP HEADER BAR (EXACT media_1795010667791_992d00b3.jpg)
+          LEFT DARK SIDEBAR (EXACT media_1795009600879_721f2f3a.jpg REPLICA)
           ======================================================== */}
-      <header className="bg-white border-b border-[#D1D1D1]/60 px-6 lg:px-10 py-3.5 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex flex-col">
-          <h1 className="text-[16px] md:text-[18px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5 leading-[24px]">
-            <span>Welcome,</span>
-            <span className="text-[#C5A059] font-bold">Super Administrator</span>
-          </h1>
-          <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px]">
-            Wed, 18 Nov, 2026
+      <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-[#0E0E10] text-[#9CA3AF] flex flex-col border-r border-[#1F2937] transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Brand & Crest Header */}
+        <div className="px-4 py-4 border-b border-[#1F2937]/80 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-full bg-[#18181B] border border-[#DFBD78]/40 flex items-center justify-center text-[#DFBD78] font-bold text-xs shadow-inner">
+              LT
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[12px] font-bold tracking-tight text-white uppercase leading-tight">NAGULAN</span>
+              <span className="text-[8px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">UNISEX SALON & POS</span>
+            </div>
+          </div>
+          <div className="size-7 rounded-[6px] bg-[#1E1911] border border-[#DFBD78]/50 flex items-center justify-center text-[#DFBD78] font-bold text-[10px]">
+            MR
+          </div>
+        </div>
+
+        {/* Super Administrator Badge Row */}
+        <div className="px-4 py-3 border-b border-[#1F2937]/60 flex items-center justify-between bg-[#131316]">
+          <span className="text-[11px] font-semibold text-white/90">Super Administrator</span>
+          <span className="px-2 py-0.5 rounded-[4px] bg-[#2A2312] text-[#DFBD78] text-[9px] font-bold tracking-wider uppercase border border-[#DFBD78]/40">
+            SUPERADMIN
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Black Action Button (Matches [+ New Bill] in image) */}
+        {/* Sidebar Nav Items */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-[11px] font-medium scrollbar-thin">
+          {/* Present Day (Exact gold outline/fill from screenshot) */}
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'present-day'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
           >
-            <span className="material-symbols-outlined text-[15px]">add</span>
-            <span>New Bill</span>
+            <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+            <span className="flex-1">Present Day</span>
+            <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
           </button>
 
-          {/* User Profile Pill with Avatar Circle */}
-          <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
-            <div className="size-7 rounded-full bg-[#1F2937] text-[#DFBD78] flex items-center justify-center font-bold text-[11px] shadow-sm">
-              S
-            </div>
-            <div className="hidden sm:flex flex-col text-left">
-              <span className="text-[11px] font-bold text-[#1F2937] leading-tight">Super Administrator</span>
-              <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Superadmin</span>
-            </div>
+          {/* Dashboard */}
+          <button
+            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'dashboard'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">dashboard</span>
+            <span className="flex-1">Dashboard</span>
+          </button>
+
+          {/* Hosting Requests */}
+          <button
+            onClick={() => { setActiveTab('hosting-requests'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'hosting-requests'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+            <span className="flex-1">Hosting Requests</span>
+            {pendingHostingCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
+                {pendingHostingCount}
+              </span>
+            )}
+          </button>
+
+          {/* Scrims Requests */}
+          <button
+            onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'scrims-requests'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">target</span>
+            <span className="flex-1">Scrims Requests</span>
+            {pendingScrimsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
+                {pendingScrimsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Partner Hostings */}
+          <button
+            onClick={() => { setActiveTab('partner-hostings'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'partner-hostings'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
+            <span className="flex-1">Partner Hostings</span>
+            {pendingPartnerCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
+                {pendingPartnerCount}
+              </span>
+            )}
+          </button>
+
+          {/* Featured Requests */}
+          <button
+            onClick={() => { setActiveTab('featured-requests'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'featured-requests'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">star</span>
+            <span className="flex-1">Featured Requests</span>
+            {pendingFeaturedCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
+                {pendingFeaturedCount}
+              </span>
+            )}
+          </button>
+
+          {/* Ad & Sponsor Deals */}
+          <button
+            onClick={() => { setActiveTab('ad-requests'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all text-left cursor-pointer ${
+              activeTab === 'ad-requests'
+                ? 'bg-[#2A2415] text-[#DFBD78] border border-[#DFBD78]/70 shadow-sm font-semibold'
+                : 'text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">campaign</span>
+            <span className="flex-1">Ad & Sponsor Deals</span>
+            {pendingAdCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-500/30">
+                {pendingAdCount}
+              </span>
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="pt-2 pb-1">
+            <div className="h-px bg-[#1F2937]/80 my-1"></div>
+            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Salon & Billing Modules</span>
           </div>
+
+          {/* Billing / POS */}
+          <button
+            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">payments</span>
+            <span className="flex-1">Billing / POS</span>
+          </button>
+
+          {/* Sales History */}
+          <button
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+            <span className="flex-1">Sales History</span>
+          </button>
+
+          {/* Chairs & Stations */}
+          <button
+            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">chair</span>
+            <span className="flex-1">Chairs & Stations</span>
+          </button>
+
+          {/* Attendants */}
+          <button
+            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">badge</span>
+            <span className="flex-1">Attendants</span>
+          </button>
+
+          {/* Reports & Analytics */}
+          <button
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
+            <span className="flex-1">Reports & Analytics</span>
+          </button>
+
+          {/* Activity Logs */}
+          <button
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">event_note</span>
+            <span className="flex-1">Activity Logs</span>
+          </button>
+
+          {/* Salon Settings */}
+          <button
+            onClick={() => { showToast('Salon & Hub configurations loaded'); setSidebarOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-[8px] text-[#9CA3AF] hover:text-white hover:bg-[#1A1A1E] transition-all text-left cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">settings</span>
+            <span className="flex-1">Salon Settings</span>
+          </button>
         </div>
-      </header>
+
+        {/* Footer of Sidebar */}
+        <div className="p-3 border-t border-[#1F2937]/80 flex flex-col gap-1.5">
+          <button
+            onClick={() => onNavigate && onNavigate('home')}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] bg-[#18181B] hover:bg-[#222226] text-white text-[11px] font-semibold transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[15px] text-[#DFBD78]">public</span>
+            <span>Home Arena</span>
+          </button>
+          <button
+            onClick={() => onLogout && onLogout()}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] hover:bg-rose-950/40 text-rose-400 text-[11px] font-semibold transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[15px]">logout</span>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
 
       {/* ========================================================
-          SUB-NAVIGATION TABS (CLEAN, NEAT, PROFESSIONAL TOKENS)
+          RIGHT MAIN CONTENT CONTAINER
           ======================================================== */}
-      <nav className="bg-white border-b border-[#D1D1D1]/60 px-6 lg:px-10 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* TOP HEADER BAR (EXACT media_1795010667791_992d00b3.jpg) */}
+        <header className="bg-white border-b border-[#D1D1D1]/60 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-1.5 rounded-[6px] text-[#4B5563] hover:bg-[#F3F4F6] cursor-pointer"
+              title="Toggle Menu"
+            >
+              <span className="material-symbols-outlined text-[20px]">menu</span>
+            </button>
+            <div className="flex flex-col">
+              <h1 className="text-[16px] md:text-[18px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5 leading-[24px]">
+                <span>Welcome,</span>
+                <span className="text-[#C5A059] font-bold">Super Administrator</span>
+              </h1>
+              <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px]">
+                Wed, 18 Nov, 2026
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Black Action Button (Matches [+ New Bill] in image) */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[15px]">add</span>
+              <span>New Bill</span>
+            </button>
+
+            {/* User Profile Pill with Avatar Circle */}
+            <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
+              <div className="size-7 rounded-full bg-[#1F2937] text-[#DFBD78] flex items-center justify-center font-bold text-[11px] shadow-sm">
+                S
+              </div>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-[11px] font-bold text-[#1F2937] leading-tight">Super Administrator</span>
+                <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Superadmin</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* SUB-NAVIGATION TABS (CLEAN, NEAT, PROFESSIONAL TOKENS) */}
+        <nav className="bg-white border-b border-[#D1D1D1]/60 px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
         <button
           onClick={() => setActiveTab('dashboard')}
           className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
@@ -1333,6 +1587,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </section>
         )}
       </main>
+      </div>
 
       {/* CREATE MODAL */}
       {showCreateModal && (
