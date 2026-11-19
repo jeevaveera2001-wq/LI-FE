@@ -179,6 +179,12 @@ export default function App() {
             onNavigate={navigateTo}
             onLogout={handleLogout}
           />
+        ) : currentPage === 'user-dashboard' ? (
+          <UserDashboard
+            currentUser={currentUser}
+            onNavigate={navigateTo}
+            onLogout={handleLogout}
+          />
         ) : currentPage === 'login' || currentPage === 'register' ? (
           <AuthPage
             initialMode={currentPage === 'register' ? 'register' : 'login'}
@@ -187,7 +193,7 @@ export default function App() {
             onLoginSuccess={handleLoginSuccess}
           />
         ) : (
-          /* HOME, ABOUT, & USER DASHBOARD ARENA SHELL */
+          /* HOME & ABOUT ARENA SHELL */
           <>
             {/* User Menu Header Dropdown Option */}
             <UserMenu
@@ -209,13 +215,7 @@ export default function App() {
               id="main-content"
               tabIndex={-1}
             >
-              {currentPage === 'user-dashboard' ? (
-                <UserDashboard
-                  currentUser={currentUser}
-                  onNavigate={navigateTo}
-                  onLogout={handleLogout}
-                />
-              ) : currentPage === 'about' ? (
+              {currentPage === 'about' ? (
                 <AboutPage
                   currentUser={currentUser}
                   onNavigate={navigateTo}
