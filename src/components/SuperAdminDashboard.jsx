@@ -110,6 +110,534 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   });
 
   // Modal State
+    // ==========================================
+  // MODULE STATES: ALL TOURNAMENTS, ACTIVE ROOMS, USER DB, BROADCASTS, REPORTS, LOGS, PAYMENTS
+  // ==========================================
+  const [tournamentFilterGame, setTournamentFilterGame] = useState('ALL');
+  const [tournamentFilterStatus, setTournamentFilterStatus] = useState('ALL');
+  const [allTournamentsList, setAllTournamentsList] = useState([
+    {
+      id: 't_1',
+      title: 'BGMI Pro Invitational 2026',
+      game: 'Battlegrounds Mobile India',
+      format: 'Squad (Erangel + Miramar)',
+      prizePool: '₹ 5,00,000',
+      entryFee: '₹ 200 / Squad',
+      slots: 64,
+      registered: 58,
+      status: 'LIVE',
+      dates: 'Nov 18 - Nov 25, 2026',
+      thumbnail: '/tournament_bgmi_showdown_4k.jpg',
+      organizer: 'LiveTournaments Official',
+      matchTime: 'Today at 8:00 PM IST'
+    },
+    {
+      id: 't_2',
+      title: 'Free Fire MAX Grand Finals',
+      game: 'Free Fire MAX',
+      format: 'Clash Squad 4v4 Knockout',
+      prizePool: '₹ 3,50,000',
+      entryFee: '₹ 150 / Team',
+      slots: 48,
+      registered: 48,
+      status: 'LIVE',
+      dates: 'Nov 18 - Nov 22, 2026',
+      thumbnail: '/tournament_pubg_ultimate_squad_4k.jpg',
+      organizer: 'Garena Partner Arena',
+      matchTime: 'Today at 6:30 PM IST'
+    },
+    {
+      id: 't_3',
+      title: 'Valorant India Spike Masters',
+      game: 'Valorant',
+      format: '5v5 Competitive Custom',
+      prizePool: '₹ 4,00,000',
+      entryFee: '₹ 250 / Team',
+      slots: 32,
+      registered: 32,
+      status: 'LIVE',
+      dates: 'Nov 18 - Nov 24, 2026',
+      thumbnail: '/experienced_pilot_4k.jpg',
+      organizer: 'Deadly 5 Esports',
+      matchTime: 'Tomorrow at 7:00 PM IST'
+    },
+    {
+      id: 't_4',
+      title: 'COD Mobile Battle Royale War',
+      game: 'COD Mobile',
+      format: 'Isolated Squad BR',
+      prizePool: '₹ 2,50,000',
+      entryFee: 'Free Entry',
+      slots: 50,
+      registered: 34,
+      status: 'REGISTRATION OPEN',
+      dates: 'Dec 01 - Dec 05, 2026',
+      thumbnail: '/professional_quality_4k.jpg',
+      organizer: 'Delta Force India',
+      matchTime: 'Dec 01 at 5:00 PM IST'
+    },
+    {
+      id: 't_5',
+      title: 'Apex Legends Predators Rumble',
+      game: 'Apex Legends',
+      format: 'Trios Worlds Edge',
+      prizePool: '₹ 3,00,000',
+      entryFee: '₹ 100 / Trio',
+      slots: 20,
+      registered: 12,
+      status: 'REGISTRATION OPEN',
+      dates: 'Dec 10 - Dec 14, 2026',
+      thumbnail: '/Champions_AG_AL.png',
+      organizer: 'Apex Gladiators',
+      matchTime: 'Dec 10 at 8:00 PM IST'
+    },
+    {
+      id: 't_6',
+      title: 'BGMI Weekend Midnight Custom',
+      game: 'Battlegrounds Mobile India',
+      format: 'Duo Sanhok Blitz',
+      prizePool: '₹ 1,00,000',
+      entryFee: '₹ 50 / Duo',
+      slots: 50,
+      registered: 50,
+      status: 'UPCOMING',
+      dates: 'Nov 22, 2026',
+      thumbnail: '/tournament_bgmi_lan_warriors_4k.jpg',
+      organizer: 'Shadow Strikers',
+      matchTime: 'Nov 22 at 11:00 PM IST'
+    }
+  ]);
+
+  const [activeMatchRooms, setActiveMatchRooms] = useState([
+    {
+      id: 'room_101',
+      title: 'BGMI Pro Invitational - Finals Match 3',
+      game: 'Battlegrounds Mobile India',
+      map: 'Erangel (Esports Zone 5)',
+      roomId: '849201',
+      roomPass: 'ltbgmi99',
+      teamsJoined: '16 / 16 Squads (64 Players)',
+      alivePlayers: 22,
+      duration: '21:40',
+      status: 'IN PLAY',
+      server: 'Mumbai-AWS (16ms)',
+      topSquad: 'Clan Hydra (8 Kills)',
+      streamLink: 'https://youtube.com/live/bgmi-pro-finals'
+    },
+    {
+      id: 'room_102',
+      title: 'Free Fire MAX Grand Finals - Match 2',
+      game: 'Free Fire MAX',
+      map: 'Bermuda (Pochinok End-Game)',
+      roomId: '552190',
+      roomPass: 'ffmax2026',
+      teamsJoined: '12 / 12 Squads (48 Players)',
+      alivePlayers: 14,
+      duration: '15:12',
+      status: 'IN PLAY',
+      server: 'Chennai-GCP (19ms)',
+      topSquad: 'Team Venom (6 Kills)',
+      streamLink: 'https://youtube.com/live/ff-grand-finals'
+    },
+    {
+      id: 'room_103',
+      title: 'Valorant India Championship - Map 2',
+      game: 'Valorant',
+      map: 'Ascent (Overtime Round 23)',
+      roomId: 'VAL-CUSTOM-03',
+      roomPass: 'mumbai#spike',
+      teamsJoined: '2 / 2 Teams (10 Players)',
+      alivePlayers: 8,
+      duration: '38:50',
+      status: 'IN PLAY',
+      server: 'Mumbai Riot Dedicated (12ms)',
+      topSquad: 'Deadly 5 (Score 12 - 11)',
+      streamLink: 'https://twitch.tv/lt_valorant'
+    },
+    {
+      id: 'room_104',
+      title: 'COD Mobile Masters - Match 1',
+      game: 'COD Mobile',
+      map: 'Isolated BR (Final Collapse)',
+      roomId: '449102',
+      roomPass: 'codmwar',
+      teamsJoined: '25 / 25 Squads (100 Players)',
+      alivePlayers: 19,
+      duration: '18:05',
+      status: 'IN PLAY',
+      server: 'Delhi Server (22ms)',
+      topSquad: 'Delta Force (11 Kills)',
+      streamLink: 'https://youtube.com/live/codm-masters'
+    },
+    {
+      id: 'room_105',
+      title: 'BGMI Midnight Custom - Lobby Preparation',
+      game: 'Battlegrounds Mobile India',
+      map: 'Sanhok (Ruins Drop)',
+      roomId: '902188',
+      roomPass: 'sanhokduo',
+      teamsJoined: '42 / 50 Duos (84 Players)',
+      alivePlayers: 84,
+      duration: 'Lobby Timer: 03:45',
+      status: 'WAITING IN LOBBY',
+      server: 'Mumbai-AWS (18ms)',
+      topSquad: 'Locking Slots...',
+      streamLink: ''
+    }
+  ]);
+
+  const [userDatabase, setUserDatabase] = useState([
+    {
+      userId: 'LT-USR-1001',
+      name: 'Aditya Sharma',
+      ign: 'Hydra_Aditya',
+      email: 'aditya.hydra@gmail.com',
+      mobile: '+91 98765 12345',
+      game: 'Battlegrounds Mobile India',
+      clan: 'Clan Hydra Esports',
+      matchesPlayed: 84,
+      tournamentsWon: 14,
+      fairPlayScore: '99.8%',
+      walletBalance: '₹ 3,250',
+      registeredAt: 'Oct 12, 2026',
+      status: 'ACTIVE'
+    },
+    {
+      userId: 'LT-USR-1002',
+      name: 'Karan Patel',
+      ign: 'Venom_Karan',
+      email: 'karan.venom@gmail.com',
+      mobile: '+91 98111 88990',
+      game: 'Free Fire MAX',
+      clan: 'Team Venom Gaming',
+      matchesPlayed: 62,
+      tournamentsWon: 9,
+      fairPlayScore: '98.5%',
+      walletBalance: '₹ 1,400',
+      registeredAt: 'Oct 18, 2026',
+      status: 'ACTIVE'
+    },
+    {
+      userId: 'LT-USR-1003',
+      name: 'Rohan Mehra',
+      ign: 'Viper_Rohan',
+      email: 'rohan.val@gmail.com',
+      mobile: '+91 98222 77889',
+      game: 'Valorant',
+      clan: 'Deadly 5 Esports',
+      matchesPlayed: 45,
+      tournamentsWon: 8,
+      fairPlayScore: '100%',
+      walletBalance: '₹ 2,100',
+      registeredAt: 'Oct 25, 2026',
+      status: 'ACTIVE'
+    },
+    {
+      userId: 'LT-USR-1004',
+      name: 'Sneha Gupta',
+      ign: 'Shadow_Queen',
+      email: 'sneha.g@gmail.com',
+      mobile: '+91 98333 44556',
+      game: 'Battlegrounds Mobile India',
+      clan: 'Shadow Strikers',
+      matchesPlayed: 92,
+      tournamentsWon: 18,
+      fairPlayScore: '99.4%',
+      walletBalance: '₹ 5,800',
+      registeredAt: 'Nov 01, 2026',
+      status: 'ACTIVE'
+    },
+    {
+      userId: 'LT-USR-1005',
+      name: 'Rajesh Kumar',
+      ign: 'Toxic_Gamer',
+      email: 'rajesh.fake@gmail.com',
+      mobile: '+91 98555 11223',
+      game: 'Free Fire MAX',
+      clan: 'No Clan',
+      matchesPlayed: 12,
+      tournamentsWon: 0,
+      fairPlayScore: '74.2%',
+      walletBalance: '₹ 0',
+      registeredAt: 'Nov 08, 2026',
+      status: 'SUSPENDED',
+      reason: 'AFK & Griefing match lobby'
+    },
+    {
+      userId: 'LT-USR-1006',
+      name: 'Suresh Raina',
+      ign: 'AimGod_99',
+      email: 'aimgod.bot@proton.me',
+      mobile: '+91 98444 00000',
+      game: 'Battlegrounds Mobile India',
+      clan: 'Banned Squad',
+      matchesPlayed: 3,
+      tournamentsWon: 3,
+      fairPlayScore: '22.0%',
+      walletBalance: '₹ 0',
+      registeredAt: 'Nov 12, 2026',
+      status: 'BLOCKED',
+      reason: 'Third-party emulator / recoil script detection'
+    },
+    {
+      userId: 'LT-USR-1007',
+      name: 'Vikram Sethi',
+      ign: 'Apex_Sethi',
+      email: 'vikram.apex@gmail.com',
+      mobile: '+91 98555 44332',
+      game: 'Apex Legends',
+      clan: 'Apex Gladiators',
+      matchesPlayed: 38,
+      tournamentsWon: 5,
+      fairPlayScore: '99.0%',
+      walletBalance: '₹ 850',
+      registeredAt: 'Nov 14, 2026',
+      status: 'ACTIVE'
+    }
+  ]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState('ALL');
+
+  const handleUpdateUserStatus = (userId, newStatus) => {
+    setUserDatabase(prev => prev.map(u => u.userId === userId ? { ...u, status: newStatus } : u));
+    showToast(`✓ User ${userId} status set to ${newStatus}`);
+  };
+
+  const [broadcastActiveTab, setBroadcastActiveTab] = useState('live');
+  const [activeBroadcasts, setActiveBroadcasts] = useState([
+    {
+      id: 'bcast_1',
+      title: 'BGMI Pro Invitational 2026 - Finals Match 3 (Official Hindi Cast)',
+      tournament: 'BGMI Pro Invitational 2026',
+      casters: 'Mamba & Ocean Sharma',
+      platform: 'YouTube Live',
+      streamUrl: 'https://youtube.com/live/bgmi-pro-finals',
+      viewers: '34,820',
+      resolution: '1080p 60FPS',
+      bitrate: '8,500 kbps',
+      status: 'LIVE ON AIR',
+      duration: '01:45:22',
+      thumbnail: '/tournament_bgmi_showdown_4k.jpg'
+    },
+    {
+      id: 'bcast_2',
+      title: 'Free Fire MAX Clutch Masters Cup - Day 2 Official Stream',
+      tournament: 'Free Fire MAX Clutch Masters Cup',
+      casters: 'Aura Gaming & Mafia',
+      platform: 'YouTube Live',
+      streamUrl: 'https://youtube.com/live/ff-grand-finals',
+      viewers: '18,450',
+      resolution: '1080p 60FPS',
+      bitrate: '7,200 kbps',
+      status: 'LIVE ON AIR',
+      duration: '00:54:10',
+      thumbnail: '/tournament_pubg_ultimate_squad_4k.jpg'
+    },
+    {
+      id: 'bcast_3',
+      title: 'Valorant India Spike Masters - Upper Bracket Final English Cast',
+      tournament: 'Valorant India Spike Masters',
+      casters: 'Bleh & LordBathura',
+      platform: 'Twitch TV',
+      streamUrl: 'https://twitch.tv/lt_valorant',
+      viewers: '9,200',
+      resolution: '1080p 60FPS',
+      bitrate: '9,000 kbps',
+      status: 'LIVE ON AIR',
+      duration: '02:18:04',
+      thumbnail: '/experienced_pilot_4k.jpg'
+    }
+  ]);
+
+  const [broadcastRequests, setBroadcastRequests] = useState([
+    {
+      id: 'br_1',
+      creator: 'Jonathan Gaming Live',
+      channel: 'YouTube (5.8M Subscribers)',
+      tournament: 'BGMI Pro Invitational 2026',
+      requestedSlot: 'Official Creator Watch Party & Co-Stream',
+      language: 'Hindi',
+      status: 'PENDING',
+      requestedAt: '30 mins ago'
+    },
+    {
+      id: 'br_2',
+      creator: 'Total Gaming Official',
+      channel: 'YouTube (37.2M Subscribers)',
+      tournament: 'Free Fire MAX Grand Finals',
+      requestedSlot: 'Hindi Regional Championship Stream',
+      language: 'Hindi',
+      status: 'PENDING',
+      requestedAt: '1 hour ago'
+    },
+    {
+      id: 'br_3',
+      creator: 'S8UL Esports Regional Hub',
+      channel: 'YouTube (1.4M Subscribers)',
+      tournament: 'BGMI Weekend Midnight Custom',
+      requestedSlot: 'Late Night Community Broadcast',
+      language: 'Hindi / English',
+      status: 'PENDING',
+      requestedAt: '2 hours ago'
+    }
+  ]);
+
+  const handleApproveBroadcastRequest = (id) => {
+    const req = broadcastRequests.find(b => b.id === id);
+    if (!req) return;
+    setBroadcastRequests(prev => prev.filter(b => b.id !== id));
+    setActiveBroadcasts(prev => [
+      {
+        id: 'bcast_' + Date.now(),
+        title: `${req.tournament} - Cast by ${req.creator}`,
+        tournament: req.tournament,
+        casters: req.creator,
+        platform: 'Authorized Creator Stream',
+        streamUrl: 'https://youtube.com/live',
+        viewers: 'Connecting...',
+        resolution: '1080p 60FPS',
+        bitrate: '8,000 kbps',
+        status: 'LIVE ON AIR',
+        duration: 'Just Started',
+        thumbnail: '/tournament_bgmi_lan_warriors_4k.jpg'
+      },
+      ...prev
+    ]);
+    showToast(`✓ Broadcast for ${req.creator} approved and live!`);
+  };
+
+  const handleDeclineBroadcastRequest = (id) => {
+    setBroadcastRequests(prev => prev.filter(b => b.id !== id));
+    showToast(`✕ Broadcast request declined`);
+  };
+
+  const [activityLogs, setActivityLogs] = useState([
+    {
+      id: 'log_1',
+      time: 'Today, 10:14:22 AM',
+      userId: 'LT-USR-1001',
+      userName: 'Aditya Sharma (Clan Hydra)',
+      action: 'User Authentication & Login',
+      location: 'Mumbai, Maharashtra, India',
+      ip: '103.21.244.18',
+      device: 'Chrome 122 (Windows 11)',
+      agreements: '✓ Fair Play & Anti-Cheat v2.1 • 18+ Skill Gaming Terms'
+    },
+    {
+      id: 'log_2',
+      time: 'Today, 09:58:15 AM',
+      userId: 'LT-USR-1002',
+      userName: 'Karan Patel (Team Venom)',
+      action: 'Joined Match Room #102',
+      location: 'Ahmedabad, Gujarat, India',
+      ip: '49.37.112.55',
+      device: 'Safari Mobile (iOS 17.4)',
+      agreements: '✓ Fair Play & Anti-Cheat v2.1 • Room Credentials Agreement'
+    },
+    {
+      id: 'log_3',
+      time: 'Today, 09:42:01 AM',
+      userId: 'LT-USR-1003',
+      userName: 'Rohan Mehra (Deadly 5)',
+      action: 'Paid Tournament Host Fee (₹499 Pro Tier)',
+      location: 'Bengaluru, Karnataka, India',
+      ip: '122.161.89.40',
+      device: 'Chrome Mobile (Android 14)',
+      agreements: '✓ Organizer Code of Conduct • Digital Payment Terms'
+    },
+    {
+      id: 'log_4',
+      time: 'Today, 09:20:44 AM',
+      userId: 'LT-USR-1004',
+      userName: 'Sneha Gupta (Shadow Strikers)',
+      action: 'Prize Pool Withdrawal Requested (₹5,800)',
+      location: 'Delhi NCR, India',
+      ip: '157.48.92.10',
+      device: 'Firefox 124 (macOS Sonoma)',
+      agreements: '✓ KYC Verification Consent • Tax Deducted at Source (TDS) Declaration'
+    },
+    {
+      id: 'log_5',
+      time: 'Today, 08:55:10 AM',
+      userId: 'LT-USR-1006',
+      userName: 'Suresh Raina (AimGod_99)',
+      action: 'SECURITY ALERT: Unauthorized Macro Injected',
+      location: 'Kolkata, West Bengal, India',
+      ip: '117.211.75.22',
+      device: 'Android Emulator BlueStacks',
+      agreements: '❌ VIOLATION: Anti-Cheat Bot Flagged Account -> Status: BLOCKED'
+    },
+    {
+      id: 'log_6',
+      time: 'Today, 08:31:00 AM',
+      userId: 'LT-USR-1007',
+      userName: 'Vikram Sethi (Apex Gladiators)',
+      action: 'User Authentication & Login',
+      location: 'Hyderabad, Telangana, India',
+      ip: '183.82.101.5',
+      device: 'Edge 122 (Windows 11)',
+      agreements: '✓ Fair Play & Anti-Cheat v2.1 • Platform Privacy Policy'
+    }
+  ]);
+
+  const [paymentsHistory, setPaymentsHistory] = useState([
+    {
+      txnId: 'LT-TXN-88421',
+      userId: 'LT-USR-1003',
+      userName: 'Rohan Mehra',
+      item: 'Paid Tournament Hosting - Pro Verified Tier',
+      amount: '₹ 499',
+      method: 'UPI (PhonePe QR)',
+      utr: 'UTR-3394821094',
+      date: 'Today, 09:42 AM',
+      status: 'SUCCESS'
+    },
+    {
+      txnId: 'LT-TXN-88420',
+      userId: 'LT-USR-1001',
+      userName: 'Aditya Sharma',
+      item: 'BGMI Pro Invitational Squad Entry',
+      amount: '₹ 200',
+      method: 'UPI (Google Pay)',
+      utr: 'UTR-4401928471',
+      date: 'Today, 09:15 AM',
+      status: 'SUCCESS'
+    },
+    {
+      txnId: 'LT-TXN-88419',
+      userId: 'LT-USR-1004',
+      userName: 'Sneha Gupta',
+      item: 'Championship Sponsor Package (Premier Tier)',
+      amount: '₹ 999',
+      method: 'Card (HDFC Visa Platinum)',
+      utr: 'CARD-AUTH-9921',
+      date: 'Today, 08:30 AM',
+      status: 'SUCCESS'
+    },
+    {
+      txnId: 'LT-TXN-88418',
+      userId: 'LT-USR-1002',
+      userName: 'Karan Patel',
+      item: 'Daily Pro Scrim Season Pass',
+      amount: '₹ 350',
+      method: 'UPI (Paytm)',
+      utr: 'UTR-1092837465',
+      date: 'Yesterday, 07:45 PM',
+      status: 'SUCCESS'
+    },
+    {
+      txnId: 'LT-TXN-88417',
+      userId: 'LT-USR-1007',
+      userName: 'Vikram Sethi',
+      item: 'Standard Tournament Host Fee',
+      amount: '₹ 199',
+      method: 'NetBanking (ICICI Bank)',
+      utr: 'NB-ICICI-884192',
+      date: 'Yesterday, 06:12 PM',
+      status: 'SUCCESS'
+    }
+  ]);
+
   const [newTitle, setNewTitle] = useState('');
   const [newGame, setNewGame] = useState('Battlegrounds Mobile India');
   const [newPrize, setNewPrize] = useState('');
@@ -381,8 +909,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
           {/* All Tournaments */}
           <button
-            onClick={() => { setActiveTab('all-in-one'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'all-in-one' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('all-tournaments'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'all-tournaments' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">emoji_events</span>
             <span className="flex-1">All Tournaments</span>
@@ -390,17 +918,18 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
           {/* Active Match Rooms */}
           <button
-            onClick={() => { showToast('Active automated rooms online'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('active-matches'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'active-matches' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">meeting_room</span>
             <span className="flex-1">Active Match Rooms</span>
+            <span className="size-2 rounded-full bg-[#10B981] animate-pulse"></span>
           </button>
 
           {/* User Database */}
           <button
-            onClick={() => { showToast('52,480 registered platform users'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('user-database'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'user-database' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">groups</span>
             <span className="flex-1">User Database</span>
@@ -408,8 +937,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
           {/* Broadcast & Stream Production */}
           <button
-            onClick={() => { showToast('Production streaming console active'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('broadcast-stream'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'broadcast-stream' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">live_tv</span>
             <span className="flex-1">Broadcast & Stream Production</span>
@@ -417,8 +946,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
           {/* Reports & Analytics */}
           <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('reports-analytics'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'reports-analytics' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">bar_chart</span>
             <span className="flex-1">Reports & Analytics</span>
@@ -426,16 +955,25 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
           {/* Activity Logs */}
           <button
-            onClick={() => { showToast('System audit activity logs'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('activity-logs'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'activity-logs' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">event_note</span>
             <span className="flex-1">Activity Logs</span>
           </button>
 
+          {/* Payments & Transaction History */}
+          <button
+            onClick={() => { setActiveTab('payments'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'payments' ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+            <span className="flex-1">Payment History</span>
+          </button>
+
           {/* Platform Settings */}
           <button
-            onClick={() => { showToast('Esports Hub platform settings'); setSidebarOpen(false); }}
+            onClick={() => { showToast('LiveTournaments Engine Settings: All Systems Operational'); setSidebarOpen(false); }}
             className="nagulan-sidebar-btn"
           >
             <span className="material-symbols-outlined text-[16px]">settings</span>
@@ -1500,6 +2038,1118 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   )}
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 1: ALL TOURNAMENTS (WITH RICH CARDINGS)
+            ======================================================== */}
+        {activeTab === 'all-tournaments' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px]">emoji_events</span>
+                  All Tournaments Management
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Live official and community tournaments with carding specifications, slots fulfillment, and bracket controls.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-3.5 py-1.5 rounded-full bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-center"
+              >
+                <span className="material-symbols-outlined text-[15px]">add</span>
+                <span>+ Create Tournament</span>
+              </button>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Tournaments</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{allTournamentsList.length}</span>
+                </div>
+                <span className="material-symbols-outlined text-[#9CA3AF] text-[22px]">trophy</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Live In-Play</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
+                    {allTournamentsList.filter(t => t.status === 'LIVE').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">play_circle</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Registration Open</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">
+                    {allTournamentsList.filter(t => t.status === 'REGISTRATION OPEN').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">how_to_reg</span>
+              </div>
+
+              <div className="bg-amber-50/70 p-3 rounded-[10px] border border-amber-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Upcoming</span>
+                  <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">
+                    {allTournamentsList.filter(t => t.status === 'UPCOMING').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-amber-500 text-[22px]">event</span>
+              </div>
+            </div>
+
+            {/* FILTER BAR */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-[#F9FAFB] rounded-[10px] border border-[#E5E7EB] text-[11px]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-[#4B5563]">Game Filter:</span>
+                {['ALL', 'Battlegrounds Mobile India', 'Free Fire MAX', 'Valorant', 'COD Mobile', 'Apex Legends'].map(g => (
+                  <button
+                    key={g}
+                    onClick={() => setTournamentFilterGame(g)}
+                    className={`px-2.5 py-1 rounded-[6px] font-bold transition-all cursor-pointer ${
+                      tournamentFilterGame === g ? 'bg-[#1F2937] text-white shadow-xs' : 'bg-white text-[#4B5563] border border-[#D1D1D1] hover:border-gray-400'
+                    }`}
+                  >
+                    {g === 'ALL' ? 'All Games' : g.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#4B5563]">Status:</span>
+                {['ALL', 'LIVE', 'REGISTRATION OPEN', 'UPCOMING'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setTournamentFilterStatus(s)}
+                    className={`px-2 py-0.5 rounded-[4px] font-bold text-[10px] transition-all cursor-pointer ${
+                      tournamentFilterStatus === s ? 'bg-[#C5A059] text-white shadow-xs' : 'bg-white text-[#6B7280] border border-[#D1D1D1]'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* TOURNAMENT CARDS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allTournamentsList
+                .filter(t => (tournamentFilterGame === 'ALL' || t.game === tournamentFilterGame) && (tournamentFilterStatus === 'ALL' || t.status === tournamentFilterStatus))
+                .map(t => (
+                  <div key={t.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div className="relative w-full h-40 bg-black overflow-hidden">
+                      <img src={t.thumbnail} alt={t.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-2.5">
+                        <span className="px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold">
+                          {t.game}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm ${
+                          t.status === 'LIVE' ? 'bg-emerald-500 text-white animate-pulse' :
+                          t.status === 'REGISTRATION OPEN' ? 'bg-blue-600 text-white' :
+                          'bg-amber-500 text-white'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <h4 className="text-[13px] font-bold text-[#1F2937] line-clamp-1">{t.title}</h4>
+                        <p className="text-[11px] text-[#6B7280]">Host: <strong className="text-[#C5A059]">{t.organizer}</strong> &bull; {t.format}</p>
+                        
+                        <div className="p-2.5 rounded-[8px] bg-[#F9FAFB] border border-[#E5E7EB] text-[10px] space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#6B7280]">Prize Pool:</span>
+                            <span className="font-bold text-[#059669] font-mono text-[11px]">{t.prizePool}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#6B7280]">Entry Fee:</span>
+                            <span className="font-semibold text-[#1F2937]">{t.entryFee}</span>
+                          </div>
+                          <div className="space-y-0.5 pt-1">
+                            <div className="flex items-center justify-between text-[9px] font-semibold text-[#6B7280]">
+                              <span>Slots Filled:</span>
+                              <span>{t.registered} / {t.slots} Teams</span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                              <div
+                                className="h-full bg-[#10B981] rounded-full"
+                                style={{ width: `${(t.registered / t.slots) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 text-[9px] text-[#9CA3AF]">
+                            <span>Schedule: {t.matchTime}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#F3F4F6] flex items-center gap-2">
+                        <button
+                          onClick={() => { setActiveTab('active-matches'); showToast(`Opening Room Console for ${t.title}`); }}
+                          className="flex-1 py-1.5 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                        >
+                          Manage Room
+                        </button>
+                        <button
+                          onClick={() => showToast(`Viewing registered teams for ${t.title}`)}
+                          className="py-1.5 px-3 rounded-[6px] border border-[#D1D1D1] text-[#4B5563] hover:bg-gray-50 text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Teams ({t.registered})
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 2: ACTIVE MATCH ROOMS (ACTUAL ONGOING MATCHES)
+            ======================================================== */}
+        {activeTab === 'active-matches' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#10B981] text-[20px]">meeting_room</span>
+                  Active Match Rooms (Ongoing Live Battles)
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Monitor live in-game lobbies, server pings, room credentials, kill counts, and emergency server broadcasts.
+                </p>
+              </div>
+              <button
+                onClick={() => showToast('⚡ Refreshed active match rooms telemetry')}
+                className="px-3 py-1.5 rounded-lg border border-[#D1D1D1] text-[#1F2937] hover:bg-gray-50 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[14px]">refresh</span>
+                Live Refresh
+              </button>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Live Matches In Play</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
+                    {activeMatchRooms.filter(r => r.status === 'IN PLAY').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">sports_esports</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Players Fighting Now</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">147 Live</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">group</span>
+              </div>
+
+              <div className="bg-amber-50/70 p-3 rounded-[10px] border border-amber-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Lobbies Waiting</span>
+                  <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">
+                    {activeMatchRooms.filter(r => r.status === 'WAITING IN LOBBY').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-amber-500 text-[22px]">hourglass_top</span>
+              </div>
+
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Server Latency Avg</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">16.4 ms</span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">speed</span>
+              </div>
+            </div>
+
+            {/* LIVE ROOMS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {activeMatchRooms.map(room => (
+                <div key={room.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                          room.status === 'IN PLAY' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1' :
+                          'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          {room.status === 'IN PLAY' && <span className="size-1.5 rounded-full bg-emerald-500 animate-ping" />}
+                          {room.status}
+                        </span>
+                        <span className="text-[11px] font-bold text-blue-600">{room.game}</span>
+                      </div>
+                      <h4 className="text-[14px] font-bold text-[#1F2937] mt-1">{room.title}</h4>
+                    </div>
+                    <span className="px-2 py-1 rounded-[6px] bg-gray-100 text-[#4B5563] text-[10px] font-mono font-bold">
+                      ⏱ {room.duration}
+                    </span>
+                  </div>
+
+                  {/* Room Credentials & Telemetry Box */}
+                  <div className="p-3 rounded-[10px] bg-[#F9FAFB] border border-[#E5E7EB] grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[10px]">
+                    <div>
+                      <span className="text-[#6B7280] font-semibold block uppercase text-[9px]">Room ID</span>
+                      <span className="font-mono font-bold text-gray-900 text-[12px]">{room.roomId}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#6B7280] font-semibold block uppercase text-[9px]">Password</span>
+                      <span className="font-mono font-bold text-gray-900 text-[12px]">{room.roomPass}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#6B7280] font-semibold block uppercase text-[9px]">Map / Circle</span>
+                      <span className="font-semibold text-gray-800">{room.map}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#6B7280] font-semibold block uppercase text-[9px]">Server Ping</span>
+                      <span className="font-semibold text-emerald-600 font-mono">{room.server}</span>
+                    </div>
+                  </div>
+
+                  {/* In-Game Status Strip */}
+                  <div className="flex items-center justify-between text-[11px] p-2 rounded-[8px] bg-emerald-50/50 border border-emerald-100">
+                    <span className="text-gray-700"><strong>Slots:</strong> {room.teamsJoined}</span>
+                    <span className="text-emerald-700 font-bold">🏆 Lead: {room.topSquad}</span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => showToast(`🚨 Broadcast alert sent to all players in Room ${room.roomId}`)}
+                      className="px-3 py-1.5 rounded-[6px] bg-gray-100 hover:bg-gray-200 text-[#1F2937] text-[11px] font-bold transition-colors cursor-pointer"
+                    >
+                      📢 Broadcast Alert
+                    </button>
+                    {room.streamLink && (
+                      <a
+                        href={room.streamLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-[6px] bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">live_tv</span>
+                        Watch Feed
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        setActiveMatchRooms(prev => prev.filter(r => r.id !== room.id));
+                        showToast(`✓ Room ${room.roomId} ended. Scores pushed to leaderboard!`);
+                      }}
+                      className="px-3 py-1.5 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[11px] font-bold cursor-pointer"
+                    >
+                      End Match
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 3: USER DATABASE (SPECIFIC USER IDs & ACTIVE, SUSPEND, BLOCK CONTROLS)
+            ======================================================== */}
+        {activeTab === 'user-database' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#3B82F6] text-[20px]">groups</span>
+                  Registered User Database & Player Management
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Complete directory of registered competitors with unique User IDs, in-game stats, wallet balances, and direct moderation privileges.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-[#3B82F6] text-[11px] font-bold border border-blue-200">
+                {userDatabase.length} Registered Accounts
+              </span>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Database Users</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{userDatabase.length}</span>
+                </div>
+                <span className="material-symbols-outlined text-[#9CA3AF] text-[22px]">badge</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Active Players</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
+                    {userDatabase.filter(u => u.status === 'ACTIVE').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">check_circle</span>
+              </div>
+
+              <div className="bg-amber-50/70 p-3 rounded-[10px] border border-amber-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Suspended</span>
+                  <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">
+                    {userDatabase.filter(u => u.status === 'SUSPENDED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-amber-500 text-[22px]">warning</span>
+              </div>
+
+              <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Blocked Accounts</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">
+                    {userDatabase.filter(u => u.status === 'BLOCKED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-rose-500 text-[22px]">block</span>
+              </div>
+            </div>
+
+            {/* SEARCH & FILTER CONTROLS */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[#F9FAFB] rounded-[10px] border border-[#E5E7EB] text-xs">
+              <div className="relative flex-1 min-w-[240px]">
+                <input
+                  type="text"
+                  placeholder="Search by User ID (e.g. LT-USR-1001), Name, IGN, or Email..."
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden font-medium"
+                />
+                <span className="material-symbols-outlined absolute left-2.5 top-2 text-gray-400 text-[16px]">search</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-gray-600">Status:</span>
+                {['ALL', 'ACTIVE', 'SUSPENDED', 'BLOCKED'].map(st => (
+                  <button
+                    key={st}
+                    onClick={() => setUserStatusFilter(st)}
+                    className={`px-2.5 py-1 rounded font-bold text-[10px] transition-all cursor-pointer ${
+                      userStatusFilter === st ? 'bg-gray-900 text-white shadow-xs' : 'bg-white border border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* USER DATABASE TABLE */}
+            <div className="overflow-x-auto rounded-[12px] border border-[#E5E7EB]">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#4B5563] uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5">User ID & Name</th>
+                    <th className="py-3 px-3.5">IGN & Game</th>
+                    <th className="py-3 px-3.5">Contact Details</th>
+                    <th className="py-3 px-3.5">Record & Score</th>
+                    <th className="py-3 px-3.5">Wallet</th>
+                    <th className="py-3 px-3.5">Status</th>
+                    <th className="py-3 px-3.5 text-right">Moderation Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {userDatabase
+                    .filter(u => {
+                      const matchesSearch = u.userId.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                        u.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                        u.ign.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                        u.email.toLowerCase().includes(userSearchQuery.toLowerCase());
+                      const matchesStatus = userStatusFilter === 'ALL' || u.status === userStatusFilter;
+                      return matchesSearch && matchesStatus;
+                    })
+                    .map(user => (
+                      <tr key={user.userId} className="hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gray-900 text-gold-primary flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <span className="font-mono font-bold text-blue-600 text-[11px] block">{user.userId}</span>
+                              <span className="font-bold text-gray-900">{user.name}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3.5">
+                          <div>
+                            <span className="font-bold text-gray-900 block">{user.ign}</span>
+                            <span className="text-[10px] text-gray-500">{user.game} &bull; <strong className="text-gold-primary">{user.clan}</strong></span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3.5">
+                          <div className="text-[11px] text-gray-600">
+                            <span>{user.email}</span>
+                            <span className="block text-[10px] text-gray-400 font-mono">{user.mobile}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3.5">
+                          <div className="text-[11px]">
+                            <span className="text-gray-900 font-bold">{user.matchesPlayed} Matches</span> ({user.tournamentsWon} Won)
+                            <span className="block text-[10px] text-emerald-600 font-bold">Fair Play: {user.fairPlayScore}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3.5 font-mono font-bold text-gray-900">
+                          {user.walletBalance}
+                        </td>
+
+                        <td className="py-3 px-3.5">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            user.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            user.status === 'SUSPENDED' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                            'bg-black text-rose-300'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {user.status !== 'ACTIVE' && (
+                              <button
+                                onClick={() => handleUpdateUserStatus(user.userId, 'ACTIVE')}
+                                className="px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] border border-emerald-200 cursor-pointer"
+                              >
+                                ✓ Activate
+                              </button>
+                            )}
+                            {user.status !== 'SUSPENDED' && (
+                              <button
+                                onClick={() => handleUpdateUserStatus(user.userId, 'SUSPENDED')}
+                                className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200 cursor-pointer"
+                              >
+                                ⚠️ Suspend
+                              </button>
+                            )}
+                            {user.status !== 'BLOCKED' && (
+                              <button
+                                onClick={() => handleUpdateUserStatus(user.userId, 'BLOCKED')}
+                                className="px-2 py-1 rounded bg-gray-900 hover:bg-black text-rose-300 font-bold text-[10px] cursor-pointer"
+                              >
+                                🚫 Block
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 4: BROADCAST & STREAM PRODUCTION (LIVE & REQUESTS)
+            ======================================================== */}
+        {activeTab === 'broadcast-stream' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#EF4444] text-[20px]">live_tv</span>
+                  Broadcast & Live Stream Production Console
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Manage authorized official broadcasts, multi-platform caster feeds, and review pending streamer requests.
+                </p>
+              </div>
+
+              {/* Sub-tab switcher */}
+              <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-lg text-xs font-bold">
+                <button
+                  onClick={() => setBroadcastActiveTab('live')}
+                  className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer ${
+                    broadcastActiveTab === 'live' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  🟢 Live Broadcasts ({activeBroadcasts.length})
+                </button>
+                <button
+                  onClick={() => setBroadcastActiveTab('requests')}
+                  className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer ${
+                    broadcastActiveTab === 'requests' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  📨 Stream Requests ({broadcastRequests.length})
+                </button>
+              </div>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Live Channels On Air</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">{activeBroadcasts.length} Official</span>
+                </div>
+                <span className="material-symbols-outlined text-rose-500 text-[22px]">sensors</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Concurrent Viewers</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">62,470 Live</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">visibility</span>
+              </div>
+
+              <div className="bg-amber-50/70 p-3 rounded-[10px] border border-amber-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Streamer Requests</span>
+                  <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">{broadcastRequests.length} Pending</span>
+                </div>
+                <span className="material-symbols-outlined text-amber-500 text-[22px]">connect_without_contact</span>
+              </div>
+
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Encoding Health</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">1080p 60fps</span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">hd</span>
+              </div>
+            </div>
+
+            {/* TAB 1: CURRENT LIVE BROADCASTS (ACCEPTED & LIVE) */}
+            {broadcastActiveTab === 'live' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {activeBroadcasts.map(bc => (
+                  <div key={bc.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+                    <div className="relative w-full h-44 bg-black flex items-center justify-center">
+                      <img src={bc.thumbnail} alt={bc.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <div className="size-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg animate-pulse">
+                          <span className="material-symbols-outlined text-[26px]">play_arrow</span>
+                        </div>
+                      </div>
+                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-md">
+                        <span className="size-1.5 rounded-full bg-white animate-ping" />
+                        LIVE ON AIR
+                      </span>
+                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/80 text-white text-[10px] font-mono font-bold">
+                        👥 {bc.viewers} Viewers
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-[13px] font-bold text-[#1F2937] line-clamp-1">{bc.title}</h4>
+                        <p className="text-[11px] text-gray-500 mt-0.5"><strong>Casters:</strong> {bc.casters} &bull; <strong className="text-red-600">{bc.platform}</strong></p>
+                        <div className="mt-2 p-2 rounded bg-gray-50 border border-gray-200 text-[10px] font-mono text-gray-600 space-y-0.5">
+                          <p><strong>Stream URL:</strong> {bc.streamUrl}</p>
+                          <p><strong>Quality:</strong> {bc.resolution} @ {bc.bitrate}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+                        <button
+                          onClick={() => showToast(`Overlay message broadcasted to ${bc.casters}'s stream`)}
+                          className="flex-1 py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-800 text-[10px] font-bold cursor-pointer"
+                        >
+                          Push Sponsor Overlay
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveBroadcasts(prev => prev.filter(b => b.id !== bc.id));
+                            showToast(`Broadcast ended for ${bc.title}`);
+                          }}
+                          className="px-3 py-1.5 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold cursor-pointer"
+                        >
+                          End Stream
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 2: BROADCAST REQUESTS (PENDING APPROVAL) */}
+            {broadcastActiveTab === 'requests' && (
+              <div className="space-y-3">
+                {broadcastRequests.length === 0 ? (
+                  <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-xs">
+                    No pending streamer requests. All incoming broadcasting applications have been reviewed.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {broadcastRequests.map(br => (
+                      <div key={br.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs flex flex-col justify-between gap-3">
+                        <div className="space-y-1.5">
+                          <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 text-[9px] font-bold uppercase border border-amber-200">
+                            {br.status}
+                          </span>
+                          <h4 className="text-[13px] font-bold text-gray-900">{br.creator}</h4>
+                          <p className="text-[11px] text-gray-500 font-semibold">{br.channel}</p>
+                          <div className="p-2.5 rounded bg-gray-50 border border-gray-100 text-[10px] space-y-1 text-gray-600">
+                            <p><strong>Tournament:</strong> {br.tournament}</p>
+                            <p><strong>Slot Type:</strong> {br.requestedSlot}</p>
+                            <p><strong>Language:</strong> {br.language}</p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
+                          <button
+                            onClick={() => handleApproveBroadcastRequest(br.id)}
+                            className="flex-1 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                          >
+                            ✓ Authorize
+                          </button>
+                          <button
+                            onClick={() => handleDeclineBroadcastRequest(br.id)}
+                            className="py-1.5 px-3 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[11px] font-bold transition-colors cursor-pointer"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 5: REPORTS & ANALYTICS (PLAYER, MATCHES, TOURNAMENTS, SCRIMS)
+            ======================================================== */}
+        {activeTab === 'reports-analytics' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-5 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px]">bar_chart</span>
+                  Platform Reports & In-Depth Analytics
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Comprehensive performance breakdown across players, matches, tournament prize pools, and scrim slot fulfillment.
+                </p>
+              </div>
+              <button
+                onClick={() => showToast('📥 Generating comprehensive PDF analytics report...')}
+                className="px-3.5 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[14px]">download</span>
+                Export Report (PDF / CSV)
+              </button>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Tournaments Hosted</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">148 Events</span>
+                </div>
+                <span className="material-symbols-outlined text-gold-primary text-[22px]">emoji_events</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Matches Concluded</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">1,240 Rooms</span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">task_alt</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Scrim Slots Booked</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">3,890 Slots</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">timer</span>
+              </div>
+
+              <div className="bg-purple-50/70 p-3 rounded-[10px] border border-purple-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">Prize Pool Disbursed</span>
+                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ 42,50,000</span>
+                </div>
+                <span className="material-symbols-outlined text-purple-500 text-[22px]">account_balance_wallet</span>
+              </div>
+            </div>
+
+            {/* 4 DETAILED ANALYTIC PANELS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Panel 1: Player Performance Report */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
+                <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
+                  <span>Top Player Rankings & Frags</span>
+                  <span className="text-[10px] text-emerald-600 font-semibold">99.4% Fair Play Rate</span>
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="font-bold">1. Hydra_Aditya (BGMI)</span>
+                    <span className="font-mono text-emerald-600 font-bold">114 Frags &bull; 62% Win Rate</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="font-bold">2. Venom_Karan (Free Fire)</span>
+                    <span className="font-mono text-emerald-600 font-bold">98 Frags &bull; 58% Win Rate</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="font-bold">3. Viper_Rohan (Valorant)</span>
+                    <span className="font-mono text-emerald-600 font-bold">84 Frags &bull; 54% Win Rate</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel 2: Room & Match Telemetry */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
+                <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
+                  <span>Match Room Quality Telemetry</span>
+                  <span className="text-[10px] text-blue-600 font-semibold">99.98% Uptime</span>
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">Average Match Duration:</span>
+                    <span className="font-mono font-bold text-gray-900">24 mins 18 secs</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">Slot Fulfillment Rate:</span>
+                    <span className="font-mono font-bold text-emerald-600">98.2% Filled</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">Automated Bracket Generation:</span>
+                    <span className="font-mono font-bold text-blue-600">Instant (&lt; 2s)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel 3: Tournaments Revenue & Popularity */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
+                <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
+                  <span>Tournament Game Share & Reach</span>
+                  <span className="text-[10px] text-purple-600 font-semibold">702 Active Clans</span>
+                </h4>
+                <div className="space-y-1.5 text-xs">
+                  <div>
+                    <div className="flex justify-between text-[11px] font-semibold mb-1">
+                      <span>BGMI (Battlegrounds Mobile India)</span>
+                      <span>54% (80 Tournaments)</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full" style={{ width: '54%' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[11px] font-semibold mb-1">
+                      <span>Free Fire MAX</span>
+                      <span>28% (42 Tournaments)</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full" style={{ width: '28%' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[11px] font-semibold mb-1">
+                      <span>Valorant & PC Titles</span>
+                      <span>18% (26 Tournaments)</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-full bg-rose-500 rounded-full" style={{ width: '18%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel 4: Scrims Cadence & Retention */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
+                <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
+                  <span>Scrims Cadence & Retention</span>
+                  <span className="text-[10px] text-emerald-600 font-semibold">88% Clan Retention</span>
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">Daily Pro Scrims:</span>
+                    <span className="font-mono font-bold text-blue-600">48 Sessions / Week</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">Weekly Championship Scrims:</span>
+                    <span className="font-mono font-bold text-purple-600">32 Sessions / Month</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                    <span className="text-gray-700">No-Show Penalty Enforcement:</span>
+                    <span className="font-mono font-bold text-rose-600">0.8% Flagged</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 6: ACTIVITY LOGS (LOGINS, LOCATION, IP, AGREEMENTS CONCERNED)
+            ======================================================== */}
+        {activeTab === 'activity-logs' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#1F2937] text-[20px]">event_note</span>
+                  User Activity & Security Audit Logs
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Real-time login telemetry, geo-location tracking, IP address auditing, and compliance agreement consent tracking.
+                </p>
+              </div>
+              <button
+                onClick={() => showToast('Activity logs exported to audit ledger')}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-[11px] font-bold hover:bg-gray-50 cursor-pointer shadow-xs"
+              >
+                Export Audit Log
+              </button>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Today's Logins</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">1,842 Sessions</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">login</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Agreement Consents</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">100% Signed</span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">verified_user</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Unique Cities Tracked</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">84 Cities (IN)</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">pin_drop</span>
+              </div>
+
+              <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Security Infractions</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">1 Blocked</span>
+                </div>
+                <span className="material-symbols-outlined text-rose-500 text-[22px]">shield</span>
+              </div>
+            </div>
+
+            {/* ACTIVITY LOGS TABLE */}
+            <div className="overflow-x-auto rounded-[12px] border border-[#E5E7EB]">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#4B5563] uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5">Timestamp</th>
+                    <th className="py-3 px-3.5">User & ID</th>
+                    <th className="py-3 px-3.5">Action Executed</th>
+                    <th className="py-3 px-3.5">Geographical Location & IP</th>
+                    <th className="py-3 px-3.5">Agreements & Consents Concerned</th>
+                    <th className="py-3 px-3.5 text-right">Device / Client</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {activityLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-3.5 font-mono text-[11px] text-gray-500 whitespace-nowrap">
+                        {log.time}
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className="font-mono font-bold text-blue-600 text-[10px] block">{log.userId}</span>
+                        <span className="font-bold text-gray-900">{log.userName}</span>
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          log.action.includes('ALERT') ? 'bg-rose-100 text-rose-800' :
+                          log.action.includes('Paid') ? 'bg-emerald-50 text-emerald-700' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {log.action}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <div>
+                          <span className="font-bold text-gray-900 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px] text-blue-600">location_on</span>
+                            {log.location}
+                          </span>
+                          <span className="font-mono text-[10px] text-gray-400 block pl-4">IP: {log.ip}</span>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className="text-[11px] font-medium text-gray-700 block max-w-md">
+                          {log.agreements}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3.5 text-right font-mono text-[10px] text-gray-500">
+                        {log.device}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 7: PAYMENTS & TRANSACTION HISTORY (DIGITAL ONLY - ZERO CASH)
+            ======================================================== */}
+        {activeTab === 'payments' && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#059669] text-[20px]">receipt_long</span>
+                  Payment Gateway Collections & Transaction Ledger
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Real-time transaction history from UPI QR, Debit/Credit Cards, and NetBanking. 100% digital, zero cash transactions.
+                </p>
+              </div>
+              <button
+                onClick={() => showToast('📥 Exporting digital payments financial statement...')}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-[11px] font-bold hover:bg-gray-50 cursor-pointer shadow-xs flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[14px]">download</span>
+                Export Ledger (CSV)
+              </button>
+            </div>
+
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Total Digital Volume</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">₹ 2,85,490</span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">payments</span>
+              </div>
+
+              <div className="bg-purple-50/70 p-3 rounded-[10px] border border-purple-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">UPI & Instant QR</span>
+                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ 1,85,484 (65%)</span>
+                </div>
+                <span className="material-symbols-outlined text-purple-500 text-[22px]">qr_code_2</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Card Gateways</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">₹ 73,151 (26%)</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">credit_card</span>
+              </div>
+
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">NetBanking & Instant</span>
+                  <span className="text-[18px] font-bold text-gray-800 font-mono mt-0.5 block">₹ 26,855 (9%)</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">account_balance</span>
+              </div>
+            </div>
+
+            {/* TRANSACTION HISTORY TABLE */}
+            <div className="overflow-x-auto rounded-[12px] border border-[#E5E7EB]">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#4B5563] uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5">Transaction ID</th>
+                    <th className="py-3 px-3.5">Payer & User ID</th>
+                    <th className="py-3 px-3.5">Purpose / Item</th>
+                    <th className="py-3 px-3.5">Amount</th>
+                    <th className="py-3 px-3.5">Payment Channel</th>
+                    <th className="py-3 px-3.5">Gateway UTR Reference</th>
+                    <th className="py-3 px-3.5">Status</th>
+                    <th className="py-3 px-3.5 text-right">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {paymentsHistory.map(tx => (
+                    <tr key={tx.txnId} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-3.5 font-mono font-bold text-blue-600 text-[11px]">
+                        {tx.txnId}
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className="font-bold text-gray-900 block">{tx.userName}</span>
+                        <span className="font-mono text-[10px] text-gray-500">{tx.userId}</span>
+                      </td>
+
+                      <td className="py-3 px-3.5 text-gray-800 font-medium">
+                        {tx.item}
+                      </td>
+
+                      <td className="py-3 px-3.5 font-mono font-bold text-emerald-600 text-[13px]">
+                        {tx.amount}
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200">
+                          {tx.method}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3.5 font-mono text-[11px] text-gray-500">
+                        {tx.utr}
+                      </td>
+
+                      <td className="py-3 px-3.5">
+                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                          {tx.status}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3.5 text-right">
+                        <button
+                          onClick={() => showToast(`📄 Downloading tax invoice for ${tx.txnId}...`)}
+                          className="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          Invoice
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </section>
         )}
