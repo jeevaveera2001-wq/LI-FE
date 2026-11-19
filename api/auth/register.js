@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { connectToDatabase } from '../lib/mongodb.js';
-import { resolveExactLocation } from '../lib/location.js';
+import { connectToDatabase } from '../../lib/mongodb.js';
+import { resolveExactLocation } from '../../lib/location.js';
 
 const PASSWORD_SALT = 'livetournaments_esports_2026_salt';
 function hashPassword(password) {

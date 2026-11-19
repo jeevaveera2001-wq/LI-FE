@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { connectToDatabase } from '../lib/mongodb.js';
+import { connectToDatabase } from '../../lib/mongodb.js';
 
 const PASSWORD_SALT = 'livetournaments_esports_2026_salt';
 function hashPassword(password) {

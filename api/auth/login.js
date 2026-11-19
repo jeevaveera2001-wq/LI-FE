@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { connectToDatabase } from '../lib/mongodb.js';
-import { resolveExactLocation } from '../lib/location.js';
+import { connectToDatabase } from '../../lib/mongodb.js';
+import { resolveExactLocation } from '../../lib/location.js';
 
 const SUPERADMIN_USERNAME = 'superadmin';
 const SUPERADMIN_EMAIL = 'superadmin@lt.in';
