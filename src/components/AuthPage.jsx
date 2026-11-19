@@ -302,7 +302,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             tournamentsWon: 0,
             fairPlayScore: '100%',
             walletBalance: '₹ 0',
-            registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            registeredAt: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric' }),
             status: user.status || 'ACTIVE',
             location: resolvedLocation
           };
@@ -330,8 +330,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             location: resolvedLocation,
             agreements: 'Session Token & Fair Play Compliance Confirmed',
             device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
-            time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
-            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+            date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
             timestamp: new Date().toISOString()
           };
           logsList.unshift(newLog);
@@ -385,8 +385,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             location: resolvedLocation,
             agreements: 'Super Administrator Master Security Protocol Verified',
             device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
-            time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
-            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+            date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
             timestamp: new Date().toISOString()
           });
           localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
@@ -539,7 +539,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         tournamentsWon: 0,
         fairPlayScore: '100%',
         walletBalance: '₹ 0',
-        registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        registeredAt: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric' }),
         location: resolvedLocation
       };
       localStorage.setItem('lt_user', JSON.stringify(newUser));
@@ -571,8 +571,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           location: resolvedLocation,
           agreements: 'Terms of Service, Fair Play Policy & Anti-Cheat Agreement Accepted',
           device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
-          time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
-          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+          date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
           timestamp: new Date().toISOString()
         });
         localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));

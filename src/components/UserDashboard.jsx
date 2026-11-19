@@ -210,11 +210,36 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
   const displayName = currentUser?.name || currentUser?.username || 'Competitor';
   const displayEmail = currentUser?.email || 'user@livetournaments.in';
   const currentDateStr = new Date().toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     weekday: 'short',
     day: 'numeric',
     month: 'short',
     year: 'numeric'
   });
+
+  // Live Indian Standard Time (IST) Clock
+  const [currentIndiaTime, setCurrentIndiaTime] = useState(() => {
+    return new Date().toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }) + ' IST';
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndiaTime(new Date().toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }) + ' IST');
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex font-['Inter',sans-serif] antialiased selection:bg-[#DFBD78]/30">
@@ -677,8 +702,9 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   </p>
                 </div>
 
-                <div className="px-4 py-2 rounded-xl bg-[#1E1911] border border-[#DFBD78]/40 text-[#DFBD78] font-mono font-bold text-sm">
-                  System Clock: Active
+                <div className="px-4 py-2 rounded-xl bg-[#1E1911] border border-[#DFBD78]/40 text-[#DFBD78] font-mono font-bold text-sm flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>IST: {currentIndiaTime}</span>
                 </div>
               </div>
 

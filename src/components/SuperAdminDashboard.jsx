@@ -31,6 +31,47 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [selectedInspectImage, setSelectedInspectImage] = useState(null);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
 
+  // Live Indian Standard Time (IST - Asia/Kolkata) Clock
+  const [currentIndiaDateTime, setCurrentIndiaDateTime] = useState(() => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }) + ' IST';
+    return { dateStr, timeStr };
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }) + ' IST';
+      setCurrentIndiaDateTime({ dateStr, timeStr });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Trigger brief toast notification
   const showToast = (msg) => {
@@ -899,8 +940,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <span>Welcome,</span>
                 <span className="text-[#C5A059] font-bold">Super Administrator</span>
               </h1>
-              <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px]">
-                Wed, 18 Nov, 2026
+              <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px] flex items-center gap-1.5 font-mono">
+                <span>{currentIndiaDateTime.dateStr}</span>
+                <span>&bull;</span>
+                <span className="text-gray-800 font-bold">{currentIndiaDateTime.timeStr}</span>
               </span>
             </div>
           </div>
@@ -1059,7 +1102,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </span>
                 </div>
                 <p className="text-[11px] text-[#6B7280]">
-                  Real-time performance for <strong className="text-[#1F2937] font-semibold">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</strong> compared against yesterday.
+                  Real-time performance for <strong className="text-[#1F2937] font-semibold">{new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</strong> compared against yesterday.
                 </p>
               </div>
 
@@ -2926,7 +2969,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   {activityLogs.map(log => (
                     <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3.5 font-mono text-[11px] text-gray-500 whitespace-nowrap">
-                        {log.time}
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-900">
+                            {log.timestamp ? new Date(log.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST' : (log.time?.includes('IST') ? log.time : log.time + ' IST')}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {log.timestamp ? new Date(log.timestamp).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : log.date}
+                          </span>
+                        </div>
                       </td>
 
                       <td className="py-3 px-3.5">

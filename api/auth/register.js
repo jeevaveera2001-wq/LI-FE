@@ -85,8 +85,8 @@ export default async function handler(req, res) {
         location: locationStr,
         agreements: 'Terms of Service & Fair Play Agreement Confirmed',
         device: deviceStr,
-        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
-        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+        date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
         timestamp: new Date().toISOString()
       };
       await db.collection('activity_logs').insertOne(regLog);

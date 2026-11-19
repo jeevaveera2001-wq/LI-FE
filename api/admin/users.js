@@ -22,7 +22,12 @@ export default async function handler(req, res) {
 
       const formattedUsers = rawUsers.map((u, idx) => {
         const dateObj = u.createdAt ? new Date(u.createdAt) : new Date();
-        const formattedDate = dateObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+        const formattedDate = dateObj.toLocaleDateString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
 
         return {
           userId: u.id || `LT-USR-${1000 + (rawUsers.length - idx)}`,
@@ -80,8 +85,8 @@ export default async function handler(req, res) {
         location: locationStr,
         agreements: `Administrative Enforcement Action (${newStatus})`,
         device: 'Super Admin HQ Console',
-        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
-        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+        date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
         timestamp: new Date().toISOString()
       });
 
