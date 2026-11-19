@@ -146,7 +146,7 @@ export const DashboardPage = ({ metricsData = null }) => {
                 UPI / QR Payments
               </span>
               <span className="text-sm sm:text-base font-bold text-purple-600 font-mono mt-0.5 block">
-                ₹ {Number(summary.upiPayments || 85484).toLocaleString('en-IN')}
+                ₹ {Number(summary.upiPayments ?? 0).toLocaleString('en-IN')}
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
@@ -158,7 +158,7 @@ export const DashboardPage = ({ metricsData = null }) => {
                 Card Payments
               </span>
               <span className="text-sm sm:text-base font-bold text-blue-600 font-mono mt-0.5 block">
-                ₹ {Number(summary.cardPayments || 73151).toLocaleString('en-IN')}
+                ₹ {Number(summary.cardPayments ?? 0).toLocaleString('en-IN')}
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
