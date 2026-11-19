@@ -59,13 +59,28 @@ img {
 .nagulan-dashboard h5,
 .nagulan-dashboard h6,
 .nagulan-dashboard p,
-.nagulan-dashboard span:not(.material-symbols-outlined),
-.nagulan-dashboard div,
+.nagulan-dashboard span:not(.material-symbols-outlined):not(.nagulan-mono):not(.font-mono),
+.nagulan-dashboard div:not(.nagulan-mono):not(.font-mono),
 .nagulan-dashboard button,
 .nagulan-dashboard table,
 .nagulan-dashboard th,
-.nagulan-dashboard td {
+.nagulan-dashboard td,
+.nagulan-dashboard input,
+.nagulan-dashboard select,
+.nagulan-dashboard textarea,
+.nagulan-dashboard label,
+.nagulan-dashboard a,
+.nagulan-dashboard li,
+.nagulan-dashboard ul {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.nagulan-dashboard .nagulan-mono,
+.nagulan-dashboard .font-mono,
+.nagulan-dashboard code,
+.nagulan-dashboard pre,
+.nagulan-mono {
+  font-family: 'JetBrains Mono', monospace !important;
 }
 
 .nagulan-dashboard .material-symbols-outlined,

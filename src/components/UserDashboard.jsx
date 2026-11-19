@@ -243,7 +243,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
   });
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-[#1F2937] flex antialiased selection:bg-[#C5A059]/20 selection:text-[#1F2937]">
+    <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex font-['Inter',sans-serif] antialiased selection:bg-[#DFBD78]/30">
       
       {/* Toast Notification Banner */}
       {toastMessage && (
@@ -489,57 +489,67 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
                 
                 {/* Stat 1: Registered Matches */}
-                <div className="bg-white rounded-[12px] p-4 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Registered Matches</span>
-                    <span className="text-2xl font-bold text-[#1F2937] font-mono mt-1 block">{joinedTournaments.length}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">REGISTERED MATCHES</span>
+                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{joinedTournaments.length} Matches</p>
+                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Active Squad Slots</p>
                   </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
-                    <span>✓ Live Slot Assigned</span>
+                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                    <span className="text-[#10B981] font-semibold">✓ Slot Confirmed</span>
+                    <span className="text-[#9CA3AF]">Live Telemetry</span>
                   </div>
                 </div>
 
                 {/* Stat 2: My Hosted Tournaments */}
-                <div className="bg-white rounded-[12px] p-4 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">My Hosted Tournaments</span>
-                    <span className="text-2xl font-bold text-[#C5A059] font-mono mt-1 block">{hostedTournaments.length}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">HOSTED TOURNAMENTS</span>
+                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{hostedTournaments.length} Events</p>
+                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Paid Hosting Studio</p>
                   </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center gap-1 text-[10px] text-blue-600 font-semibold">
-                    <span>{hostedTournaments.filter(h => h.status === 'APPROVED').length} Active &bull; {hostedTournaments.filter(h => h.status === 'PENDING').length} In Review</span>
+                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                    <span className="text-[#3B82F6] font-semibold">{hostedTournaments.filter(h => h.status === 'APPROVED').length} Active</span>
+                    <span className="text-[#9CA3AF]">{hostedTournaments.filter(h => h.status === 'PENDING').length} In Review</span>
                   </div>
                 </div>
 
                 {/* Stat 3: Daily Scrims */}
-                <div className="bg-white rounded-[12px] p-4 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Daily Scrims</span>
-                    <span className="text-2xl font-bold text-blue-600 font-mono mt-1 block">{joinedScrims.length}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">DAILY SCRIMS</span>
+                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{joinedScrims.length} Scrims</p>
+                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Tier 1 Practice Pools</p>
                   </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center gap-1 text-[10px] text-gray-500 font-semibold">
-                    <span>Tier 1 Practice Pools</span>
+                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                    <span className="text-[#3B82F6] font-semibold">Clan Pool</span>
+                    <span className="text-[#9CA3AF]">Nightly Drop</span>
                   </div>
                 </div>
 
                 {/* Stat 4: Total Prize Won */}
-                <div className="bg-white rounded-[12px] p-4 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Prize Won</span>
-                    <span className="text-2xl font-bold text-emerald-600 font-mono mt-1 block">₹ 0</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TOTAL PRIZE WON</span>
+                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 0</p>
+                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Verified Prize Pools</p>
                   </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
-                    <span>Verified Digital Payouts</span>
+                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                    <span className="text-[#10B981] font-semibold">100% Payout</span>
+                    <span className="text-[#9CA3AF]">Zero Deduction</span>
                   </div>
                 </div>
 
                 {/* Stat 5: Platform Credits */}
-                <div className="bg-white rounded-[12px] p-4 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">Wallet Balance</span>
-                    <span className="text-2xl font-bold text-purple-600 font-mono mt-1 block">₹ {walletBalance}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">WALLET BALANCE</span>
+                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(walletBalance).toLocaleString('en-IN')}</p>
+                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Available Balance</p>
                   </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center gap-1 text-[10px] text-purple-600 font-semibold">
-                    <span>UPI &amp; Card Fast-Pay</span>
+                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
+                    <span className="text-[#9333EA] font-semibold">UPI Fast-Pay</span>
+                    <span className="text-[#9CA3AF]">Instant Withdraw</span>
                   </div>
                 </div>
 
@@ -549,57 +559,57 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
                 {/* Tile 1: Paid Hosting Studio */}
-                <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between gap-4">
+                <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-[#DFBD78]/15 border border-[#DFBD78]/40 flex items-center justify-center text-[#C5A059] mb-3">
                       <span className="material-symbols-outlined text-[20px]">how_to_reg</span>
                     </div>
-                    <h3 className="font-bold text-sm text-[#1F2937]">Paid Hosting Studio</h3>
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">Paid Hosting Studio</h4>
+                    <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
                       Launch your custom BGMI or PUBG tournament with automatic UPI payment processing and Super Admin approval.
                     </p>
                   </div>
                   <button
                     onClick={() => setActiveTab('host-studio')}
-                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     Open Hosting Studio →
                   </button>
                 </div>
 
                 {/* Tile 2: Match Rooms & Brackets */}
-                <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between gap-4">
+                <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 mb-3">
                       <span className="material-symbols-outlined text-[20px]">sports_esports</span>
                     </div>
-                    <h3 className="font-bold text-sm text-[#1F2937]">My Match Rooms</h3>
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">My Match Rooms</h4>
+                    <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
                       View your registered team slots, live room keys, match timings, and bracket advancement.
                     </p>
                   </div>
                   <button
                     onClick={() => setActiveTab('my-tournaments')}
-                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     View Match Rooms ({joinedTournaments.length}) →
                   </button>
                 </div>
 
                 {/* Tile 3: Digital Wallet */}
-                <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col justify-between gap-4">
+                <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-purple-100 border border-purple-300 flex items-center justify-center text-purple-700 mb-3">
                       <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
                     </div>
-                    <h3 className="font-bold text-sm text-[#1F2937]">Digital Wallet &amp; Payouts</h3>
-                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">Digital Wallet &amp; Payouts</h4>
+                    <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
                       Instant UPI prize payouts, payment transaction history, and deposit gateway with zero hidden charges.
                     </p>
                   </div>
                   <button
                     onClick={() => setActiveTab('wallet')}
-                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                    className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     Manage Wallet &amp; UPI →
                   </button>
