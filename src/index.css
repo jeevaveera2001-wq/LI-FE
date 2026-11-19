@@ -1,3 +1,6 @@
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
   font-family: 'gear';
   src: url('/media/Gear_Light-s.p.0f_5q11usd09x.woff') format('woff');

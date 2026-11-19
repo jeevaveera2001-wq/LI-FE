@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import DashboardPage from './DashboardPage';
 
 /**
  * NAGULAN Unisex Salon & LiveTournaments.in Command Center
@@ -546,13 +547,136 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="flex-1">Dashboard</span>
           </button>
 
+          {/* Billing / POS */}
+          <button
+            onClick={() => { showToast('Billing & POS console ready'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">point_of_sale</span>
+            <span className="flex-1">Billing / POS</span>
+          </button>
+
+          {/* Sales History */}
+          <button
+            onClick={() => { showToast('Sales history indexed'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">history</span>
+            <span className="flex-1">Sales History</span>
+          </button>
+
+          {/* Payments */}
+          <button
+            onClick={() => { showToast('Payment gateways active'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">payments</span>
+            <span className="flex-1">Payments</span>
+          </button>
+
+          {/* Services & Menu */}
+          <button
+            onClick={() => { showToast('Services menu loaded'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">content_cut</span>
+            <span className="flex-1">Services & Menu</span>
+          </button>
+
+          {/* Products & Stock */}
+          <button
+            onClick={() => { showToast('Products & stock updated'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">inventory_2</span>
+            <span className="flex-1">Products & Stock</span>
+          </button>
+
+          {/* Chairs & Stations */}
+          <button
+            onClick={() => { showToast('9 styling stations monitored'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">chair</span>
+            <span className="flex-1">Chairs & Stations</span>
+          </button>
+
+          {/* Attendants */}
+          <button
+            onClick={() => { showToast('Stylists & attendants loaded'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">person</span>
+            <span className="flex-1">Attendants</span>
+          </button>
+
+          {/* Customers */}
+          <button
+            onClick={() => { showToast('702 registered customers'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">badge</span>
+            <span className="flex-1">Customers</span>
+          </button>
+
+          {/* Reports & Analytics */}
+          <button
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
+            <span className="flex-1">Reports & Analytics</span>
+          </button>
+
+          {/* Admin & Reception */}
+          <button
+            onClick={() => { showToast('Admin & Reception desk'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">shield_person</span>
+            <span className="flex-1">Admin & Reception</span>
+          </button>
+
+          {/* Activity Logs */}
+          <button
+            onClick={() => { showToast('System audit activity logs'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">event_note</span>
+            <span className="flex-1">Activity Logs</span>
+          </button>
+
+          {/* Expenses */}
+          <button
+            onClick={() => { showToast('Expenses log ledger'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">mail</span>
+            <span className="flex-1">Expenses</span>
+          </button>
+
+          {/* Salon Settings */}
+          <button
+            onClick={() => { showToast('Salon & Hub platform settings'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">settings</span>
+            <span className="flex-1">Salon Settings</span>
+          </button>
+
+          {/* Section Divider */}
+          <div className="pt-2 pb-1">
+            <div className="h-px bg-[#1F2937]/80 my-1"></div>
+            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Tournament Requests</span>
+          </div>
+
           {/* Hosting Requests */}
           <button
             onClick={() => { setActiveTab('hosting-requests'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'hosting-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-            <span className="flex-1">Hosting Requests</span>
+            <span className="flex-1">Tournament Hostings</span>
             {pendingHostingCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
                 {pendingHostingCount}
@@ -615,75 +739,6 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </span>
             )}
           </button>
-
-          {/* Divider */}
-          <div className="pt-2 pb-1">
-            <div className="h-px bg-[#1F2937]/80 my-1"></div>
-            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Platform Modules</span>
-          </div>
-
-          {/* All Tournaments */}
-          <button
-            onClick={() => { setActiveTab('all-in-one'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'all-in-one' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">emoji_events</span>
-            <span className="flex-1">All Tournaments</span>
-          </button>
-
-          {/* Daily & Weekly Scrims */}
-          <button
-            onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-            <span className="flex-1">Daily & Weekly Scrims</span>
-          </button>
-
-          {/* Active Match Rooms */}
-          <button
-            onClick={() => { showToast('Active automated rooms online'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">meeting_room</span>
-            <span className="flex-1">Active Match Rooms</span>
-          </button>
-
-          {/* Player Database */}
-          <button
-            onClick={() => { showToast('52,480 registered players indexed'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">groups</span>
-            <span className="flex-1">Player Database</span>
-          </button>
-
-          {/* Broadcast & Stream POS */}
-          <button
-            onClick={() => { showToast('Production streaming console active'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">live_tv</span>
-            <span className="flex-1">Broadcast & Stream POS</span>
-          </button>
-
-          {/* Reports & Analytics */}
-          <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
-            <span className="flex-1">Reports & Analytics</span>
-          </button>
-
-          {/* Platform Settings */}
-          <button
-            onClick={() => { showToast('Esports Hub system settings loaded'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">settings</span>
-            <span className="flex-1">Platform Settings</span>
-          </button>
         </div>
 
         {/* Footer of Sidebar */}
@@ -736,10 +791,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <button
               onClick={() => setShowCreateModal(true)}
               style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[15px] !text-white">add</span>
-              <span className="!text-white">Host Tournament</span>
+              <span className="material-symbols-outlined text-[15px] !text-white">receipt_long</span>
+              <span className="!text-white">New Bill</span>
             </button>
 
             {/* User Profile Pill with Avatar Circle */}
@@ -856,410 +911,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             VIEW: MAIN DASHBOARD (EXACT media_1795010667791_992d00b3.jpg REPLICA)
             ======================================================== */}
         {(activeTab === 'dashboard' || activeTab === 'all-in-one') && (
-          <div className="space-y-4 animate-fade-in">
-            {/* ROW 1: 4 TOP HERO STAT CARDS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1: Overall Users */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      OVERALL USERS
-                    </span>
-                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      52,480
-                    </h2>
-                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      1,420 Active Today
-                    </p>
-                  </div>
-                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">groups</span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#10B981] font-semibold">↗ +13.6%</span>
-                  <span className="text-[#9CA3AF]">vs yesterday</span>
-                </div>
-              </div>
-
-              {/* Card 2: Live Tournaments */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      LIVE TOURNAMENTS
-                    </span>
-                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      18 Live
-                    </h2>
-                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      42 Matches Today
-                    </p>
-                  </div>
-                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">sports_esports</span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#10B981] font-semibold">↗ +20.0%</span>
-                  <span className="text-[#9CA3AF]">vs yesterday</span>
-                </div>
-              </div>
-
-              {/* Card 3: Today Hostings */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      TODAY HOSTINGS
-                    </span>
-                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      29 Hostings
-                    </h2>
-                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      148 Monthly Pro Hosts
-                    </p>
-                  </div>
-                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">hub</span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#10B981] font-semibold">↗ +20.8%</span>
-                  <span className="text-[#9CA3AF]">vs last week</span>
-                </div>
-              </div>
-
-              {/* Card 4: Monthly Subscription Hostings */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
-                      MONTHLY SUB HOSTINGS
-                    </span>
-                    <h2 className="text-[26px] font-bold text-[#1F2937] tracking-tight mt-1 leading-[32px] nagulan-mono">
-                      148 / 200
-                    </h2>
-                    <p className="text-[11px] text-[#9CA3AF] font-medium mt-0.5 leading-[15px]">
-                      52 Slots Free
-                    </p>
-                  </div>
-                  <div className="size-8 rounded-[8px] bg-[#F3F4F6] border border-[#D1D1D1]/50 flex items-center justify-center text-[#4B5563]">
-                    <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-1.5 text-[11px]">
-                  <span className="text-[#10B981] font-semibold">↗ +12.1%</span>
-                  <span className="text-[#9CA3AF]">Growth Rate</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ROW 2: 4 COMPACT REVENUE & SCRIMS CARDS */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Daily Scrims */}
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    DAILY SCRIMS
-                  </span>
-                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    36 Active Scrims
-                  </p>
-                </div>
-                <span className="size-2 rounded-full bg-[#3B82F6]"></span>
-              </div>
-
-              {/* Weekly Scrims */}
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    WEEKLY SCRIMS
-                  </span>
-                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    14 Pro Leagues
-                  </p>
-                </div>
-                <span className="size-2 rounded-full bg-[#9333EA]"></span>
-              </div>
-
-              {/* Monthly Scrims */}
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    MONTHLY SCRIMS
-                  </span>
-                  <p className="text-[16px] font-bold text-[#1F2937] tracking-tight mt-0.5 nagulan-mono">
-                    8 Mega Cups
-                  </p>
-                </div>
-                <span className="size-2 rounded-full bg-[#F59E0B]"></span>
-              </div>
-
-              {/* Total Registered Clans */}
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">
-                    TOTAL REGISTERED CLANS
-                  </span>
-                  <p className="text-[16px] font-bold text-[#059669] tracking-tight mt-0.5 nagulan-mono">
-                    702 Verified Teams
-                  </p>
-                </div>
-                <span className="size-2 rounded-full bg-[#10B981]"></span>
-              </div>
-            </div>
-
-            {/* ROW 3: CHARTS (7-DAY ESPORTS ACTIVITY TREND + DONUT GAME SHARE) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Left Chart (2 Columns): 7-Day Activity Trend */}
-              <div className="lg:col-span-2 bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-center justify-between pb-2">
-                  <div>
-                    <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">show_chart</span>
-                      7-Day Tournament & Match Trend
-                    </h3>
-                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">Daily competitor registrations & match turnover</p>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[9px] font-semibold border border-[#D1D1D1]/40">
-                    Live
-                  </span>
-                </div>
-
-                {/* SVG Smooth Spline Chart */}
-                <div className="relative w-full h-[240px] pt-4">
-                  <svg className="w-full h-full overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="nagulanGoldGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#DFBD78" stopOpacity="0.45" />
-                        <stop offset="100%" stopColor="#DFBD78" stopOpacity="0.02" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Subtle gridlines */}
-                    <line x1="0" y1="20" x2="600" y2="20" stroke="#F3F4F6" />
-                    <line x1="0" y1="65" x2="600" y2="65" stroke="#F3F4F6" />
-                    <line x1="0" y1="110" x2="600" y2="110" stroke="#F3F4F6" />
-                    <line x1="0" y1="155" x2="600" y2="155" stroke="#F3F4F6" />
-                    <line x1="0" y1="180" x2="600" y2="180" stroke="#E5E7EB" />
-
-                    {/* Exact curve from reference image */}
-                    <path
-                      d="M 0,130 Q 120,125 240,115 T 380,105 T 480,135 T 560,150 L 600,155 L 600,180 L 0,180 Z"
-                      fill="url(#nagulanGoldGrad)"
-                    />
-                    <path
-                      d="M 0,130 Q 120,125 240,115 T 380,105 T 480,135 T 560,150 L 600,155"
-                      fill="none"
-                      stroke="#C5A059"
-                      strokeWidth="2.5"
-                    />
-                  </svg>
-
-                  {/* Y-axis Labels on Left */}
-                  <div className="absolute top-3 left-0 text-[9px] text-[#9CA3AF] font-medium space-y-8 pointer-events-none nagulan-mono">
-                    <div>12000</div>
-                    <div>9000</div>
-                    <div>6000</div>
-                    <div>3000</div>
-                    <div>0</div>
-                  </div>
-
-                  {/* X-axis Day Labels */}
-                  <div className="flex justify-between text-[11px] text-[#6B7280] font-medium mt-2 px-1">
-                    <span>Thu</span>
-                    <span>Fri</span>
-                    <span>Sat</span>
-                    <span>Sun</span>
-                    <span>Mon</span>
-                    <span>Tue</span>
-                    <span>Wed</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Chart (1 Column): Game Share Donut */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
-                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">pie_chart</span>
-                    Tournament Share
-                  </h3>
-                  <span className="text-[11px] text-[#9CA3AF] font-medium hover:text-[#1F2937] cursor-pointer">
-                    By Game Title
-                  </span>
-                </div>
-
-                {/* Donut Chart SVG */}
-                <div className="flex items-center justify-center py-3">
-                  <svg className="size-36 overflow-visible" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="38" fill="none" stroke="#F3F4F6" strokeWidth="13" />
-                    <circle
-                      cx="50" cy="50" r="38" fill="none"
-                      stroke="#DFBD78" strokeWidth="13"
-                      strokeDasharray="107 238"
-                      strokeDashoffset="60"
-                    />
-                    <circle
-                      cx="50" cy="50" r="38" fill="none"
-                      stroke="#3B82F6" strokeWidth="13"
-                      strokeDasharray="114 238"
-                      strokeDashoffset="-47"
-                    />
-                    <circle
-                      cx="50" cy="50" r="38" fill="none"
-                      stroke="#10B981" strokeWidth="13"
-                      strokeDasharray="17 238"
-                      strokeDashoffset="-161"
-                    />
-                  </svg>
-                </div>
-
-                {/* Donut Legend */}
-                <div className="grid grid-cols-2 gap-y-1.5 gap-x-3 text-[11px] pt-3 border-t border-[#F3F4F6] font-medium">
-                  <div className="flex items-center gap-1.5 text-[#1F2937]">
-                    <span className="size-2 rounded-full bg-[#DFBD78]"></span>
-                    <span>BGMI: <strong className="nagulan-mono">48%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#1F2937]">
-                    <span className="size-2 rounded-full bg-[#3B82F6]"></span>
-                    <span>Free Fire: <strong className="nagulan-mono">28%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#1F2937]">
-                    <span className="size-2 rounded-full bg-[#10B981]"></span>
-                    <span>Valorant: <strong className="nagulan-mono">14%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#1F2937]">
-                    <span className="size-2 rounded-full bg-[#9333EA]"></span>
-                    <span>CODM: <strong className="nagulan-mono">6%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#1F2937]">
-                    <span className="size-2 rounded-full bg-[#F59E0B]"></span>
-                    <span>Apex: <strong className="nagulan-mono">4%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#9CA3AF]">
-                    <span className="size-2 rounded-full bg-[#EC4899]"></span>
-                    <span>Others: 0%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ROW 4: BOTTOM 2 RANKED BREAKDOWN CARDS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Bottom Left Card: Top Tournament Organizers & Hosts */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
-                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">military_tech</span>
-                    Top Organizers & Hosts
-                  </h3>
-                  <button onClick={() => setActiveTab('hosting-requests')} className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
-                    View All &rarr;
-                  </button>
-                </div>
-
-                <div className="space-y-2.5">
-                  {/* Rank 1 */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#F3F4F6]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Clan Hydra Esports</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">BGMI Battle Royale Pro</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 1,10,500</p>
-                      <p className="text-[9px] text-[#9CA3AF]">486 matches</p>
-                    </div>
-                  </div>
-
-                  {/* Rank 2 */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#F3F4F6]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Team Venom Gaming</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">Free Fire MAX Clash Squad</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 51,800</p>
-                      <p className="text-[9px] text-[#9CA3AF]">286 matches</p>
-                    </div>
-                  </div>
-
-                  {/* Rank 3 */}
-                  <div className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug">Deadly 5 Esports</h4>
-                        <p className="text-[9px] text-[#9CA3AF]">Valorant Mumbai Spike League</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[13px] font-bold text-[#1F2937] tracking-tight nagulan-mono">₹ 10,200</p>
-                      <p className="text-[9px] text-[#9CA3AF]">63 matches</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Right Card: Most Popular Esports Formats */}
-              <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
-                  <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#DFBD78] text-[16px]">local_fire_department</span>
-                    Most Popular Esports Formats
-                  </h3>
-                  <button onClick={() => setActiveTab('all-in-one')} className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer">
-                    All Modes &rarr;
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
-                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
-                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>BGMI Battle Royale (Squad Erangel / Miramar)</span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      451 Tournaments
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
-                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
-                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>Free Fire MAX (Clash Squad 4v4 Knockout)</span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      94 Tournaments
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#1F2937]">
-                      <span className="size-1.5 rounded-full bg-[#10B981]"></span>
-                      <span>Valorant (5v5 Spike Plant Competitive Custom)</span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-[4px] bg-[#F3F4F6] text-[#6B7280] text-[10px] font-semibold border border-[#D1D1D1]/40">
-                      79 Tournaments
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="animate-fade-in">
+            <DashboardPage />
           </div>
         )}
 
