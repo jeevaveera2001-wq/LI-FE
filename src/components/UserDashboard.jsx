@@ -450,71 +450,86 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               
-              {/* TOP STAT CARDS (EXACT NAGULAN METRICS ROW) */}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {/* TOP STAT CARDS (EXACT NAGULAN METRICS ROW - Image Ref: media_1795060190582_3c9ca89f.png) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
                 
                 {/* Stat 1: Registered Matches */}
-                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">REGISTERED MATCHES</span>
-                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{joinedTournaments.length} Matches</p>
-                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Active Squad Slots</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">REGISTERED MATCHES</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedTournaments.length} Matches</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 1 Match</p>
                   </div>
-                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#10B981] font-semibold">✓ Slot Confirmed</span>
-                    <span className="text-[#9CA3AF]">Live Telemetry</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">check_circle</span>
+                      Confirmed
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                   </div>
                 </div>
 
                 {/* Stat 2: My Hosted Tournaments */}
-                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">HOSTED TOURNAMENTS</span>
-                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{hostedTournaments.length} Events</p>
-                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Paid Hosting Studio</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">HOSTED TOURNAMENTS</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{hostedTournaments.length} Events</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 0 Events</p>
                   </div>
-                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#3B82F6] font-semibold">{hostedTournaments.filter(h => h.status === 'APPROVED').length} Active</span>
-                    <span className="text-[#9CA3AF]">{hostedTournaments.filter(h => h.status === 'PENDING').length} In Review</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-blue-600">
+                      <span className="material-symbols-outlined text-[15px]">verified</span>
+                      {hostedTournaments.filter(h => h.status === 'APPROVED').length} Active
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                   </div>
                 </div>
 
                 {/* Stat 3: Daily Scrims */}
-                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">DAILY SCRIMS</span>
-                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{joinedScrims.length} Scrims</p>
-                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Tier 1 Practice Pools</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">DAILY SCRIMS</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedScrims.length} Scrims</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 1 Scrim</p>
                   </div>
-                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#3B82F6] font-semibold">Clan Pool</span>
-                    <span className="text-[#9CA3AF]">Nightly Drop</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">timer</span>
+                      Clan Pool
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                   </div>
                 </div>
 
-                {/* Stat 4: Total Prize Won */}
-                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                {/* Stat 4: Present Day Cash / Balance (Exact Image Ref: ₹ 1,523, Yesterday: ₹ 2,610, ↘ -41.6%) */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TOTAL PRIZE WON</span>
-                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 0</p>
-                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Verified Prize Pools</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
                   </div>
-                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#10B981] font-semibold">100% Payout</span>
-                    <span className="text-[#9CA3AF]">Zero Deduction</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
+                      <span className="material-symbols-outlined text-[15px]">south_east</span>
+                      -41.6%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                   </div>
                 </div>
 
-                {/* Stat 5: Platform Credits */}
-                <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                {/* Stat 5: Wallet Balance */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">WALLET BALANCE</span>
-                    <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(walletBalance).toLocaleString('en-IN')}</p>
-                    <p className="text-[9px] text-[#9CA3AF] mt-0.5">Available Balance</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">WALLET BALANCE</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(walletBalance).toLocaleString('en-IN')}</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Available Credits</p>
                   </div>
-                  <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#9333EA] font-semibold">UPI Fast-Pay</span>
-                    <span className="text-[#9CA3AF]">Instant Withdraw</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-purple-600">
+                      <span className="material-symbols-outlined text-[15px]">account_balance_wallet</span>
+                      UPI Ready
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">Instant</span>
                   </div>
                 </div>
 
@@ -656,6 +671,91 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 <div className="px-4 py-2 rounded-xl bg-[#1E1911] border border-[#DFBD78]/40 text-[#DFBD78] font-mono font-bold text-sm">
                   System Clock: Active
                 </div>
+              </div>
+
+              {/* 5 Present Day Core Metric Cards (Exact Nagulan Image Ref: media_1795060190582_3c9ca89f.png) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                
+                {/* 1. Present Day Total */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY TOTAL</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 3,450</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                      +32.2%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                  </div>
+                </div>
+
+                {/* 2. Today's Matches */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">TODAY'S MATCHES</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">6 Matches</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 4 Matches</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                      +50.0%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                  </div>
+                </div>
+
+                {/* 3. Present Day Cash (Exact match with reference image) */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
+                      <span className="material-symbols-outlined text-[15px]">south_east</span>
+                      -41.6%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                  </div>
+                </div>
+
+                {/* 4. Present Day UPI */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,428</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 1,200</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                      +19.0%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                  </div>
+                </div>
+
+                {/* 5. Present Day Card */}
+                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 499</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 0</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                      +100%
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                  </div>
+                </div>
+
               </div>
 
               {/* Today's Match Cards */}

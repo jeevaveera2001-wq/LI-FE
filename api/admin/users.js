@@ -38,7 +38,8 @@ export default async function handler(req, res) {
           walletBalance: u.walletBalance ? (typeof u.walletBalance === 'number' ? `₹ ${u.walletBalance}` : u.walletBalance) : '₹ 0',
           registeredAt: formattedDate,
           status: u.status || 'ACTIVE',
-          location: u.location || 'Chennai, Tamil Nadu, India'
+          location: u.location || 'Chennai, Tamil Nadu, India',
+          ip: u.ip || '103.211.54.12'
         };
       });
 

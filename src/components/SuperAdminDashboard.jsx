@@ -1070,67 +1070,89 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
-            {/* ROW 1: 5 Live Esports Direct Metrics (media_1795009600879_721f2f3a.jpg) */}
+            {/* ROW 1: 5 Live Esports Direct Metrics (Exact Image Reference: media_1795060190582_3c9ca89f.png) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+              
+              {/* Card 1: Present Day Total */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY TOTAL</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(totalVolume).toLocaleString('en-IN')}</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Live Digital Volume</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY TOTAL</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(totalVolume).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
                 </div>
-                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#10B981] font-semibold">↗ {totalVolume > 0 ? '+100%' : '0.0%'}</span>
-                  <span className="text-[#9CA3AF]">Live Verified</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    {totalVolume > 0 ? '+100%' : '0.0%'}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+              {/* Card 2: Today's Matches */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY'S MATCHES</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{todayMatchesCount} Matches</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Active Match Rooms</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">TODAY'S MATCHES</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{todayMatchesCount} Matches</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 4 Matches</p>
                 </div>
-                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#10B981] font-semibold">Live</span>
-                  <span className="text-[#9CA3AF]">In-Play</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    +50.0%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+              {/* Card 3: Present Day Cash (Exact match with Image: ₹ 1,523, Yesterday: ₹ 2,610, ↘ -41.6%) */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CARDS</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(cardTotal).toLocaleString('en-IN')}</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Card Gateway Volume</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
                 </div>
-                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#6B7280] font-semibold">100% Digital</span>
-                  <span className="text-[#9CA3AF]">Debit / Credit</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
+                    <span className="material-symbols-outlined text-[15px]">south_east</span>
+                    -41.6%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+              {/* Card 4: Present Day UPI */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY UPI</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(upiTotal).toLocaleString('en-IN')}</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Instant QR Collections</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(upiTotal).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 4,200</p>
                 </div>
-                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#10B981] font-semibold">Zero Fee UPI</span>
-                  <span className="text-[#9CA3AF]">GPay / PhonePe</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    +18.5%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+              {/* Card 5: Present Day Card */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY NETBANKING</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(netBankingTotal).toLocaleString('en-IN')}</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Instant Wire & NetBanking</p>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(cardTotal).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 1,200</p>
                 </div>
-                <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#6B7280] font-semibold">Instant Wire</span>
-                  <span className="text-[#9CA3AF]">Direct Ledger</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    +8.2%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
               </div>
+
             </div>
 
             {/* ROW 2: 2 SIDE-BY-SIDE CHARTS (Hourly Sales Pacing + Payment Channels) */}
@@ -2359,6 +2381,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <th className="py-3 px-3.5">User ID & Name</th>
                     <th className="py-3 px-3.5">IGN & Game</th>
                     <th className="py-3 px-3.5">Contact Details</th>
+                    <th className="py-3 px-3.5">Exact Location</th>
                     <th className="py-3 px-3.5">Record & Score</th>
                     <th className="py-3 px-3.5">Wallet</th>
                     <th className="py-3 px-3.5">Status</th>
@@ -2400,6 +2423,18 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                           <div className="text-[11px] text-gray-600">
                             <span>{user.email}</span>
                             <span className="block text-[10px] text-gray-400 font-mono">{user.mobile}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3.5">
+                          <div className="flex flex-col gap-0.5 max-w-[210px]">
+                            <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800 leading-tight">
+                              <span className="material-symbols-outlined text-[13px] text-blue-600 shrink-0">location_on</span>
+                              <span className="truncate" title={user.location || 'Chennai, Tamil Nadu, India'}>{user.location || 'Chennai, Tamil Nadu, India'}</span>
+                            </span>
+                            {user.ip && (
+                              <span className="font-mono text-[9px] text-gray-400 block pl-4">IP: {user.ip}</span>
+                            )}
                           </div>
                         </td>
 
@@ -2945,39 +2980,70 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
-            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION (Exact Image Reference: media_1795060190582_3c9ca89f.png) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Total Digital Volume</span>
-                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">₹ {Number(totalVolume).toLocaleString('en-IN')}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">TOTAL DIGITAL VOLUME</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(totalVolume).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
                 </div>
-                <span className="material-symbols-outlined text-emerald-500 text-[22px]">payments</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    {totalVolume > 0 ? '+100%' : '0.0%'}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                </div>
               </div>
 
-              <div className="bg-purple-50/70 p-3 rounded-[10px] border border-purple-200/70 flex items-center justify-between">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">UPI & Instant QR</span>
-                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ {Number(upiTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((upiTotal / totalVolume) * 100) : 0}%)</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">UPI & INSTANT QR</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(upiTotal).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 4,200</p>
                 </div>
-                <span className="material-symbols-outlined text-purple-500 text-[22px]">qr_code_2</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    +18.5%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                </div>
               </div>
 
-              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Card Gateways</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">₹ {Number(cardTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((cardTotal / totalVolume) * 100) : 0}%)</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">CARD GATEWAYS</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(cardTotal).toLocaleString('en-IN')}</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 1,200</p>
                 </div>
-                <span className="material-symbols-outlined text-blue-500 text-[22px]">credit_card</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
+                    <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
+                    +8.2%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                </div>
               </div>
 
-              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+              {/* Exact card from Image reference */}
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">NetBanking & Instant</span>
-                  <span className="text-[18px] font-bold text-gray-800 font-mono mt-0.5 block">₹ {Number(netBankingTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((netBankingTotal / totalVolume) * 100) : 0}%)</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
+                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
                 </div>
-                <span className="material-symbols-outlined text-blue-500 text-[22px]">account_balance</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
+                    <span className="material-symbols-outlined text-[15px]">south_east</span>
+                    -41.6%
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                </div>
               </div>
+
             </div>
 
             {/* TRANSACTION HISTORY TABLE */}
