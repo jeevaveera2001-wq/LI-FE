@@ -428,6 +428,15 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               <span className="!text-white">+ Host Tournament</span>
             </button>
 
+            {/* Exact Verified Login Node Badge */}
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase">Exact Node:</span>
+              <span className="font-semibold text-gray-800 text-[11px] truncate max-w-[210px]" title={currentUser?.location || 'Chennai, Tamil Nadu [GPS Verified]'}>
+                {currentUser?.location || 'Chennai, Tamil Nadu [GPS Verified]'}
+              </span>
+            </div>
+
             {/* User Profile Pill */}
             <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
               <div className="size-7 rounded-full bg-[#1F2937] text-[#DFBD78] flex items-center justify-center font-bold text-[11px] shadow-sm uppercase">

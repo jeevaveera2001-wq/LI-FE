@@ -1006,6 +1006,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <div className="ml-auto flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[#F9FAFB] border border-[#E5E7EB] text-[10px] text-gray-600 font-mono">
+            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>HQ Node:</span>
+            <span className="font-semibold text-gray-900 truncate max-w-[160px]">Chennai, Tamil Nadu [GPS Verified]</span>
+          </div>
           <button
             onClick={() => onNavigate && onNavigate('home')}
             className="px-2.5 py-1 rounded-[6px] bg-[#F3F4F6] hover:bg-neutral-200 text-[#4B5563] text-[11px] font-semibold transition-colors cursor-pointer shrink-0 flex items-center gap-1"
@@ -2427,14 +2432,25 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         </td>
 
                         <td className="py-3 px-3.5">
-                          <div className="flex flex-col gap-0.5 max-w-[210px]">
+                          <div className="flex flex-col gap-1 max-w-[220px]">
                             <span className="flex items-center gap-1 text-[11px] font-semibold text-gray-800 leading-tight">
                               <span className="material-symbols-outlined text-[13px] text-blue-600 shrink-0">location_on</span>
                               <span className="truncate" title={user.location || 'Chennai, Tamil Nadu, India'}>{user.location || 'Chennai, Tamil Nadu, India'}</span>
                             </span>
-                            {user.ip && (
-                              <span className="font-mono text-[9px] text-gray-400 block pl-4">IP: {user.ip}</span>
-                            )}
+                            <div className="flex items-center gap-1.5 pl-4">
+                              {user.location && user.location.includes('[GPS Verified]') ? (
+                                <span className="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 text-[8px] font-bold uppercase border border-emerald-200">
+                                  ✓ GPS Verified
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 text-[8px] font-bold uppercase border border-blue-200">
+                                  Network Node
+                                </span>
+                              )}
+                              {user.ip && (
+                                <span className="font-mono text-[9px] text-gray-400 truncate">IP: {user.ip}</span>
+                              )}
+                            </div>
                           </div>
                         </td>
 

@@ -40,53 +40,120 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
     ip: '',
     latitude: null,
     longitude: null,
+    accuracy: null,
     isGps: false,
     statusText: 'Resolving exact GPS / Network location...'
   });
 
-  useEffect(() => {
-    let isMounted = true;
+  // Explicit function to request high-accuracy HTML5 GPS permission and reverse geocode
+  const requestExactLocation = (forcePrompt = false) => {
+    return new Promise((resolve) => {
+      if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+        resolve(null);
+        return;
+      }
 
-    async function detectLocation() {
-      // 1. Proactively query high-accuracy HTML5 GPS coordinates
-      if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            if (!isMounted) return;
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            try {
-              const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}`);
-              if (res.ok) {
-                const geo = await res.json();
-                const locality = geo.locality || geo.subLocality || geo.city || '';
-                const city = geo.city || geo.principalSubdivision || '';
-                const state = geo.principalSubdivision || '';
-                const postal = geo.postcode || '';
-                const country = geo.countryName || 'India';
-                const parts = [locality, city !== locality ? city : '', state, postal, country].filter(Boolean);
-                const fullLoc = parts.join(', ') + ' [GPS Verified]';
-                
-                setExactLocation(prev => ({
-                  ...prev,
+      setExactLocation(prev => ({
+        ...prev,
+        statusText: 'Requesting device GPS location permission...'
+      }));
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const acc = pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null;
+
+          try {
+            // 1. Try BigDataCloud reverse geocode client API
+            const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}`);
+            if (res.ok) {
+              const geo = await res.json();
+              const locality = geo.locality || geo.subLocality || geo.city || '';
+              const city = geo.city || geo.principalSubdivision || '';
+              const state = geo.principalSubdivision || '';
+              const postal = geo.postcode || '';
+              const country = geo.countryName || 'India';
+              const parts = [locality, city !== locality ? city : '', state, postal, country].filter(Boolean);
+              const fullLoc = parts.join(', ') + ' [GPS Verified]';
+
+              const resObj = {
+                location: fullLoc,
+                latitude: lat,
+                longitude: lon,
+                accuracy: acc,
+                isGps: true,
+                statusText: fullLoc
+              };
+              setExactLocation(prev => ({
+                ...prev,
+                ...resObj
+              }));
+              resolve(resObj);
+              return;
+            }
+          } catch (e) {
+            console.warn('BigDataCloud reverse geocode error:', e);
+          }
+
+          // 2. Fallback Nominatim reverse geocode
+          try {
+            const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            if (nomRes.ok) {
+              const nomData = await nomRes.json();
+              if (nomData && nomData.display_name) {
+                const fullLoc = nomData.display_name + ' [GPS Verified]';
+                const resObj = {
                   location: fullLoc,
                   latitude: lat,
                   longitude: lon,
+                  accuracy: acc,
                   isGps: true,
                   statusText: fullLoc
+                };
+                setExactLocation(prev => ({
+                  ...prev,
+                  ...resObj
                 }));
+                resolve(resObj);
                 return;
               }
-            } catch (e) {}
-          },
-          (err) => {
-            console.log('GPS prompt skipped or denied:', err.message);
-          },
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
-        );
-      }
+            }
+          } catch (e) {}
 
-      // 2. Query precision IP-based location and public IP
+          const rawGps = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)} [GPS Verified]`;
+          const rawObj = {
+            location: rawGps,
+            latitude: lat,
+            longitude: lon,
+            accuracy: acc,
+            isGps: true,
+            statusText: rawGps
+          };
+          setExactLocation(prev => ({
+            ...prev,
+            ...rawObj
+          }));
+          resolve(rawObj);
+        },
+        (err) => {
+          console.warn('GPS location permission denied or timed out:', err.message);
+          setExactLocation(prev => ({
+            ...prev,
+            statusText: prev.location || 'Location permission not granted (Network node active)'
+          }));
+          resolve(null);
+        },
+        { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 }
+      );
+    });
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initLocation() {
+      // 1. Proactively query precision IP and ISP as instant fallback
       try {
         const ipRes = await fetch('https://ipwho.is/');
         if (ipRes.ok && isMounted) {
@@ -112,9 +179,14 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       } catch (err) {
         console.warn('IP location fetch error:', err);
       }
+
+      // 2. Prompt for high-accuracy GPS coordinates
+      if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+        requestExactLocation();
+      }
     }
 
-    detectLocation();
+    initLocation();
     return () => { isMounted = false; };
   }, []);
 
@@ -185,12 +257,26 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
     }
 
     setLoading(true);
+
+    let activeLoc = exactLocation.location;
+    let activeIp = exactLocation.ip;
+
+    // Proactively prompt/request exact GPS coordinates if not yet verified
+    if (!exactLocation.isGps && typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      try {
+        const freshGps = await requestExactLocation(true);
+        if (freshGps && freshGps.location) {
+          activeLoc = freshGps.location;
+        }
+      } catch (e) {}
+    }
+
     try {
       const response = await axios.post('/api/auth/login', {
         usernameOrEmail: loginEmail,
         password: loginPassword,
-        location: exactLocation.location || undefined,
-        ip: exactLocation.ip || undefined
+        location: activeLoc || undefined,
+        ip: activeIp || undefined
       });
 
       const user = response.data?.user;
@@ -744,13 +830,35 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           </div>
         )}
 
-        {/* Exact Real-Time Geolocation Security Node */}
-        <div className="mb-3 px-3 py-1.5 rounded-xl bg-black/50 border border-white/15 text-[10px] text-gray-300 backdrop-blur-md flex items-center gap-2 shadow-inner">
-          <span className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-          <span className="text-[#DFBD78] font-bold shrink-0">Exact Login Node:</span>
-          <span className="truncate flex-1 font-mono text-[10px] text-emerald-200">
-            {exactLocation.statusText || 'Resolving GPS / Network Location...'}
-          </span>
+        {/* Exact Real-Time Geolocation Security Node & Permission Prompt */}
+        <div className="mb-3.5 p-3 rounded-xl bg-black/60 border border-white/15 backdrop-blur-md flex flex-col gap-2 shadow-inner">
+          <div className="flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 font-bold text-white">
+              <span className={`size-2 rounded-full ${exactLocation.isGps ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`}></span>
+              <span className="text-[#DFBD78] uppercase tracking-wider text-[10px]">Location Access &amp; Anti-Cheat:</span>
+            </div>
+            {exactLocation.isGps ? (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[9px] border border-emerald-500/30 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]">verified</span>
+                GPS Verified
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => requestExactLocation(true)}
+                className="px-2.5 py-0.5 rounded-full bg-[#DFBD78] hover:bg-[#F3D798] text-black font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[13px]">my_location</span>
+                Allow Access
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 font-mono">
+            <span className="material-symbols-outlined text-[13px] text-blue-400 shrink-0">location_on</span>
+            <span className="truncate flex-1" title={exactLocation.statusText || exactLocation.location}>
+              {exactLocation.statusText || exactLocation.location || 'Acquiring exact location...'}
+            </span>
+          </div>
         </div>
 
         {/* Error & Success Messages */}
