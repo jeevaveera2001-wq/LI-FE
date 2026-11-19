@@ -830,37 +830,6 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           </div>
         )}
 
-        {/* Exact Real-Time Geolocation Security Node & Permission Prompt */}
-        <div className="mb-3.5 p-3 rounded-xl bg-black/60 border border-white/15 backdrop-blur-md flex flex-col gap-2 shadow-inner">
-          <div className="flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-1.5 font-bold text-white">
-              <span className={`size-2 rounded-full ${exactLocation.isGps ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`}></span>
-              <span className="text-[#DFBD78] uppercase tracking-wider text-[10px]">Location Access &amp; Anti-Cheat:</span>
-            </div>
-            {exactLocation.isGps ? (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[9px] border border-emerald-500/30 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">verified</span>
-                GPS Verified
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => requestExactLocation(true)}
-                className="px-2.5 py-0.5 rounded-full bg-[#DFBD78] hover:bg-[#F3D798] text-black font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
-              >
-                <span className="material-symbols-outlined text-[13px]">my_location</span>
-                Allow Access
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-gray-300 font-mono">
-            <span className="material-symbols-outlined text-[13px] text-blue-400 shrink-0">location_on</span>
-            <span className="truncate flex-1" title={exactLocation.statusText || exactLocation.location}>
-              {exactLocation.statusText || exactLocation.location || 'Acquiring exact location...'}
-            </span>
-          </div>
-        </div>
-
         {/* Error & Success Messages */}
         {errorMessage && (
           <div className="mb-3.5 p-2.5 rounded-lg bg-red-950/80 border border-red-500/40 text-red-200 text-xs flex items-center gap-2">
