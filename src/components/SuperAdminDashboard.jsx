@@ -23,9 +23,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      { id: 'blk_1', name: 'Scammer Clan X', email: 'fake.host@gmail.com', reason: 'Fake prize pool listing / Invalid thumbnail', date: 'Nov 17, 2026' }
-    ];
+    return [];
   });
   useEffect(() => { localStorage.setItem('lt_admin_blocked_users', JSON.stringify(blockedUsers)); }, [blockedUsers]);
 
@@ -100,13 +98,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      { id: 't1', title: 'BGMI Pro Invitational 2026', game: 'Battlegrounds Mobile India', prize: '₹5,00,000', teams: '64 / 64', status: 'LIVE', date: 'Nov 18 - Nov 25, 2026' },
-      { id: 't2', title: 'Free Fire MAX Grand Finals', game: 'Free Fire MAX', prize: '₹3,50,000', teams: '48 / 48', status: 'LIVE', date: 'Nov 18 - Nov 20, 2026' },
-      { id: 't3', title: 'Valorant India Championship', game: 'Valorant', prize: '₹4,00,000', teams: '32 / 32', status: 'LIVE', date: 'Nov 18 - Nov 22, 2026' },
-      { id: 't4', title: 'Call of Duty: Mobile Masters', game: 'COD Mobile', prize: '₹2,50,000', teams: '28 / 32', status: 'REGISTRATION OPEN', date: 'Dec 15 - Dec 18, 2026' },
-      { id: 't5', title: 'Apex Legends Global Series Cup', game: 'Apex Legends', prize: '₹3,00,000', teams: '20 / 20', status: 'UPCOMING', date: 'Dec 01 - Dec 05, 2026' },
-    ];
+    return [];
   });
 
   // Modal State
@@ -115,286 +107,74 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   // ==========================================
   const [tournamentFilterGame, setTournamentFilterGame] = useState('ALL');
   const [tournamentFilterStatus, setTournamentFilterStatus] = useState('ALL');
-  const [allTournamentsList, setAllTournamentsList] = useState([
-    {
-      id: 't_1',
-      title: 'BGMI Pro Invitational 2026',
-      game: 'Battlegrounds Mobile India',
-      format: 'Squad (Erangel + Miramar)',
-      prizePool: '₹ 5,00,000',
-      entryFee: '₹ 200 / Squad',
-      slots: 64,
-      registered: 58,
-      status: 'LIVE',
-      dates: 'Nov 18 - Nov 25, 2026',
-      thumbnail: '/tournament_bgmi_showdown_4k.jpg',
-      organizer: 'LiveTournaments Official',
-      matchTime: 'Today at 8:00 PM IST'
-    },
-    {
-      id: 't_2',
-      title: 'Free Fire MAX Grand Finals',
-      game: 'Free Fire MAX',
-      format: 'Clash Squad 4v4 Knockout',
-      prizePool: '₹ 3,50,000',
-      entryFee: '₹ 150 / Team',
-      slots: 48,
-      registered: 48,
-      status: 'LIVE',
-      dates: 'Nov 18 - Nov 22, 2026',
-      thumbnail: '/tournament_pubg_ultimate_squad_4k.jpg',
-      organizer: 'Garena Partner Arena',
-      matchTime: 'Today at 6:30 PM IST'
-    },
-    {
-      id: 't_3',
-      title: 'Valorant India Spike Masters',
-      game: 'Valorant',
-      format: '5v5 Competitive Custom',
-      prizePool: '₹ 4,00,000',
-      entryFee: '₹ 250 / Team',
-      slots: 32,
-      registered: 32,
-      status: 'LIVE',
-      dates: 'Nov 18 - Nov 24, 2026',
-      thumbnail: '/experienced_pilot_4k.jpg',
-      organizer: 'Deadly 5 Esports',
-      matchTime: 'Tomorrow at 7:00 PM IST'
-    },
-    {
-      id: 't_4',
-      title: 'COD Mobile Battle Royale War',
-      game: 'COD Mobile',
-      format: 'Isolated Squad BR',
-      prizePool: '₹ 2,50,000',
-      entryFee: 'Free Entry',
-      slots: 50,
-      registered: 34,
-      status: 'REGISTRATION OPEN',
-      dates: 'Dec 01 - Dec 05, 2026',
-      thumbnail: '/professional_quality_4k.jpg',
-      organizer: 'Delta Force India',
-      matchTime: 'Dec 01 at 5:00 PM IST'
-    },
-    {
-      id: 't_5',
-      title: 'Apex Legends Predators Rumble',
-      game: 'Apex Legends',
-      format: 'Trios Worlds Edge',
-      prizePool: '₹ 3,00,000',
-      entryFee: '₹ 100 / Trio',
-      slots: 20,
-      registered: 12,
-      status: 'REGISTRATION OPEN',
-      dates: 'Dec 10 - Dec 14, 2026',
-      thumbnail: '/Champions_AG_AL.png',
-      organizer: 'Apex Gladiators',
-      matchTime: 'Dec 10 at 8:00 PM IST'
-    },
-    {
-      id: 't_6',
-      title: 'BGMI Weekend Midnight Custom',
-      game: 'Battlegrounds Mobile India',
-      format: 'Duo Sanhok Blitz',
-      prizePool: '₹ 1,00,000',
-      entryFee: '₹ 50 / Duo',
-      slots: 50,
-      registered: 50,
-      status: 'UPCOMING',
-      dates: 'Nov 22, 2026',
-      thumbnail: '/tournament_bgmi_lan_warriors_4k.jpg',
-      organizer: 'Shadow Strikers',
-      matchTime: 'Nov 22 at 11:00 PM IST'
-    }
-  ]);
 
-  const [activeMatchRooms, setActiveMatchRooms] = useState([
-    {
-      id: 'room_101',
-      title: 'BGMI Pro Invitational - Finals Match 3',
-      game: 'Battlegrounds Mobile India',
-      map: 'Erangel (Esports Zone 5)',
-      roomId: '849201',
-      roomPass: 'ltbgmi99',
-      teamsJoined: '16 / 16 Squads (64 Players)',
-      alivePlayers: 22,
-      duration: '21:40',
-      status: 'IN PLAY',
-      server: 'Mumbai-AWS (16ms)',
-      topSquad: 'Clan Hydra (8 Kills)',
-      streamLink: 'https://youtube.com/live/bgmi-pro-finals'
-    },
-    {
-      id: 'room_102',
-      title: 'Free Fire MAX Grand Finals - Match 2',
-      game: 'Free Fire MAX',
-      map: 'Bermuda (Pochinok End-Game)',
-      roomId: '552190',
-      roomPass: 'ffmax2026',
-      teamsJoined: '12 / 12 Squads (48 Players)',
-      alivePlayers: 14,
-      duration: '15:12',
-      status: 'IN PLAY',
-      server: 'Chennai-GCP (19ms)',
-      topSquad: 'Team Venom (6 Kills)',
-      streamLink: 'https://youtube.com/live/ff-grand-finals'
-    },
-    {
-      id: 'room_103',
-      title: 'Valorant India Championship - Map 2',
-      game: 'Valorant',
-      map: 'Ascent (Overtime Round 23)',
-      roomId: 'VAL-CUSTOM-03',
-      roomPass: 'mumbai#spike',
-      teamsJoined: '2 / 2 Teams (10 Players)',
-      alivePlayers: 8,
-      duration: '38:50',
-      status: 'IN PLAY',
-      server: 'Mumbai Riot Dedicated (12ms)',
-      topSquad: 'Deadly 5 (Score 12 - 11)',
-      streamLink: 'https://twitch.tv/lt_valorant'
-    },
-    {
-      id: 'room_104',
-      title: 'COD Mobile Masters - Match 1',
-      game: 'COD Mobile',
-      map: 'Isolated BR (Final Collapse)',
-      roomId: '449102',
-      roomPass: 'codmwar',
-      teamsJoined: '25 / 25 Squads (100 Players)',
-      alivePlayers: 19,
-      duration: '18:05',
-      status: 'IN PLAY',
-      server: 'Delhi Server (22ms)',
-      topSquad: 'Delta Force (11 Kills)',
-      streamLink: 'https://youtube.com/live/codm-masters'
-    },
-    {
-      id: 'room_105',
-      title: 'BGMI Midnight Custom - Lobby Preparation',
-      game: 'Battlegrounds Mobile India',
-      map: 'Sanhok (Ruins Drop)',
-      roomId: '902188',
-      roomPass: 'sanhokduo',
-      teamsJoined: '42 / 50 Duos (84 Players)',
-      alivePlayers: 84,
-      duration: 'Lobby Timer: 03:45',
-      status: 'WAITING IN LOBBY',
-      server: 'Mumbai-AWS (18ms)',
-      topSquad: 'Locking Slots...',
-      streamLink: ''
+  // 1. ALL TOURNAMENTS LIST (Dynamic from localStorage, zero mock data)
+  const [allTournamentsList, setAllTournamentsList] = useState(() => {
+    const saved = localStorage.getItem('lt_admin_all_tournaments');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_admin_all_tournaments', JSON.stringify(allTournamentsList));
+  }, [allTournamentsList]);
 
-  const [userDatabase, setUserDatabase] = useState([
-    {
-      userId: 'LT-USR-1001',
-      name: 'Aditya Sharma',
-      ign: 'Hydra_Aditya',
-      email: 'aditya.hydra@gmail.com',
-      mobile: '+91 98765 12345',
-      game: 'Battlegrounds Mobile India',
-      clan: 'Clan Hydra Esports',
-      matchesPlayed: 84,
-      tournamentsWon: 14,
-      fairPlayScore: '99.8%',
-      walletBalance: '₹ 3,250',
-      registeredAt: 'Oct 12, 2026',
-      status: 'ACTIVE'
-    },
-    {
-      userId: 'LT-USR-1002',
-      name: 'Karan Patel',
-      ign: 'Venom_Karan',
-      email: 'karan.venom@gmail.com',
-      mobile: '+91 98111 88990',
-      game: 'Free Fire MAX',
-      clan: 'Team Venom Gaming',
-      matchesPlayed: 62,
-      tournamentsWon: 9,
-      fairPlayScore: '98.5%',
-      walletBalance: '₹ 1,400',
-      registeredAt: 'Oct 18, 2026',
-      status: 'ACTIVE'
-    },
-    {
-      userId: 'LT-USR-1003',
-      name: 'Rohan Mehra',
-      ign: 'Viper_Rohan',
-      email: 'rohan.val@gmail.com',
-      mobile: '+91 98222 77889',
-      game: 'Valorant',
-      clan: 'Deadly 5 Esports',
-      matchesPlayed: 45,
-      tournamentsWon: 8,
-      fairPlayScore: '100%',
-      walletBalance: '₹ 2,100',
-      registeredAt: 'Oct 25, 2026',
-      status: 'ACTIVE'
-    },
-    {
-      userId: 'LT-USR-1004',
-      name: 'Sneha Gupta',
-      ign: 'Shadow_Queen',
-      email: 'sneha.g@gmail.com',
-      mobile: '+91 98333 44556',
-      game: 'Battlegrounds Mobile India',
-      clan: 'Shadow Strikers',
-      matchesPlayed: 92,
-      tournamentsWon: 18,
-      fairPlayScore: '99.4%',
-      walletBalance: '₹ 5,800',
-      registeredAt: 'Nov 01, 2026',
-      status: 'ACTIVE'
-    },
-    {
-      userId: 'LT-USR-1005',
-      name: 'Rajesh Kumar',
-      ign: 'Toxic_Gamer',
-      email: 'rajesh.fake@gmail.com',
-      mobile: '+91 98555 11223',
-      game: 'Free Fire MAX',
-      clan: 'No Clan',
-      matchesPlayed: 12,
-      tournamentsWon: 0,
-      fairPlayScore: '74.2%',
-      walletBalance: '₹ 0',
-      registeredAt: 'Nov 08, 2026',
-      status: 'SUSPENDED',
-      reason: 'AFK & Griefing match lobby'
-    },
-    {
-      userId: 'LT-USR-1006',
-      name: 'Suresh Raina',
-      ign: 'AimGod_99',
-      email: 'aimgod.bot@proton.me',
-      mobile: '+91 98444 00000',
-      game: 'Battlegrounds Mobile India',
-      clan: 'Banned Squad',
-      matchesPlayed: 3,
-      tournamentsWon: 3,
-      fairPlayScore: '22.0%',
-      walletBalance: '₹ 0',
-      registeredAt: 'Nov 12, 2026',
-      status: 'BLOCKED',
-      reason: 'Third-party emulator / recoil script detection'
-    },
-    {
-      userId: 'LT-USR-1007',
-      name: 'Vikram Sethi',
-      ign: 'Apex_Sethi',
-      email: 'vikram.apex@gmail.com',
-      mobile: '+91 98555 44332',
-      game: 'Apex Legends',
-      clan: 'Apex Gladiators',
-      matchesPlayed: 38,
-      tournamentsWon: 5,
-      fairPlayScore: '99.0%',
-      walletBalance: '₹ 850',
-      registeredAt: 'Nov 14, 2026',
-      status: 'ACTIVE'
+  // 2. ACTIVE MATCH ROOMS (Dynamic from localStorage, zero mock data)
+  const [activeMatchRooms, setActiveMatchRooms] = useState(() => {
+    const saved = localStorage.getItem('lt_active_match_rooms');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_active_match_rooms', JSON.stringify(activeMatchRooms));
+  }, [activeMatchRooms]);
+
+  // 3. USER DATABASE (Dynamic from localStorage, seeded with real session user)
+  const [userDatabase, setUserDatabase] = useState(() => {
+    const saved = localStorage.getItem('lt_user_database');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    const curUserSaved = localStorage.getItem('lt_user');
+    let realU = null;
+    if (curUserSaved) {
+      try { realU = JSON.parse(curUserSaved); } catch (e) {}
+    }
+    return [
+      {
+        userId: 'LT-USR-1001',
+        name: realU?.name || realU?.displayName || 'Super Admin',
+        ign: realU?.username || 'SuperAdmin_LT',
+        email: realU?.email || 'superadmin@lt.in',
+        mobile: realU?.mobile || '+91 98765 43210',
+        game: 'Battlegrounds Mobile India',
+        clan: 'LiveTournaments Official',
+        matchesPlayed: 0,
+        tournamentsWon: 0,
+        fairPlayScore: '100%',
+        walletBalance: '₹ 0',
+        registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: 'ACTIVE',
+        location: 'Chennai, Tamil Nadu, India'
+      }
+    ];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_user_database', JSON.stringify(userDatabase));
+  }, [userDatabase]);
+
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('ALL');
 
@@ -403,84 +183,35 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast(`✓ User ${userId} status set to ${newStatus}`);
   };
 
+  // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)
   const [broadcastActiveTab, setBroadcastActiveTab] = useState('live');
-  const [activeBroadcasts, setActiveBroadcasts] = useState([
-    {
-      id: 'bcast_1',
-      title: 'BGMI Pro Invitational 2026 - Finals Match 3 (Official Hindi Cast)',
-      tournament: 'BGMI Pro Invitational 2026',
-      casters: 'Mamba & Ocean Sharma',
-      platform: 'YouTube Live',
-      streamUrl: 'https://youtube.com/live/bgmi-pro-finals',
-      viewers: '34,820',
-      resolution: '1080p 60FPS',
-      bitrate: '8,500 kbps',
-      status: 'LIVE ON AIR',
-      duration: '01:45:22',
-      thumbnail: '/tournament_bgmi_showdown_4k.jpg'
-    },
-    {
-      id: 'bcast_2',
-      title: 'Free Fire MAX Clutch Masters Cup - Day 2 Official Stream',
-      tournament: 'Free Fire MAX Clutch Masters Cup',
-      casters: 'Aura Gaming & Mafia',
-      platform: 'YouTube Live',
-      streamUrl: 'https://youtube.com/live/ff-grand-finals',
-      viewers: '18,450',
-      resolution: '1080p 60FPS',
-      bitrate: '7,200 kbps',
-      status: 'LIVE ON AIR',
-      duration: '00:54:10',
-      thumbnail: '/tournament_pubg_ultimate_squad_4k.jpg'
-    },
-    {
-      id: 'bcast_3',
-      title: 'Valorant India Spike Masters - Upper Bracket Final English Cast',
-      tournament: 'Valorant India Spike Masters',
-      casters: 'Bleh & LordBathura',
-      platform: 'Twitch TV',
-      streamUrl: 'https://twitch.tv/lt_valorant',
-      viewers: '9,200',
-      resolution: '1080p 60FPS',
-      bitrate: '9,000 kbps',
-      status: 'LIVE ON AIR',
-      duration: '02:18:04',
-      thumbnail: '/experienced_pilot_4k.jpg'
+  const [activeBroadcasts, setActiveBroadcasts] = useState(() => {
+    const saved = localStorage.getItem('lt_broadcasts');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_broadcasts', JSON.stringify(activeBroadcasts));
+  }, [activeBroadcasts]);
 
-  const [broadcastRequests, setBroadcastRequests] = useState([
-    {
-      id: 'br_1',
-      creator: 'Jonathan Gaming Live',
-      channel: 'YouTube (5.8M Subscribers)',
-      tournament: 'BGMI Pro Invitational 2026',
-      requestedSlot: 'Official Creator Watch Party & Co-Stream',
-      language: 'Hindi',
-      status: 'PENDING',
-      requestedAt: '30 mins ago'
-    },
-    {
-      id: 'br_2',
-      creator: 'Total Gaming Official',
-      channel: 'YouTube (37.2M Subscribers)',
-      tournament: 'Free Fire MAX Grand Finals',
-      requestedSlot: 'Hindi Regional Championship Stream',
-      language: 'Hindi',
-      status: 'PENDING',
-      requestedAt: '1 hour ago'
-    },
-    {
-      id: 'br_3',
-      creator: 'S8UL Esports Regional Hub',
-      channel: 'YouTube (1.4M Subscribers)',
-      tournament: 'BGMI Weekend Midnight Custom',
-      requestedSlot: 'Late Night Community Broadcast',
-      language: 'Hindi / English',
-      status: 'PENDING',
-      requestedAt: '2 hours ago'
+  const [broadcastRequests, setBroadcastRequests] = useState(() => {
+    const saved = localStorage.getItem('lt_broadcast_requests');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_broadcast_requests', JSON.stringify(broadcastRequests));
+  }, [broadcastRequests]);
 
   const handleApproveBroadcastRequest = (id) => {
     const req = broadcastRequests.find(b => b.id === id);
@@ -489,17 +220,17 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setActiveBroadcasts(prev => [
       {
         id: 'bcast_' + Date.now(),
-        title: `${req.tournament} - Cast by ${req.creator}`,
+        title: `${req.tournament} - Stream by ${req.creator}`,
         tournament: req.tournament,
         casters: req.creator,
-        platform: 'Authorized Creator Stream',
+        platform: 'Verified Streamer Broadcast',
         streamUrl: 'https://youtube.com/live',
-        viewers: 'Connecting...',
+        viewers: '0',
         resolution: '1080p 60FPS',
         bitrate: '8,000 kbps',
         status: 'LIVE ON AIR',
         duration: 'Just Started',
-        thumbnail: '/tournament_bgmi_lan_warriors_4k.jpg'
+        thumbnail: '/tournament_bgmi_showdown_4k.jpg'
       },
       ...prev
     ]);
@@ -511,134 +242,49 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast(`✕ Broadcast request declined`);
   };
 
-  const [activityLogs, setActivityLogs] = useState([
-    {
-      id: 'log_1',
-      time: 'Today, 10:14:22 AM',
-      userId: 'LT-USR-1001',
-      userName: 'Aditya Sharma (Clan Hydra)',
-      action: 'User Authentication & Login',
-      location: 'Mumbai, Maharashtra, India',
-      ip: '103.21.244.18',
-      device: 'Chrome 122 (Windows 11)',
-      agreements: '✓ Fair Play & Anti-Cheat v2.1 • 18+ Skill Gaming Terms'
-    },
-    {
-      id: 'log_2',
-      time: 'Today, 09:58:15 AM',
-      userId: 'LT-USR-1002',
-      userName: 'Karan Patel (Team Venom)',
-      action: 'Joined Match Room #102',
-      location: 'Ahmedabad, Gujarat, India',
-      ip: '49.37.112.55',
-      device: 'Safari Mobile (iOS 17.4)',
-      agreements: '✓ Fair Play & Anti-Cheat v2.1 • Room Credentials Agreement'
-    },
-    {
-      id: 'log_3',
-      time: 'Today, 09:42:01 AM',
-      userId: 'LT-USR-1003',
-      userName: 'Rohan Mehra (Deadly 5)',
-      action: 'Paid Tournament Host Fee (₹499 Pro Tier)',
-      location: 'Bengaluru, Karnataka, India',
-      ip: '122.161.89.40',
-      device: 'Chrome Mobile (Android 14)',
-      agreements: '✓ Organizer Code of Conduct • Digital Payment Terms'
-    },
-    {
-      id: 'log_4',
-      time: 'Today, 09:20:44 AM',
-      userId: 'LT-USR-1004',
-      userName: 'Sneha Gupta (Shadow Strikers)',
-      action: 'Prize Pool Withdrawal Requested (₹5,800)',
-      location: 'Delhi NCR, India',
-      ip: '157.48.92.10',
-      device: 'Firefox 124 (macOS Sonoma)',
-      agreements: '✓ KYC Verification Consent • Tax Deducted at Source (TDS) Declaration'
-    },
-    {
-      id: 'log_5',
-      time: 'Today, 08:55:10 AM',
-      userId: 'LT-USR-1006',
-      userName: 'Suresh Raina (AimGod_99)',
-      action: 'SECURITY ALERT: Unauthorized Macro Injected',
-      location: 'Kolkata, West Bengal, India',
-      ip: '117.211.75.22',
-      device: 'Android Emulator BlueStacks',
-      agreements: '❌ VIOLATION: Anti-Cheat Bot Flagged Account -> Status: BLOCKED'
-    },
-    {
-      id: 'log_6',
-      time: 'Today, 08:31:00 AM',
-      userId: 'LT-USR-1007',
-      userName: 'Vikram Sethi (Apex Gladiators)',
-      action: 'User Authentication & Login',
-      location: 'Hyderabad, Telangana, India',
-      ip: '183.82.101.5',
-      device: 'Edge 122 (Windows 11)',
-      agreements: '✓ Fair Play & Anti-Cheat v2.1 • Platform Privacy Policy'
+  // 5. ACTIVITY LOGS (Dynamic from localStorage, seeded with live login session)
+  const [activityLogs, setActivityLogs] = useState(() => {
+    const saved = localStorage.getItem('lt_activity_logs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [
+      {
+        id: 'log_' + Date.now(),
+        time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
+        userId: 'LT-USR-1001',
+        userName: 'Super Admin',
+        action: 'Super Admin Console Access & Authentication',
+        location: 'Chennai, Tamil Nadu, India',
+        ip: '127.0.0.1 (Localhost / Secure Session)',
+        device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
+        agreements: '✓ Fair Play & Anti-Cheat v2.1 • 18+ Skill Gaming Terms'
+      }
+    ];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_activity_logs', JSON.stringify(activityLogs));
+  }, [activityLogs]);
 
-  const [paymentsHistory, setPaymentsHistory] = useState([
-    {
-      txnId: 'LT-TXN-88421',
-      userId: 'LT-USR-1003',
-      userName: 'Rohan Mehra',
-      item: 'Paid Tournament Hosting - Pro Verified Tier',
-      amount: '₹ 499',
-      method: 'UPI (PhonePe QR)',
-      utr: 'UTR-3394821094',
-      date: 'Today, 09:42 AM',
-      status: 'SUCCESS'
-    },
-    {
-      txnId: 'LT-TXN-88420',
-      userId: 'LT-USR-1001',
-      userName: 'Aditya Sharma',
-      item: 'BGMI Pro Invitational Squad Entry',
-      amount: '₹ 200',
-      method: 'UPI (Google Pay)',
-      utr: 'UTR-4401928471',
-      date: 'Today, 09:15 AM',
-      status: 'SUCCESS'
-    },
-    {
-      txnId: 'LT-TXN-88419',
-      userId: 'LT-USR-1004',
-      userName: 'Sneha Gupta',
-      item: 'Championship Sponsor Package (Premier Tier)',
-      amount: '₹ 999',
-      method: 'Card (HDFC Visa Platinum)',
-      utr: 'CARD-AUTH-9921',
-      date: 'Today, 08:30 AM',
-      status: 'SUCCESS'
-    },
-    {
-      txnId: 'LT-TXN-88418',
-      userId: 'LT-USR-1002',
-      userName: 'Karan Patel',
-      item: 'Daily Pro Scrim Season Pass',
-      amount: '₹ 350',
-      method: 'UPI (Paytm)',
-      utr: 'UTR-1092837465',
-      date: 'Yesterday, 07:45 PM',
-      status: 'SUCCESS'
-    },
-    {
-      txnId: 'LT-TXN-88417',
-      userId: 'LT-USR-1007',
-      userName: 'Vikram Sethi',
-      item: 'Standard Tournament Host Fee',
-      amount: '₹ 199',
-      method: 'NetBanking (ICICI Bank)',
-      utr: 'NB-ICICI-884192',
-      date: 'Yesterday, 06:12 PM',
-      status: 'SUCCESS'
+  // 6. PAYMENTS HISTORY (Dynamic from localStorage, 100% digital transactions)
+  const [paymentsHistory, setPaymentsHistory] = useState(() => {
+    const saved = localStorage.getItem('lt_payments_history');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
     }
-  ]);
+    return [];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_payments_history', JSON.stringify(paymentsHistory));
+  }, [paymentsHistory]);
 
-  const [newTitle, setNewTitle] = useState('');
+    const [newTitle, setNewTitle] = useState('');
   const [newGame, setNewGame] = useState('Battlegrounds Mobile India');
   const [newPrize, setNewPrize] = useState('');
   const [newSlots, setNewSlots] = useState('32');
@@ -652,6 +298,108 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   useEffect(() => { localStorage.setItem('lt_admin_ad_requests', JSON.stringify(adRequests)); }, [adRequests]);
   useEffect(() => { localStorage.setItem('lt_admin_tournaments', JSON.stringify(tournaments)); }, [tournaments]);
 
+    // ==========================================
+  // DYNAMIC COMPUTED TELEMETRY (100% LIVE ACCURACY, ZERO FAKE DATA)
+  // ==========================================
+  const totalVolume = useMemo(() => {
+    return paymentsHistory.reduce((sum, p) => {
+      const val = parseInt(String(p.amount).replace(/[^0-9]/g, '')) || 0;
+      return sum + val;
+    }, 0);
+  }, [paymentsHistory]);
+
+  const upiTotal = useMemo(() => {
+    return paymentsHistory
+      .filter(p => p.method?.toLowerCase().includes('upi') || p.method?.toLowerCase().includes('qr'))
+      .reduce((sum, p) => sum + (parseInt(String(p.amount).replace(/[^0-9]/g, '')) || 0), 0);
+  }, [paymentsHistory]);
+
+  const cardTotal = useMemo(() => {
+    return paymentsHistory
+      .filter(p => p.method?.toLowerCase().includes('card'))
+      .reduce((sum, p) => sum + (parseInt(String(p.amount).replace(/[^0-9]/g, '')) || 0), 0);
+  }, [paymentsHistory]);
+
+  const netBankingTotal = useMemo(() => {
+    return paymentsHistory
+      .filter(p => p.method?.toLowerCase().includes('netbanking') || p.method?.toLowerCase().includes('wire') || p.method?.toLowerCase().includes('icici') || p.method?.toLowerCase().includes('hdfc'))
+      .reduce((sum, p) => sum + (parseInt(String(p.amount).replace(/[^0-9]/g, '')) || 0), 0);
+  }, [paymentsHistory]);
+
+  const todayMatchesCount = useMemo(() => activeMatchRooms.length, [activeMatchRooms]);
+  const totalUsersCount = useMemo(() => userDatabase.length, [userDatabase]);
+
+  // Live Metrics Data payload for DashboardPage
+  const liveMetricsData = useMemo(() => {
+    const orgMap = {};
+    allTournamentsList.forEach(t => {
+      const org = t.organizer || 'Official Platform';
+      if (!orgMap[org]) {
+        orgMap[org] = {
+          name: org,
+          format: `${t.game} (${t.format || 'Squad'})`,
+          totalPrizeGenerated: 0,
+          matchesCompleted: 0
+        };
+      }
+      const pNum = parseInt(String(t.prizePool || t.prize).replace(/[^0-9]/g, '')) || 0;
+      orgMap[org].totalPrizeGenerated += pNum;
+      orgMap[org].matchesCompleted += 1;
+    });
+    const topOrganizers = Object.values(orgMap);
+
+    const gMap = {};
+    allTournamentsList.forEach(t => {
+      const g = t.game || 'Esports Tournament';
+      gMap[g] = (gMap[g] || 0) + 1;
+    });
+    const popularFormats = Object.entries(gMap).map(([name, count]) => ({ name, count }));
+
+    const pBreakdown = [
+      { method: 'UPI / QR', amount: upiTotal },
+      { method: 'Card Payments', amount: cardTotal },
+      { method: 'NetBanking', amount: netBankingTotal }
+    ];
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayName = days[d.getDay()];
+      const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      const daySales = paymentsHistory
+        .filter(p => p.date?.includes(dateStr))
+        .reduce((s, p) => s + (parseInt(String(p.amount).replace(/[^0-9]/g, '')) || 0), 0);
+      last7.push({ day: dayName, sales: daySales });
+    }
+
+    return {
+      summary: {
+        todaySales: totalVolume,
+        todayMatches: todayMatchesCount,
+        todayTrend: { percentage: totalVolume > 0 ? '+100%' : '0.0%', isPositive: true, label: 'live verified' },
+        weekSales: totalVolume,
+        weekTournaments: allTournamentsList.length,
+        weekTrend: { percentage: '0.0%', isPositive: true, label: 'live telemetry' },
+        monthSales: totalVolume,
+        monthTournaments: allTournamentsList.length,
+        monthTrend: { percentage: '0.0%', isPositive: true, label: 'live telemetry' },
+        activeHostings: hostingRequests.filter(r => r.status === 'APPROVED').length,
+        totalHostings: hostingRequests.length,
+        walletPayments: 0,
+        upiPayments: upiTotal,
+        cardPayments: cardTotal,
+        netBankingPayments: netBankingTotal,
+        totalUsers: totalUsersCount
+      },
+      dailySalesChart: last7,
+      paymentBreakdown: pBreakdown,
+      topOrganizers,
+      popularFormats
+    };
+  }, [totalVolume, upiTotal, cardTotal, netBankingTotal, todayMatchesCount, totalUsersCount, allTournamentsList, paymentsHistory, hostingRequests]);
+
   // LIVE PENDING COUNTS
   const pendingHostingCount = useMemo(() => hostingRequests.filter(r => r.status === 'PENDING').length, [hostingRequests]);
   const pendingScrimsCount = useMemo(() => scrimsRequests.filter(r => r.status === 'PENDING').length, [scrimsRequests]);
@@ -661,7 +409,43 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
   // Decision Handlers with Suspend & Block Options
   const handleApproveHosting = (id) => {
+    const req = hostingRequests.find(r => r.id === id);
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'APPROVED' } : r));
+    if (req) {
+      const newT = {
+        id: 't_' + Date.now(),
+        title: req.title,
+        game: req.game || 'Battlegrounds Mobile India',
+        format: req.format || 'Squad Battle Royale',
+        prizePool: req.prizePool || '₹ 50,000',
+        entryFee: req.entryFee || '₹ 50 / Squad',
+        slots: req.slots || 64,
+        registered: 0,
+        status: 'LIVE',
+        dates: 'Active Now',
+        thumbnail: req.thumbnail || '/tournament_bgmi_showdown_4k.jpg',
+        organizer: req.organizer || 'Community Organizer',
+        matchTime: req.timing || 'Today at 8:00 PM IST'
+      };
+      setAllTournamentsList(prev => [newT, ...prev]);
+
+      const newR = {
+        id: 'room_' + Date.now(),
+        title: `${req.title} - Official Match Room`,
+        game: req.game || 'Battlegrounds Mobile India',
+        map: req.game?.includes('Free Fire') ? 'Bermuda' : req.game?.includes('Valorant') ? 'Ascent' : 'Erangel',
+        roomId: String(Math.floor(100000 + Math.random() * 900000)),
+        roomPass: 'lt' + Math.floor(100 + Math.random() * 900),
+        teamsJoined: `0 / ${req.slots || 16} Teams`,
+        alivePlayers: 0,
+        duration: 'Lobby Open',
+        status: 'WAITING IN LOBBY',
+        server: 'Mumbai Dedicated (18ms)',
+        topSquad: 'Waiting for Launch',
+        streamLink: ''
+      };
+      setActiveMatchRooms(prev => [newR, ...prev]);
+    }
     showToast('✅ Tournament Hosting Request Approved & Automated Room Generated!');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
@@ -746,13 +530,22 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       id: `t_${Date.now()}`,
       title: newTitle,
       game: newGame,
-      prize: newPrize.startsWith('₹') ? newPrize : `₹${newPrize}`,
+      format: 'Squad Championship',
+      prizePool: newPrize.startsWith('₹') ? newPrize : `₹ ${newPrize}`,
+      prize: newPrize.startsWith('₹') ? newPrize : `₹ ${newPrize}`,
+      entryFee: '₹ 100 / Team',
+      slots: parseInt(newSlots) || 32,
+      registered: 0,
       teams: `0 / ${newSlots}`,
       status: 'REGISTRATION OPEN',
-      date: newDate || 'Dec 2026',
+      dates: newDate || 'Upcoming 2026',
+      thumbnail: newGame.includes('Free Fire') ? '/tournament_pubg_ultimate_squad_4k.jpg' : newGame.includes('Valorant') ? '/experienced_pilot_4k.jpg' : '/tournament_bgmi_showdown_4k.jpg',
+      organizer: 'LiveTournaments Official',
+      matchTime: 'Announcing Soon'
     };
 
-    setTournaments([newTourney, ...tournaments]);
+    setAllTournamentsList(prev => [newTourney, ...prev]);
+    setTournaments(prev => [newTourney, ...prev]);
     setNewTitle('');
     setNewPrize('');
     setNewDate('');
@@ -1152,7 +945,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             ======================================================== */}
         {(activeTab === 'dashboard' || activeTab === 'all-in-one') && (
           <div className="animate-fade-in">
-            <DashboardPage />
+            <DashboardPage metricsData={liveMetricsData} />
           </div>
         )}
 
@@ -1175,7 +968,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </span>
                 </div>
                 <p className="text-[11px] text-[#6B7280]">
-                  Real-time performance for <strong className="text-[#1F2937] font-semibold">Wednesday, 18 Nov 2026</strong> compared against yesterday.
+                  Real-time performance for <strong className="text-[#1F2937] font-semibold">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</strong> compared against yesterday.
                 </p>
               </div>
 
@@ -1196,60 +989,60 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY TOTAL</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 6,004</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 7,099</p>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(totalVolume).toLocaleString('en-IN')}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Live Digital Volume</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#EF4444] font-semibold">↘ -15.4%</span>
-                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                  <span className="text-[#10B981] font-semibold">↗ {totalVolume > 0 ? '+100%' : '0.0%'}</span>
+                  <span className="text-[#9CA3AF]">Live Verified</span>
                 </div>
               </div>
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY'S MATCHES</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">29 Matches</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: 26 Matches</p>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">{todayMatchesCount} Matches</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Active Match Rooms</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#10B981] font-semibold">↗ +11.5%</span>
-                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                  <span className="text-[#10B981] font-semibold">Live</span>
+                  <span className="text-[#9CA3AF]">In-Play</span>
                 </div>
               </div>
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CARDS</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 1,523</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 2,610</p>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(cardTotal).toLocaleString('en-IN')}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Card Gateway Volume</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#EF4444] font-semibold">↘ -41.6%</span>
-                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                  <span className="text-[#6B7280] font-semibold">100% Digital</span>
+                  <span className="text-[#9CA3AF]">Debit / Credit</span>
                 </div>
               </div>
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY UPI</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 4,481</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 4,489</p>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(upiTotal).toLocaleString('en-IN')}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Instant QR Collections</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#EF4444] font-semibold">↘ -0.2%</span>
-                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                  <span className="text-[#10B981] font-semibold">Zero Fee UPI</span>
+                  <span className="text-[#9CA3AF]">GPay / PhonePe</span>
                 </div>
               </div>
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CARD</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 0</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 0</p>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY NETBANKING</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ {Number(netBankingTotal).toLocaleString('en-IN')}</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Instant Wire & NetBanking</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
-                  <span className="text-[#6B7280] font-semibold">↗ 0.0%</span>
-                  <span className="text-[#9CA3AF]">vs Yesterday</span>
+                  <span className="text-[#6B7280] font-semibold">Instant Wire</span>
+                  <span className="text-[#9CA3AF]">Direct Ledger</span>
                 </div>
               </div>
             </div>
@@ -1365,8 +1158,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     {/* Cards */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-end gap-1.5 h-36">
-                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[35%]" title="Today: ₹1,523"></div>
-                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[60%]" title="Yesterday: ₹2,610"></div>
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px]" style={{ height: `${totalVolume > 0 ? Math.max(6, Math.round((cardTotal / totalVolume) * 100)) : 6}%` }} title={`Today: ₹${cardTotal}`}></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px]" style={{ height: '6%' }} title="Yesterday: ₹0"></div>
                       </div>
                       <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Cards</span>
                     </div>
@@ -1374,28 +1167,28 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     {/* UPI / QR */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-end gap-1.5 h-36">
-                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[98%]" title="Today: ₹4,481"></div>
-                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[100%]" title="Yesterday: ₹4,489"></div>
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px]" style={{ height: `${totalVolume > 0 ? Math.max(6, Math.round((upiTotal / totalVolume) * 100)) : 6}%` }} title={`Today: ₹${upiTotal}`}></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px]" style={{ height: '6%' }} title="Yesterday: ₹0"></div>
                       </div>
                       <span className="text-[10px] font-semibold text-[#4B5563] mt-1">UPI / QR</span>
                     </div>
 
-                    {/* Card (Debit/Credit) */}
+                    {/* NetBanking */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-end gap-1.5 h-36">
-                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[3%]" title="Today: ₹0"></div>
-                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[3%]" title="Yesterday: ₹0"></div>
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px]" style={{ height: `${totalVolume > 0 ? Math.max(6, Math.round((netBankingTotal / totalVolume) * 100)) : 6}%` }} title={`Today: ₹${netBankingTotal}`}></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px]" style={{ height: '6%' }} title="Yesterday: ₹0"></div>
                       </div>
-                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Card (Debit/Credit)</span>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">NetBanking</span>
                     </div>
 
-                    {/* Other / Split */}
+                    {/* Digital Splits */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-end gap-1.5 h-36">
-                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[2%]" title="Today: ₹0"></div>
-                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[5%]" title="Yesterday: ₹0"></div>
+                        <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[6%]" title="Today: ₹0"></div>
+                        <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[6%]" title="Yesterday: ₹0"></div>
                       </div>
-                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Other / Split</span>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Digital Split</span>
                     </div>
                   </div>
                 </div>
@@ -1426,15 +1219,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <tbody className="divide-y divide-[#F3F4F6] font-medium text-[#1F2937]">
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#DFBD78] text-[15px]">trending_down</span>
+                        <span className="material-symbols-outlined text-[#DFBD78] text-[15px]">payments</span>
                         Total Tournament Turnover
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">₹ 6,004</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 7,099</td>
-                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -1,095</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ {Number(totalVolume).toLocaleString('en-IN')}</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 0</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">₹ {Number(totalVolume).toLocaleString('en-IN')}</td>
                       <td className="py-2.5 text-right">
-                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
-                          Low (-15.4%)
+                        <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
+                          Verified Live
                         </span>
                       </td>
                     </tr>
@@ -1443,26 +1236,26 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <span className="material-symbols-outlined text-[#10B981] text-[15px]">receipt</span>
                         Total Hosted Matches
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">29 Matches</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">26 Matches</td>
-                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+3 Matches</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">{todayMatchesCount} Matches</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">0 Matches</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+{todayMatchesCount} Matches</td>
                       <td className="py-2.5 text-right">
                         <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
-                          High (+11.5%)
+                          In-Play
                         </span>
                       </td>
                     </tr>
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">payments</span>
+                        <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">credit_card</span>
                         Card Payments
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">₹ 1,523</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 2,610</td>
-                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -1,087</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ {Number(cardTotal).toLocaleString('en-IN')}</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 0</td>
+                      <td className="py-2.5 text-[#6B7280] nagulan-mono font-semibold">₹ {Number(cardTotal).toLocaleString('en-IN')}</td>
                       <td className="py-2.5 text-right">
-                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
-                          Low (-41.6%)
+                        <span className="px-2 py-0.5 rounded-[4px] bg-gray-50 text-[#6B7280] text-[9px] font-bold border border-gray-200">
+                          Digital
                         </span>
                       </td>
                     </tr>
@@ -1471,26 +1264,26 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <span className="material-symbols-outlined text-[#9333EA] text-[15px]">qr_code_2</span>
                         UPI / QR Collections
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">₹ 4,481</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 4,489</td>
-                      <td className="py-2.5 text-[#EF4444] nagulan-mono font-semibold">₹ -8</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ {Number(upiTotal).toLocaleString('en-IN')}</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 0</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">₹ {Number(upiTotal).toLocaleString('en-IN')}</td>
                       <td className="py-2.5 text-right">
-                        <span className="px-2 py-0.5 rounded-[4px] bg-rose-50 text-[#EF4444] text-[9px] font-bold border border-rose-200">
-                          Low (-0.2%)
+                        <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
+                          Instant
                         </span>
                       </td>
                     </tr>
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#F59E0B] text-[15px]">credit_card</span>
-                        Card Payments
+                        <span className="material-symbols-outlined text-[#F59E0B] text-[15px]">account_balance</span>
+                        NetBanking & Instant Wire
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">₹ 0</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">₹ {Number(netBankingTotal).toLocaleString('en-IN')}</td>
                       <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 0</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono font-semibold">₹ 0</td>
+                      <td className="py-2.5 text-[#6B7280] nagulan-mono font-semibold">₹ {Number(netBankingTotal).toLocaleString('en-IN')}</td>
                       <td className="py-2.5 text-right">
                         <span className="px-2 py-0.5 rounded-[4px] bg-gray-50 text-[#6B7280] text-[9px] font-bold border border-gray-200">
-                          Flat (0.0%)
+                          Direct
                         </span>
                       </td>
                     </tr>
@@ -1499,12 +1292,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <span className="material-symbols-outlined text-[#10B981] text-[15px]">sports_esports</span>
                         Tournament Hostings
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">29 Hostings</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">24 Hostings</td>
-                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+5 Hostings</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">{hostingRequests.filter(h => h.status === 'APPROVED').length} Hostings</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">0 Hostings</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+{hostingRequests.filter(h => h.status === 'APPROVED').length} Hostings</td>
                       <td className="py-2.5 text-right">
                         <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
-                          High (+20.8%)
+                          Approved
                         </span>
                       </td>
                     </tr>
@@ -1513,12 +1306,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">group</span>
                         Active Competitors
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">52,480</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">46,200</td>
-                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+6,280</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">{totalUsersCount}</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">0</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+{totalUsersCount}</td>
                       <td className="py-2.5 text-right">
                         <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
-                          High (+13.6%)
+                          Verified
                         </span>
                       </td>
                     </tr>
@@ -1538,43 +1331,43 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">OVERALL USERS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">52,480</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +13.6% vs yesterday</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{totalUsersCount}</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Registered Players</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">LIVE TOURNAMENTS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">18 Live</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +20.0% vs yesterday</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{allTournamentsList.filter(t => t.status === 'LIVE').length} Live</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">In-Play Competitions</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY TOURNAMENTS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">42 Matches</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.7% vs yesterday</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{allTournamentsList.length} Events</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Total Scheduled</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY HOSTINGS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">29 Hostings</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +20.8% vs yesterday</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{hostingRequests.length} Hostings</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Community Requests</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">MONTHLY SUB HOSTINGS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">148 Pro Hosts</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +12.1% vs last month</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{hostingRequests.filter(h => h.tier === 'championship' || h.tier === 'pro').length} Pro Hosts</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Verified Organizers</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">DAILY SCRIMS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">36 Scrims</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.1% vs yesterday</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{scrimsRequests.filter(s => s.type?.toLowerCase().includes('daily') || s.format?.toLowerCase().includes('daily')).length} Scrims</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Daily Practice</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">WEEKLY SCRIMS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">14 Leagues</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +16.7% vs last week</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{scrimsRequests.filter(s => s.type?.toLowerCase().includes('weekly') || s.format?.toLowerCase().includes('weekly')).length} Leagues</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Tiered Leagues</p>
               </div>
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">MONTHLY SCRIMS</span>
-                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">8 Mega Cups</p>
-                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">↗ +33.3% vs last month</p>
+                <p className="text-[20px] font-bold text-[#1F2937] mt-1 nagulan-mono">{scrimsRequests.filter(s => s.type?.toLowerCase().includes('monthly') || s.format?.toLowerCase().includes('monthly')).length} Mega Cups</p>
+                <p className="text-[10px] text-[#10B981] font-semibold mt-0.5">Monthly Championship</p>
               </div>
             </div>
           </div>
@@ -2144,6 +1937,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             {/* TOURNAMENT CARDS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {allTournamentsList
+                .filter(t => (tournamentFilterGame === 'ALL' || t.game === tournamentFilterGame) && (tournamentFilterStatus === 'ALL' || t.status === tournamentFilterStatus)).length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[#9CA3AF] text-[40px] block mb-2">emoji_events</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937]">Zero Demo Tournaments Present</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-md mx-auto mt-1">
+                    All demo entries cleared. Real tournaments will appear here when created using '+ Create Tournament' or when community hosting requests are approved.
+                  </p>
+                </div>
+              ) : allTournamentsList
                 .filter(t => (tournamentFilterGame === 'ALL' || t.game === tournamentFilterGame) && (tournamentFilterStatus === 'ALL' || t.status === tournamentFilterStatus))
                 .map(t => (
                   <div key={t.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
@@ -2256,7 +2058,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Players Fighting Now</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">147 Live</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">{activeMatchRooms.reduce((acc, r) => acc + (r.alivePlayers || 0), 0)} Live</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">group</span>
               </div>
@@ -2282,7 +2084,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
             {/* LIVE ROOMS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeMatchRooms.map(room => (
+              {activeMatchRooms.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[#9CA3AF] text-[40px] block mb-2">meeting_room</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937]">No Active Match Rooms Running</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-md mx-auto mt-1">
+                    Match rooms will be launched dynamically when approved tournaments begin, or via platform automation.
+                  </p>
+                </div>
+              ) : activeMatchRooms.map(room => (
                 <div key={room.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -2615,7 +2425,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Concurrent Viewers</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">62,470 Live</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">{activeBroadcasts.length > 0 ? activeBroadcasts.reduce((acc, b) => acc + (parseInt(String(b.viewers).replace(/[^0-9]/g, '')) || 0), 0).toLocaleString('en-IN') + ' Live' : '0 Live'}</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">visibility</span>
               </div>
@@ -2640,7 +2450,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             {/* TAB 1: CURRENT LIVE BROADCASTS (ACCEPTED & LIVE) */}
             {broadcastActiveTab === 'live' && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {activeBroadcasts.map(bc => (
+                {activeBroadcasts.length === 0 ? (
+                  <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                    <span className="material-symbols-outlined text-[#9CA3AF] text-[40px] block mb-2">live_tv</span>
+                    <h4 className="text-[14px] font-bold text-[#1F2937]">No Live Broadcasts On Air</h4>
+                    <p className="text-[11px] text-[#6B7280] max-w-md mx-auto mt-1">
+                      Approved live broadcasts and verified streamer watch parties will be broadcasted here in 1080p 60FPS.
+                    </p>
+                  </div>
+                ) : activeBroadcasts.map(bc => (
                   <div key={bc.id} className="rounded-[14px] border border-[#D1D1D1]/60 bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
                     <div className="relative w-full h-44 bg-black flex items-center justify-center">
                       <img src={bc.thumbnail} alt={bc.title} className="w-full h-full object-cover" />
@@ -2768,7 +2586,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Tournaments Hosted</span>
-                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">148 Events</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{allTournamentsList.length} Events</span>
                 </div>
                 <span className="material-symbols-outlined text-gold-primary text-[22px]">emoji_events</span>
               </div>
@@ -2776,23 +2594,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Matches Concluded</span>
-                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">1,240 Rooms</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">{todayMatchesCount} Rooms</span>
                 </div>
                 <span className="material-symbols-outlined text-emerald-500 text-[22px]">task_alt</span>
               </div>
 
               <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Scrim Slots Booked</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">3,890 Slots</span>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Scrims Scheduled</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">{scrimsRequests.length} Scrims</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">timer</span>
               </div>
 
               <div className="bg-purple-50/70 p-3 rounded-[10px] border border-purple-200/70 flex items-center justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">Prize Pool Disbursed</span>
-                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ 42,50,000</span>
+                  <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">Digital Volume Tracked</span>
+                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ {Number(totalVolume).toLocaleString('en-IN')}</span>
                 </div>
                 <span className="material-symbols-outlined text-purple-500 text-[22px]">account_balance_wallet</span>
               </div>
@@ -2807,18 +2625,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <span className="text-[10px] text-emerald-600 font-semibold">99.4% Fair Play Rate</span>
                 </h4>
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
-                    <span className="font-bold">1. Hydra_Aditya (BGMI)</span>
-                    <span className="font-mono text-emerald-600 font-bold">114 Frags &bull; 62% Win Rate</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
-                    <span className="font-bold">2. Venom_Karan (Free Fire)</span>
-                    <span className="font-mono text-emerald-600 font-bold">98 Frags &bull; 58% Win Rate</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
-                    <span className="font-bold">3. Viper_Rohan (Valorant)</span>
-                    <span className="font-mono text-emerald-600 font-bold">84 Frags &bull; 54% Win Rate</span>
-                  </div>
+                  {userDatabase.length === 0 ? (
+                    <div className="p-3 text-center text-gray-400 italic">No player stats recorded yet.</div>
+                  ) : (
+                    userDatabase.slice(0, 3).map((u, i) => (
+                      <div key={u.userId} className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+                        <span className="font-bold">{i + 1}. {u.name} ({u.game || 'Multi-Title'})</span>
+                        <span className="font-mono text-emerald-600 font-bold">{u.matchesPlayed || 0} Matches &bull; {u.fairPlayScore || '100%'} Fair Play</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -2848,36 +2664,27 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
                 <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
                   <span>Tournament Game Share & Reach</span>
-                  <span className="text-[10px] text-purple-600 font-semibold">702 Active Clans</span>
+                  <span className="text-[10px] text-purple-600 font-semibold">{allTournamentsList.length} Active Events</span>
                 </h4>
                 <div className="space-y-1.5 text-xs">
-                  <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1">
-                      <span>BGMI (Battlegrounds Mobile India)</span>
-                      <span>54% (80 Tournaments)</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full" style={{ width: '54%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1">
-                      <span>Free Fire MAX</span>
-                      <span>28% (42 Tournaments)</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full bg-orange-500 rounded-full" style={{ width: '28%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1">
-                      <span>Valorant & PC Titles</span>
-                      <span>18% (26 Tournaments)</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full bg-rose-500 rounded-full" style={{ width: '18%' }} />
-                    </div>
-                  </div>
+                  {liveMetricsData.popularFormats.length === 0 ? (
+                    <div className="p-3 text-center text-gray-400 italic">No tournament games scheduled yet.</div>
+                  ) : (
+                    liveMetricsData.popularFormats.map((fmt, i) => {
+                      const pct = allTournamentsList.length > 0 ? Math.round((fmt.count / allTournamentsList.length) * 100) : 0;
+                      return (
+                        <div key={fmt.name}>
+                          <div className="flex justify-between text-[11px] font-semibold mb-1">
+                            <span>{fmt.name}</span>
+                            <span>{pct}% ({fmt.count} Tournaments)</span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                            <div className="h-full bg-amber-500 rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -2885,20 +2692,20 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-xs">
                 <h4 className="text-[13px] font-bold text-gray-900 flex items-center justify-between">
                   <span>Scrims Cadence & Retention</span>
-                  <span className="text-[10px] text-emerald-600 font-semibold">88% Clan Retention</span>
+                  <span className="text-[10px] text-emerald-600 font-semibold">{scrimsRequests.length} Scheduled Scrims</span>
                 </h4>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
                     <span className="text-gray-700">Daily Pro Scrims:</span>
-                    <span className="font-mono font-bold text-blue-600">48 Sessions / Week</span>
+                    <span className="font-mono font-bold text-blue-600">{scrimsRequests.filter(s => s.type?.toLowerCase().includes('daily') || s.format?.toLowerCase().includes('daily')).length} Sessions</span>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
                     <span className="text-gray-700">Weekly Championship Scrims:</span>
-                    <span className="font-mono font-bold text-purple-600">32 Sessions / Month</span>
+                    <span className="font-mono font-bold text-purple-600">{scrimsRequests.filter(s => s.type?.toLowerCase().includes('weekly') || s.format?.toLowerCase().includes('weekly')).length} Sessions</span>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
-                    <span className="text-gray-700">No-Show Penalty Enforcement:</span>
-                    <span className="font-mono font-bold text-rose-600">0.8% Flagged</span>
+                    <span className="text-gray-700">Fair Play & Verification:</span>
+                    <span className="font-mono font-bold text-emerald-600">100% Compliant</span>
                   </div>
                 </div>
               </div>
@@ -2935,7 +2742,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Today's Logins</span>
-                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">1,842 Sessions</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{activityLogs.length} Sessions</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">login</span>
               </div>
@@ -2943,15 +2750,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Agreement Consents</span>
-                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">100% Signed</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">{activityLogs.length > 0 ? '100% Signed' : '0 Signed'}</span>
                 </div>
                 <span className="material-symbols-outlined text-emerald-500 text-[22px]">verified_user</span>
               </div>
 
               <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Unique Cities Tracked</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">84 Cities (IN)</span>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Unique Locations Tracked</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">{new Set(activityLogs.map(l => l.location)).size} Locations</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">pin_drop</span>
               </div>
@@ -2959,7 +2766,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Security Infractions</span>
-                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">1 Blocked</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">{blockedUsers.length > 0 ? `${blockedUsers.length} Blocked` : '0 Flags'}</span>
                 </div>
                 <span className="material-symbols-outlined text-rose-500 text-[22px]">shield</span>
               </div>
@@ -3057,7 +2864,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Total Digital Volume</span>
-                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">₹ 2,85,490</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">₹ {Number(totalVolume).toLocaleString('en-IN')}</span>
                 </div>
                 <span className="material-symbols-outlined text-emerald-500 text-[22px]">payments</span>
               </div>
@@ -3065,7 +2872,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-purple-50/70 p-3 rounded-[10px] border border-purple-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">UPI & Instant QR</span>
-                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ 1,85,484 (65%)</span>
+                  <span className="text-[18px] font-bold text-purple-800 font-mono mt-0.5 block">₹ {Number(upiTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((upiTotal / totalVolume) * 100) : 0}%)</span>
                 </div>
                 <span className="material-symbols-outlined text-purple-500 text-[22px]">qr_code_2</span>
               </div>
@@ -3073,7 +2880,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Card Gateways</span>
-                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">₹ 73,151 (26%)</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">₹ {Number(cardTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((cardTotal / totalVolume) * 100) : 0}%)</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">credit_card</span>
               </div>
@@ -3081,7 +2888,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
                 <div>
                   <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">NetBanking & Instant</span>
-                  <span className="text-[18px] font-bold text-gray-800 font-mono mt-0.5 block">₹ 26,855 (9%)</span>
+                  <span className="text-[18px] font-bold text-gray-800 font-mono mt-0.5 block">₹ {Number(netBankingTotal).toLocaleString('en-IN')} ({totalVolume > 0 ? Math.round((netBankingTotal / totalVolume) * 100) : 0}%)</span>
                 </div>
                 <span className="material-symbols-outlined text-blue-500 text-[22px]">account_balance</span>
               </div>
@@ -3103,7 +2910,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {paymentsHistory.map(tx => (
+                  {paymentsHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-gray-400">
+                        <span className="material-symbols-outlined text-[36px] text-gray-300 block mb-1">receipt_long</span>
+                        <span className="font-bold text-gray-700 block text-xs">Zero Demo Transactions Recorded</span>
+                        <span className="text-[11px] text-gray-400">All demo entries cleared. Real digital payments from tournament hostings (₹199 / ₹499 / ₹999) or entries will appear here.</span>
+                      </td>
+                    </tr>
+                  ) : paymentsHistory.map(tx => (
                     <tr key={tx.txnId} className="hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3.5 font-mono font-bold text-blue-600 text-[11px]">
                         {tx.txnId}

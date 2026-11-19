@@ -27,64 +27,35 @@ const COLORS = ['#D4AF37', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'
 
 const DEFAULT_METRICS = {
   summary: {
-    todaySales: 6004,
-    todayMatches: 29,
-    todayTrend: { percentage: '-15.4%', isPositive: false, label: 'vs yesterday' },
-    weekSales: 32468,
-    weekTournaments: 149,
-    weekTrend: { percentage: '-40.6%', isPositive: false, label: 'vs last week' },
-    monthSales: 169400,
-    monthTournaments: 724,
-    monthTrend: { percentage: '+1025.1%', isPositive: true, label: 'vs last month' },
-    activeHostings: 148,
-    totalHostings: 200,
-    walletPayments: 73151,
-    upiPayments: 85484,
+    todaySales: 0,
+    todayMatches: 0,
+    todayTrend: { percentage: '0.0%', isPositive: true, label: 'live verified' },
+    weekSales: 0,
+    weekTournaments: 0,
+    weekTrend: { percentage: '0.0%', isPositive: true, label: 'live telemetry' },
+    monthSales: 0,
+    monthTournaments: 0,
+    monthTrend: { percentage: '0.0%', isPositive: true, label: 'live telemetry' },
+    activeHostings: 0,
+    totalHostings: 0,
+    walletPayments: 0,
+    upiPayments: 0,
     cardPayments: 0,
-    totalUsers: 702,
+    totalUsers: 0,
   },
   dailySalesChart: [
-    { day: 'Thu', sales: 7500 },
-    { day: 'Fri', sales: 7800 },
-    { day: 'Sat', sales: 9100 },
-    { day: 'Sun', sales: 10800 },
-    { day: 'Mon', sales: 8400 },
-    { day: 'Tue', sales: 6800 },
-    { day: 'Wed', sales: 6004 },
+    { day: 'Mon', sales: 0 },
+    { day: 'Tue', sales: 0 },
+    { day: 'Wed', sales: 0 },
+    { day: 'Thu', sales: 0 },
+    { day: 'Fri', sales: 0 },
+    { day: 'Sat', sales: 0 },
+    { day: 'Sun', sales: 0 },
   ],
-    paymentBreakdown: [
-    { method: 'UPI / QR', amount: 85484 },
-    { method: 'Card Payments', amount: 73151 },
-    { method: 'NetBanking', amount: 10765 },
-    { method: 'Team Digital Split', amount: 5200 },
-  ],
-  topOrganizers: [
-    {
-      name: 'Clan Hydra Esports',
-      format: 'BGMI, Squad Pro League',
-      totalPrizeGenerated: 110528,
-      matchesCompleted: 486,
-    },
-    {
-      name: 'Team Venom Gaming',
-      format: 'Free Fire MAX, Clash Squad',
-      totalPrizeGenerated: 51801,
-      matchesCompleted: 286,
-    },
-    {
-      name: 'Deadly 5 Esports',
-      format: 'Valorant 5v5 Spike Plant',
-      totalPrizeGenerated: 10203,
-      matchesCompleted: 63,
-    },
-  ],
-  popularFormats: [
-    { name: 'BGMI Battle Royale (Squad Erangel / Miramar)', count: 451 },
-    { name: 'Free Fire MAX Clash Squad 4v4', count: 94 },
-    { name: 'Valorant 5v5 Spike Plant', count: 79 },
-  ],
+  paymentBreakdown: [],
+  topOrganizers: [],
+  popularFormats: [],
 };
-
 export const DashboardPage = ({ metricsData = null }) => {
   const [data, setData] = useState(metricsData || DEFAULT_METRICS);
   const [loading, setLoading] = useState(false);
@@ -199,7 +170,7 @@ export const DashboardPage = ({ metricsData = null }) => {
                 NetBanking / Online
               </span>
               <span className="text-sm sm:text-base font-bold text-amber-600 font-mono mt-0.5 block">
-                ₹ {Number(summary.netBankingPayments || 10765).toLocaleString('en-IN')}
+                ₹ {Number(summary.netBankingPayments || 0).toLocaleString('en-IN')}
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
@@ -211,7 +182,7 @@ export const DashboardPage = ({ metricsData = null }) => {
                 Total Users
               </span>
               <span className="text-sm sm:text-base font-bold text-emerald-600 font-mono mt-0.5 block">
-                {summary.totalUsers || 702} Registered
+                {summary.totalUsers || 0} Registered
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
@@ -329,7 +300,11 @@ export const DashboardPage = ({ metricsData = null }) => {
             </div>
 
             <div className="space-y-1.5">
-              {(data?.topOrganizers || []).slice(0, 3).map((org, idx) => (
+              {(!data?.topOrganizers || data.topOrganizers.length === 0) ? (
+                <div className="p-4 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  No tournament organizers yet. Approved hosts will appear here in real time.
+                </div>
+              ) : (data?.topOrganizers || []).slice(0, 3).map((org, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between p-2 rounded-xl bg-gray-50 border border-gray-100 text-xs"
@@ -371,7 +346,11 @@ export const DashboardPage = ({ metricsData = null }) => {
             </div>
 
             <div className="space-y-1.5">
-              {(data?.popularFormats || []).slice(0, 3).map((fmt, idx) => (
+              {(!data?.popularFormats || data.popularFormats.length === 0) ? (
+                <div className="p-4 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  No tournament games scheduled yet. Formats will appear as tournaments are published.
+                </div>
+              ) : (data?.popularFormats || []).slice(0, 3).map((fmt, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between p-2 rounded-xl bg-gray-50 border border-gray-100 text-xs"

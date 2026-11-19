@@ -143,6 +143,26 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         console.error('Failed to sync to admin queue:', err);
       }
 
+      // 3. Log real digital transaction into payments history ledger
+      try {
+        const methodLabel = paymentMethod === 'upi' ? 'UPI (PhonePe / GPay)' : paymentMethod === 'card' ? 'Debit/Credit Card' : 'NetBanking Instant Wire';
+        const paymentRecord = {
+          txnId: txnId,
+          userId: currentUser?.id || 'LT-USR-1002',
+          userName: currentUser?.name || currentUser?.username || 'Community Organizer',
+          item: `Tournament Hosting Plan - ${hostTier.toUpperCase()} Tier (${hostTitle})`,
+          amount: `₹ ${feePaid}`,
+          method: methodLabel,
+          utr: 'UTR-' + Math.floor(1000000000 + Math.random() * 9000000000),
+          date: 'Today, ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+          status: 'SUCCESS'
+        };
+        const currentLedger = JSON.parse(localStorage.getItem('lt_payments_history') || '[]');
+        localStorage.setItem('lt_payments_history', JSON.stringify([paymentRecord, ...currentLedger]));
+      } catch (err) {
+        console.error('Failed to log payment transaction:', err);
+      }
+
       setIsProcessingPayment(false);
       setPaymentSuccess({
         txnId,
