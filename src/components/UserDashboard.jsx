@@ -484,8 +484,8 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               
-              {/* TOP STAT CARDS (EXACT NAGULAN METRICS ROW - Image Ref: media_1795060190582_3c9ca89f.png) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+              {/* TOP STAT CARDS (EXACT NAGULAN METRICS ROW) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 
                 {/* Stat 1: Registered Matches */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
@@ -535,23 +535,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   </div>
                 </div>
 
-                {/* Stat 4: Present Day Cash / Balance (Exact Image Ref: ₹ 1,523, Yesterday: ₹ 2,610, ↘ -41.6%) */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
-                      <span className="material-symbols-outlined text-[15px]">south_east</span>
-                      -41.6%
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
-                  </div>
-                </div>
-
-                {/* Stat 5: Wallet Balance */}
+                {/* Stat 4: Wallet Balance */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">WALLET BALANCE</span>
@@ -708,8 +692,8 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 </div>
               </div>
 
-              {/* 5 Present Day Core Metric Cards (Exact Nagulan Image Ref: media_1795060190582_3c9ca89f.png) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+              {/* 4 Present Day Core Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 
                 {/* 1. Present Day Total */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
@@ -743,23 +727,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   </div>
                 </div>
 
-                {/* 3. Present Day Cash (Exact match with reference image) */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
-                      <span className="material-symbols-outlined text-[15px]">south_east</span>
-                      -41.6%
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
-                  </div>
-                </div>
-
-                {/* 4. Present Day UPI */}
+                {/* 3. Present Day UPI */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
@@ -775,7 +743,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   </div>
                 </div>
 
-                {/* 5. Present Day Card */}
+                {/* 4. Present Day Card */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>

@@ -1118,8 +1118,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
-            {/* ROW 1: 5 Live Esports Direct Metrics (Exact Image Reference: media_1795060190582_3c9ca89f.png) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            {/* ROW 1: 4 Live Esports Direct Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
               
               {/* Card 1: Present Day Total */}
               <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
@@ -1153,23 +1153,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </div>
               </div>
 
-              {/* Card 3: Present Day Cash (Exact match with Image: ₹ 1,523, Yesterday: ₹ 2,610, ↘ -41.6%) */}
-              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
-                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
-                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
-                    <span className="material-symbols-outlined text-[15px]">south_east</span>
-                    -41.6%
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
-                </div>
-              </div>
-
-              {/* Card 4: Present Day UPI */}
+              {/* Card 3: Present Day UPI */}
               <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
@@ -1185,7 +1169,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </div>
               </div>
 
-              {/* Card 5: Present Day Card */}
+              {/* Card 4: Present Day Card */}
               <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>
@@ -3046,8 +3030,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
-            {/* LIVE OVERALL COUNTERS ABOVE SECTION (Exact Image Reference: media_1795060190582_3c9ca89f.png) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               
               <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
@@ -3089,22 +3073,6 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                     <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
                     +8.2%
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
-                </div>
-              </div>
-
-              {/* Exact card from Image reference */}
-              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CASH</span>
-                  <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,523</h3>
-                  <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-0.5 font-bold text-xs text-rose-500">
-                    <span className="material-symbols-outlined text-[15px]">south_east</span>
-                    -41.6%
                   </span>
                   <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
                 </div>
