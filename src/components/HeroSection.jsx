@@ -58,8 +58,9 @@ export default function HeroSection({ onNavigate }) {
           }}
           className="size-full object-cover transition-all duration-700"
         >
+          <source src="/assets/hero_video.mp4" type="video/mp4" />
           <source src="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" type="video/mp4" />
-          Your browser does not support HTML video. <a className="text-cyan-400 cursor-pointer underline" href="https://d3h9qea4qy4169.cloudfront.net/ewc_2026_homepage_hero_video_9e7d137767.mp4" rel="noopener" target="_blank">Download the video from the link instead</a>.
+          Your browser does not support HTML video.
         </video>
 
         {/* Luminous Glacier Atmospheric Effects */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import Sidebar from './components/Sidebar';
 import HeroSection from './components/HeroSection';
 import NewsletterSection from './components/NewsletterSection';
@@ -14,6 +14,46 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('App ErrorBoundary caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-md bg-neutral-900 border border-white/20 rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-xl font-bold text-gold-primary mb-2">LiveTournaments.in Hub</h2>
+            <p className="text-sm text-gray-300 mb-6">
+              A temporary interface issue occurred. Click below to refresh and return to the main arena.
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.href = '/';
+              }}
+              className="px-6 py-2.5 rounded-xl bg-gold-primary text-black font-bold text-xs uppercase tracking-wider hover:bg-gold-light transition-all"
+            >
+              Return to Home Arena
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -126,77 +166,79 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col antialiased MQe55a_variable ExPGsG_variable JZWkmW_variable Ia0HiG_variable eSu7da_variable wat7GG_variable n_j4Eq_variable gsYqIG_variable">
-      <a className="skip-link primary-bold-s14-lh120 webview-hide" href="#main-content">
-        Skip to main content
-      </a>
+    <ErrorBoundary>
+      <div className="flex min-h-screen flex-col antialiased MQe55a_variable ExPGsG_variable JZWkmW_variable Ia0HiG_variable eSu7da_variable wat7GG_variable n_j4Eq_variable gsYqIG_variable">
+        <a className="skip-link primary-bold-s14-lh120 webview-hide" href="#main-content">
+          Skip to main content
+        </a>
 
-      {/* SUPER ADMIN LIVE DASHBOARD - Dedicated SaaS Command Portal (Exact Nagulan Layout) */}
-      {currentPage === 'admin-dashboard' ? (
-        <SuperAdminDashboard
-          currentUser={currentUser}
-          onNavigate={navigateTo}
-          onLogout={handleLogout}
-        />
-      ) : currentPage === 'login' || currentPage === 'register' ? (
-        <AuthPage
-          initialMode={currentPage === 'register' ? 'register' : 'login'}
-          onNavigate={navigateTo}
-          onNavigateHome={() => navigateTo('home')}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      ) : (
-        /* HOME, ABOUT, & USER DASHBOARD ARENA SHELL */
-        <>
-          {/* User Menu Header Dropdown Option */}
-          <UserMenu
+        {/* SUPER ADMIN LIVE DASHBOARD - Dedicated SaaS Command Portal (Exact Nagulan Layout) */}
+        {currentPage === 'admin-dashboard' ? (
+          <SuperAdminDashboard
             currentUser={currentUser}
             onNavigate={navigateTo}
             onLogout={handleLogout}
           />
-
-          {/* Left Sidebar Navigation */}
-          <Sidebar
+        ) : currentPage === 'login' || currentPage === 'register' ? (
+          <AuthPage
+            initialMode={currentPage === 'register' ? 'register' : 'login'}
             onNavigate={navigateTo}
-            currentPage={currentPage}
-            currentUser={currentUser}
+            onNavigateHome={() => navigateTo('home')}
+            onLoginSuccess={handleLoginSuccess}
           />
+        ) : (
+          /* HOME, ABOUT, & USER DASHBOARD ARENA SHELL */
+          <>
+            {/* User Menu Header Dropdown Option */}
+            <UserMenu
+              currentUser={currentUser}
+              onNavigate={navigateTo}
+              onLogout={handleLogout}
+            />
 
-          {/* Main Content Area */}
-          <main
-            className="bg-white-dirty flex h-full flex-1 flex-col lg:ps-sidebar-width min-h-screen"
-            id="main-content"
-            tabIndex={-1}
-          >
-            {currentPage === 'user-dashboard' ? (
-              <UserDashboard
-                currentUser={currentUser}
-                onNavigate={navigateTo}
-                onLogout={handleLogout}
-              />
-            ) : currentPage === 'about' ? (
-              <AboutPage
-                currentUser={currentUser}
-                onNavigate={navigateTo}
-              />
-            ) : (
-              <>
-                <HeroSection onNavigate={navigateTo} />
-                <NewsletterSection />
-                <GamesSection />
-                <FeaturedTournamentsSection onNavigate={navigateTo} />
-                <ChampionshipTrophySection onNavigate={navigateTo} />
-                <HostTournamentsSection onNavigate={navigateTo} />
-                <RecapsSection />
-                <PartnersSection />
-              </>
-            )}
-          </main>
+            {/* Left Sidebar Navigation */}
+            <Sidebar
+              onNavigate={navigateTo}
+              currentPage={currentPage}
+              currentUser={currentUser}
+            />
 
-          {/* Footer */}
-          <Footer />
-        </>
-      )}
-    </div>
+            {/* Main Content Area */}
+            <main
+              className="bg-white-dirty flex h-full flex-1 flex-col lg:ps-sidebar-width min-h-screen"
+              id="main-content"
+              tabIndex={-1}
+            >
+              {currentPage === 'user-dashboard' ? (
+                <UserDashboard
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                  onLogout={handleLogout}
+                />
+              ) : currentPage === 'about' ? (
+                <AboutPage
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                />
+              ) : (
+                <>
+                  <HeroSection onNavigate={navigateTo} />
+                  <NewsletterSection />
+                  <GamesSection />
+                  <FeaturedTournamentsSection onNavigate={navigateTo} />
+                  <ChampionshipTrophySection onNavigate={navigateTo} />
+                  <HostTournamentsSection onNavigate={navigateTo} />
+                  <RecapsSection />
+                  <PartnersSection />
+                </>
+              )}
+            </main>
+
+            {/* Footer */}
+            <Footer />
+          </>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 }

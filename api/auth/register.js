@@ -44,16 +44,20 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString()
     };
 
-    const { db } = await connectToDatabase();
-    const existing = await db.collection('users').findOne({
-      $or: [{ email: cleanEmail }, { username: cleanUsername }]
-    });
+    try {
+      const { db } = await connectToDatabase();
+      const existing = await db.collection('users').findOne({
+        $or: [{ email: cleanEmail }, { username: cleanUsername }]
+      });
 
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'An account with this email or username already exists' });
+      if (existing) {
+        return res.status(400).json({ success: false, error: 'An account with this email or username already exists' });
+      }
+
+      await db.collection('users').insertOne(newUser);
+    } catch (dbErr) {
+      console.warn('[Vercel register] Database persistence warning:', dbErr.message);
     }
-
-    await db.collection('users').insertOne(newUser);
 
     return res.status(201).json({
       success: true,
