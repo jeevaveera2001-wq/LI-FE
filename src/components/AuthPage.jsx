@@ -34,6 +34,90 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
 
+  // Exact Real-Time Geolocation State
+  const [exactLocation, setExactLocation] = useState({
+    location: '',
+    ip: '',
+    latitude: null,
+    longitude: null,
+    isGps: false,
+    statusText: 'Resolving exact GPS / Network location...'
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function detectLocation() {
+      // 1. Proactively query high-accuracy HTML5 GPS coordinates
+      if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            if (!isMounted) return;
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            try {
+              const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}`);
+              if (res.ok) {
+                const geo = await res.json();
+                const locality = geo.locality || geo.subLocality || geo.city || '';
+                const city = geo.city || geo.principalSubdivision || '';
+                const state = geo.principalSubdivision || '';
+                const postal = geo.postcode || '';
+                const country = geo.countryName || 'India';
+                const parts = [locality, city !== locality ? city : '', state, postal, country].filter(Boolean);
+                const fullLoc = parts.join(', ') + ' [GPS Verified]';
+                
+                setExactLocation(prev => ({
+                  ...prev,
+                  location: fullLoc,
+                  latitude: lat,
+                  longitude: lon,
+                  isGps: true,
+                  statusText: fullLoc
+                }));
+                return;
+              }
+            } catch (e) {}
+          },
+          (err) => {
+            console.log('GPS prompt skipped or denied:', err.message);
+          },
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+        );
+      }
+
+      // 2. Query precision IP-based location and public IP
+      try {
+        const ipRes = await fetch('https://ipwho.is/');
+        if (ipRes.ok && isMounted) {
+          const data = await ipRes.json();
+          if (data && data.success !== false) {
+            const parts = [
+              data.city,
+              data.region,
+              data.postal,
+              data.country,
+              data.connection?.isp ? `(${data.connection.isp})` : ''
+            ].filter(Boolean);
+            const ipLocStr = parts.join(', ');
+
+            setExactLocation(prev => ({
+              ...prev,
+              location: prev.isGps ? prev.location : ipLocStr,
+              ip: data.ip || prev.ip,
+              statusText: prev.isGps ? prev.location : ipLocStr
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('IP location fetch error:', err);
+      }
+    }
+
+    detectLocation();
+    return () => { isMounted = false; };
+  }, []);
+
   const videoRef = useRef(null);
 
   // Background video autoplay
@@ -105,6 +189,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       const response = await axios.post('/api/auth/login', {
         usernameOrEmail: loginEmail,
         password: loginPassword,
+        location: exactLocation.location || undefined,
+        ip: exactLocation.ip || undefined
       });
 
       const user = response.data?.user;
@@ -112,11 +198,12 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         localStorage.setItem('lt_user', JSON.stringify(user));
         if (onLoginSuccess) onLoginSuccess(user);
 
-        // Sync into Super Admin User Database in localStorage
+        // Sync into Super Admin User Database in localStorage with exact location
         try {
           const savedDb = localStorage.getItem('lt_user_database');
           const dbList = savedDb ? JSON.parse(savedDb) : [];
           const existingIdx = dbList.findIndex(u => u.email === user.email || u.username === user.username);
+          const resolvedLocation = user.location || exactLocation.location || 'Chennai, Tamil Nadu, India';
           const formattedEntry = {
             userId: user.id || ('LT-USR-' + Date.now().toString().slice(-4)),
             name: user.name || user.displayName || user.username || 'Competitor',
@@ -131,7 +218,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             walletBalance: '₹ 0',
             registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
             status: user.status || 'ACTIVE',
-            location: user.location || 'Chennai, Tamil Nadu, India'
+            location: resolvedLocation
           };
           if (existingIdx >= 0) {
             dbList[existingIdx] = { ...dbList[existingIdx], ...formattedEntry };
@@ -141,18 +228,20 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           localStorage.setItem('lt_user_database', JSON.stringify(dbList));
         } catch (e) {}
 
-        // Sync Login Activity Log into Super Admin Activity Logs in localStorage
+        // Sync Login Activity Log into Super Admin Activity Logs in localStorage with exact location
         try {
           const savedLogs = localStorage.getItem('lt_activity_logs');
           const logsList = savedLogs ? JSON.parse(savedLogs) : [];
+          const resolvedLocation = user.location || exactLocation.location || 'Chennai, Tamil Nadu, India';
+          const resolvedIp = exactLocation.ip || '103.211.54.12';
           const newLog = {
             id: 'act_' + Date.now(),
             userId: user.id || (user.role === 'superadmin' ? 'LT-USR-1001' : 'LT-USR-COMPETITOR'),
             userName: user.name || user.displayName || user.username || 'Competitor',
             userEmail: user.email,
             action: user.role === 'superadmin' ? 'Super Admin Portal Authentication' : 'Competitor Session Login',
-            ip: '103.211.54.12',
-            location: user.location || 'Chennai, Tamil Nadu, India',
+            ip: resolvedIp,
+            location: resolvedLocation,
             agreements: 'Session Token & Fair Play Compliance Confirmed',
             device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
             time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
@@ -181,6 +270,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         (loginEmail.toLowerCase() === 'superadmin@lt.in' || loginEmail.toLowerCase() === 'superadmin') &&
         loginPassword === 'SuperAdmin@21'
       ) {
+        const resolvedLocation = exactLocation.location || 'Chennai, Tamil Nadu, India';
+        const resolvedIp = exactLocation.ip || '127.0.0.1';
         const superUser = {
           id: 'LT-USR-1001',
           username: 'superadmin',
@@ -189,12 +280,12 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           role: 'superadmin',
           displayName: 'Super Admin',
           status: 'ACTIVE',
-          location: 'Chennai, Tamil Nadu, India'
+          location: resolvedLocation
         };
         localStorage.setItem('lt_user', JSON.stringify(superUser));
         if (onLoginSuccess) onLoginSuccess(superUser);
 
-        // Record Super Admin Login in local logs
+        // Record Super Admin Login in local logs with exact location
         try {
           const savedLogs = localStorage.getItem('lt_activity_logs');
           const logsList = savedLogs ? JSON.parse(savedLogs) : [];
@@ -204,8 +295,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             userName: 'Super Admin',
             userEmail: 'superadmin@lt.in',
             action: 'Super Admin Console Access & Authentication',
-            ip: '127.0.0.1 (Localhost / Secure Session)',
-            location: 'Chennai, Tamil Nadu, India',
+            ip: resolvedIp,
+            location: resolvedLocation,
             agreements: 'Super Administrator Master Security Protocol Verified',
             device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
             time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
@@ -326,13 +417,17 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         console.warn('[Register] Backend verify check:', verifyErr);
       }
 
-      // 2. Register user account in database
+      // 2. Register user account in database with exact location
+      const resolvedLocation = exactLocation.location || 'Chennai, Tamil Nadu, India';
+      const resolvedIp = exactLocation.ip || '103.211.54.12';
       try {
         await axios.post('/api/auth/register', {
           name: regName.trim(),
           email: regEmail.trim(),
           mobile: regMobile.trim(),
           password: regPassword,
+          location: exactLocation.location || undefined,
+          ip: exactLocation.ip || undefined
         });
       } catch (regErr) {
         console.warn('[Register] Backend account insert warning:', regErr);
@@ -359,7 +454,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         fairPlayScore: '100%',
         walletBalance: '₹ 0',
         registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
-        location: 'Chennai, Tamil Nadu, India'
+        location: resolvedLocation
       };
       localStorage.setItem('lt_user', JSON.stringify(newUser));
 
@@ -376,7 +471,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         localStorage.setItem('lt_user_database', JSON.stringify(dbList));
       } catch (e) {}
 
-      // Synchronize Registration Activity Log into Super Admin Activity Logs in localStorage
+      // Synchronize Registration Activity Log into Super Admin Activity Logs in localStorage with exact location
       try {
         const savedLogs = localStorage.getItem('lt_activity_logs');
         const logsList = savedLogs ? JSON.parse(savedLogs) : [];
@@ -386,8 +481,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           userName: newUser.name,
           userEmail: newUser.email,
           action: 'New Competitor Account Registration (Verified)',
-          ip: '103.211.54.12',
-          location: 'Chennai, Tamil Nadu, India',
+          ip: resolvedIp,
+          location: resolvedLocation,
           agreements: 'Terms of Service, Fair Play Policy & Anti-Cheat Agreement Accepted',
           device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
           time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
@@ -648,6 +743,15 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
             </button>
           </div>
         )}
+
+        {/* Exact Real-Time Geolocation Security Node */}
+        <div className="mb-3 px-3 py-1.5 rounded-xl bg-black/50 border border-white/15 text-[10px] text-gray-300 backdrop-blur-md flex items-center gap-2 shadow-inner">
+          <span className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+          <span className="text-[#DFBD78] font-bold shrink-0">Exact Login Node:</span>
+          <span className="truncate flex-1 font-mono text-[10px] text-emerald-200">
+            {exactLocation.statusText || 'Resolving GPS / Network Location...'}
+          </span>
+        </div>
 
         {/* Error & Success Messages */}
         {errorMessage && (

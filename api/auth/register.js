@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { connectToDatabase } from '../lib/mongodb.js';
+import { resolveExactLocation } from '../lib/location.js';
 
 const PASSWORD_SALT = 'livetournaments_esports_2026_salt';
 function hashPassword(password) {
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, mobile, password, location } = req.body || {};
+    const { name, email, mobile, password, location, ip: clientIpReq } = req.body || {};
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, error: 'Name, email, and password required' });
     }
@@ -33,12 +34,9 @@ export default async function handler(req, res) {
     const cleanUsername = cleanEmail.split('@')[0];
     const passwordHash = hashPassword(password);
 
-    // Extract real client telemetry from Vercel headers
-    const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '103.211.54.12').split(',')[0].trim();
-    const city = req.headers['x-vercel-ip-city'] ? decodeURIComponent(req.headers['x-vercel-ip-city']) : '';
-    const region = req.headers['x-vercel-ip-country-region'] || '';
-    const country = req.headers['x-vercel-ip-country'] || 'IN';
-    const locationStr = location || (city ? `${city}, ${region ? region + ', ' : ''}${country}` : 'Chennai, Tamil Nadu, India');
+    // Resolve exact client geographical location and public IP
+    const { location: locationStr, ip: clientIp } = await resolveExactLocation(req, location, clientIpReq);
+
     const userAgent = req.headers['user-agent'] || 'Chrome / Windows';
     const deviceStr = userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop / Windows 11';
 
@@ -82,7 +80,7 @@ export default async function handler(req, res) {
         userId: newUser.id,
         userName: newUser.name,
         userEmail: newUser.email,
-        action: 'New Competitor Account Registration',
+        action: 'New Competitor Account Registration (Verified)',
         ip: clientIp,
         location: locationStr,
         agreements: 'Terms of Service & Fair Play Agreement Confirmed',

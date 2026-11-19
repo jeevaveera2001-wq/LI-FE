@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { connectToDatabase } from '../lib/mongodb.js';
+import { resolveExactLocation } from '../lib/location.js';
 
 const SUPERADMIN_USERNAME = 'superadmin';
 const SUPERADMIN_EMAIL = 'superadmin@lt.in';
@@ -28,19 +29,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { usernameOrEmail, password, location } = req.body || {};
+    const { usernameOrEmail, password, location, ip: clientIpReq } = req.body || {};
     if (!usernameOrEmail || !password) {
       return res.status(400).json({ success: false, error: 'Username/email and password required' });
     }
 
     const cleanInput = usernameOrEmail.toLowerCase().trim();
 
-    // Extract real client telemetry from Vercel headers
-    const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '103.211.54.12').split(',')[0].trim();
-    const city = req.headers['x-vercel-ip-city'] ? decodeURIComponent(req.headers['x-vercel-ip-city']) : '';
-    const region = req.headers['x-vercel-ip-country-region'] || '';
-    const country = req.headers['x-vercel-ip-country'] || 'IN';
-    const locationStr = location || (city ? `${city}, ${region ? region + ', ' : ''}${country}` : 'Chennai, Tamil Nadu, India');
+    // Resolve exact client geographical location and public IP
+    const { location: locationStr, ip: clientIp } = await resolveExactLocation(req, location, clientIpReq);
+
     const userAgent = req.headers['user-agent'] || 'Chrome / Windows';
     const deviceStr = userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop / Windows 11';
 
@@ -59,7 +57,7 @@ export default async function handler(req, res) {
 
       try {
         const { db } = await connectToDatabase();
-        // Record Super Admin Login Activity Log
+        // Record Super Admin Login Activity Log with exact location
         await db.collection('activity_logs').insertOne({
           id: 'act_' + Date.now(),
           userId: 'LT-USR-1001',
@@ -74,6 +72,13 @@ export default async function handler(req, res) {
           date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
           timestamp: new Date().toISOString()
         });
+
+        // Update Super Admin location in database
+        await db.collection('users').updateOne(
+          { email: SUPERADMIN_EMAIL },
+          { $set: { location: locationStr, ip: clientIp, lastLogin: new Date().toISOString() } },
+          { upsert: true }
+        );
       } catch (e) {
         console.warn('[Vercel login] Admin log record warning:', e.message);
       }
@@ -101,7 +106,13 @@ export default async function handler(req, res) {
 
         const userRole = (user.role === 'superadmin' || user.email === SUPERADMIN_EMAIL) ? 'superadmin' : 'user';
 
-        // Record User Login Activity Log into MongoDB
+        // Update exact location in users collection
+        await db.collection('users').updateOne(
+          { _id: user._id },
+          { $set: { location: locationStr, ip: clientIp, lastLogin: new Date().toISOString() } }
+        );
+
+        // Record User Login Activity Log into MongoDB with exact location
         const loginLog = {
           id: 'act_' + Date.now(),
           userId: user.id || ('LT-USR-' + (user.username || '1001')),
