@@ -92,35 +92,43 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (!item || typeof item !== 'object') return true;
     const idStr = String(item.id || '');
     if (
-      idStr.startsWith('req_h') ||
-      idStr.startsWith('req_s') ||
-      idStr.startsWith('req_p') ||
-      idStr.startsWith('req_f') ||
-      idStr.startsWith('req_a') ||
+      idStr.startsWith('req_') ||
+      idStr.startsWith('scrim_') ||
+      idStr.startsWith('part_') ||
+      idStr.startsWith('feat_') ||
+      idStr.startsWith('ad_') ||
       idStr.startsWith('mock_') ||
       idStr.startsWith('demo_') ||
-      ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2'].includes(idStr)
+      ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2', 'bgmi-sd-reg-01', 'scrim-tier1-01'].includes(idStr)
     ) {
+      // Allow real user submissions that use timestamp IDs like host_17... or user_scrim_17...
+      if (idStr.match(/^(host_|user_|real_|sub_)\d{10,}/)) {
+        return false;
+      }
       return true;
     }
-    const organizer = String(item.organizer || item.brand || item.company || item.sponsor || '');
+    const organizer = String(item.organizer || item.brand || item.company || item.sponsor || item.clan || '');
     const mockOrganizers = [
       'Aditya Sharma', 'Karan Patel', 'Rohan Mehra', 'Sameer Khan', 'Vikram Sethi', 'Pooja Verma',
-      'Monster Energy India', 'Logitech G India', 'Rooter Esports App', 'OnePlus Nord India',
-      'Red Bull Campus Clutch India', 'KRAFTON Community Official', 'Skyesports Masters India',
-      'Clan Hydra Esports', 'Team Venom Gaming', 'Deadly 5 Esports', 'Delta Force India', 'Apex Gladiators', 'Shadow Strikers'
+      'Monster Energy', 'Logitech G', 'Rooter Esports', 'OnePlus Nord',
+      'Red Bull', 'KRAFTON', 'Skyesports', 'Razer', 'HyperX',
+      'Clan Hydra', 'Team Venom', 'Deadly 5', 'Delta Force', 'Apex Gladiators', 'Shadow Strikers',
+      'Team Soul', 'GodLike', '7Sea Esports', 'Entity Gaming', 'Reckoning', 'Orangutan'
     ];
-    if (mockOrganizers.includes(organizer)) return true;
-    const title = String(item.title || item.tournament || item.clan || '');
+    if (mockOrganizers.some(mo => organizer.toLowerCase().includes(mo.toLowerCase()))) return true;
+    const title = String(item.title || item.tournament || item.clan || item.name || '');
     const mockTitles = [
       'BGMI Underdog Showdown S4', 'Free Fire MAX Clutch Masters Cup', 'Valorant Mumbai Spike League',
       'COD Mobile Battle Royale War', 'Apex Legends Predators Rumble', 'BGMI Weekend Midnight Custom',
       'Villager Pro Invitational - Winter 2026', 'Diwali Battleground Wars 2026', 'All-India College Esports Cup',
       'Red Bull Valorant Championship 2026', 'Battlegrounds All-Stars Grand Finale', 'Skyesports CS2 Winter Invitational',
       'BGMI Pro Invitational 2026', 'Free Fire MAX Grand Finals', 'Valorant India Championship',
-      'Call of Duty: Mobile Masters', 'Apex Legends Global Series Cup'
+      'Call of Duty: Mobile Masters', 'Apex Legends Global Series Cup',
+      'Team Soul Tier-1 Pro Scrims', 'GodLike Practice Cup', '7Sea Esports Community Daily',
+      'Entity Gaming Weekly Clash', 'Reckoning Monthly Qualifier', 'Orangutan Daily Scrims Pool',
+      'Monster Energy BGMI Cup', 'Red Bull Gaming Arena', 'HyperX Peripheral Partner'
     ];
-    if (mockTitles.includes(title)) return true;
+    if (mockTitles.some(mt => title.toLowerCase().includes(mt.toLowerCase()))) return true;
     return false;
   };
 
@@ -251,6 +259,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         }
       } catch (e) {}
     });
+
+    setHostingRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setScrimsRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setPartnerHostingRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setFeaturedRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setAdRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setTournaments(prev => prev.filter(r => !isMockEntry(r)));
+    setAllTournamentsList(prev => prev.filter(r => !isMockEntry(r)));
+    setActiveMatchRooms(prev => prev.filter(r => !isMockEntry(r)));
   }, []);
 
   // Sync real user submissions from competitor portal in real time
@@ -1133,9 +1150,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'hosting-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Hosting Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
-            {pendingHostingCount}
-          </span>
+          {pendingHostingCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
+              {pendingHostingCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1143,9 +1162,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'scrims-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Scrims Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#3B82F6] text-[9px] font-bold">
-            {pendingScrimsCount}
-          </span>
+          {pendingScrimsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#3B82F6] text-[9px] font-bold">
+              {pendingScrimsCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1153,9 +1174,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'partner-hostings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Partner Hostings</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-[#059669] text-[9px] font-bold">
-            {pendingPartnerCount}
-          </span>
+          {pendingPartnerCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-[#059669] text-[9px] font-bold">
+              {pendingPartnerCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1163,9 +1186,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'featured-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Featured Requests</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-[#9333EA] text-[9px] font-bold">
-            {pendingFeaturedCount}
-          </span>
+          {pendingFeaturedCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-[#9333EA] text-[9px] font-bold">
+              {pendingFeaturedCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1173,9 +1198,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'ad-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span>Ad & Sponsor Deals</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-[#EF4444] text-[9px] font-bold">
-            {pendingAdCount}
-          </span>
+          {pendingAdCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-[#EF4444] text-[9px] font-bold">
+              {pendingAdCount}
+            </span>
+          )}
         </button>
 
         <button
