@@ -190,7 +190,7 @@ export default function AboutPage({ onNavigate, currentUser }) {
                   3. Everyone Can Play & Win
                 </h3>
                 <p className="primary-regular-s14-lh120 text-[#858585] leading-relaxed">
-                  Step onto the competitive battlefield with verified competitors, fair matchmaking, and direct cash reward distributions.
+                  Step onto the competitive battlefield with verified competitors, fair matchmaking, and direct UPI, card & prize pool reward distributions.
                 </p>
                 <ul className="space-y-2 primary-regular-s12-lh130 text-dark-default pt-2 border-t border-[#F0F0F0]">
                   <li className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function AboutPage({ onNavigate, currentUser }) {
 
               <div className="pt-2">
                 <span className="inline-block px-3 py-1 rounded-full bg-green-accent/10 text-green-accent primary-bold-s10-lh130 uppercase">
-                  Cash Rewards & Glory
+                  Prize Pool Rewards & Glory
                 </span>
               </div>
             </div>

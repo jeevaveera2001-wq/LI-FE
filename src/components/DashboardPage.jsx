@@ -38,7 +38,7 @@ const DEFAULT_METRICS = {
     monthTrend: { percentage: '+1025.1%', isPositive: true, label: 'vs last month' },
     activeHostings: 148,
     totalHostings: 200,
-    cashPayments: 73151,
+    walletPayments: 73151,
     upiPayments: 85484,
     cardPayments: 0,
     totalUsers: 702,
@@ -52,13 +52,11 @@ const DEFAULT_METRICS = {
     { day: 'Tue', sales: 6800 },
     { day: 'Wed', sales: 6004 },
   ],
-  paymentBreakdown: [
-    { method: 'Cash Entry', amount: 73151 },
+    paymentBreakdown: [
     { method: 'UPI / QR', amount: 85484 },
-    { method: 'Card Gateway', amount: 0 },
-    { method: 'NetBanking', amount: 0 },
-    { method: 'Team Split', amount: 10765 },
-    { method: 'Other', amount: 0 },
+    { method: 'Card Payments', amount: 73151 },
+    { method: 'NetBanking', amount: 10765 },
+    { method: 'Team Digital Split', amount: 5200 },
   ],
   topOrganizers: [
     {
@@ -169,27 +167,15 @@ export const DashboardPage = ({ metricsData = null }) => {
           />
         </div>
 
-        {/* Row 2: 4 Payment Channels / Registrations Cards */}
+        {/* Row 2: 4 Payment Channels / Registrations Cards (UPI, Card, NetBanking, Users) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
-          <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
-                Cash Collections
-              </span>
-              <span className="text-sm sm:text-base font-bold text-gray-900 font-mono mt-0.5 block">
-                ₹ {Number(summary.cashPayments || 0).toLocaleString('en-IN')}
-              </span>
-            </div>
-            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-          </div>
-
           <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
             <div>
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
                 UPI / QR Payments
               </span>
               <span className="text-sm sm:text-base font-bold text-purple-600 font-mono mt-0.5 block">
-                ₹ {Number(summary.upiPayments || 0).toLocaleString('en-IN')}
+                ₹ {Number(summary.upiPayments || 85484).toLocaleString('en-IN')}
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
@@ -200,8 +186,20 @@ export const DashboardPage = ({ metricsData = null }) => {
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
                 Card Payments
               </span>
+              <span className="text-sm sm:text-base font-bold text-blue-600 font-mono mt-0.5 block">
+                ₹ {Number(summary.cardPayments || 73151).toLocaleString('en-IN')}
+              </span>
+            </div>
+            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+          </div>
+
+          <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
+                NetBanking / Online
+              </span>
               <span className="text-sm sm:text-base font-bold text-amber-600 font-mono mt-0.5 block">
-                ₹ {Number(summary.cardPayments || 0).toLocaleString('en-IN')}
+                ₹ {Number(summary.netBankingPayments || 10765).toLocaleString('en-IN')}
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />

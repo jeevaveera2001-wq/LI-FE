@@ -17,6 +17,22 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [isSyncing, setIsSyncing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  // Blocked Users State
+  const [blockedUsers, setBlockedUsers] = useState(() => {
+    const saved = localStorage.getItem('lt_admin_blocked_users');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      { id: 'blk_1', name: 'Scammer Clan X', email: 'fake.host@gmail.com', reason: 'Fake prize pool listing / Invalid thumbnail', date: 'Nov 17, 2026' }
+    ];
+  });
+  useEffect(() => { localStorage.setItem('lt_admin_blocked_users', JSON.stringify(blockedUsers)); }, [blockedUsers]);
+
+  // Inspect Thumbnail Modal State
+  const [selectedInspectImage, setSelectedInspectImage] = useState(null);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+
 
   // Trigger brief toast notification
   const showToast = (msg) => {
@@ -34,340 +50,48 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   // 1. TOURNAMENT HOSTING REQUESTS BY USERS
-  const [hostingRequests, setHostingRequests] = useState(() => {
+    const [hostingRequests, setHostingRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_hosting_requests');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      {
-        id: 'req_h1',
-        title: 'BGMI Underdog Showdown S4',
-        organizer: 'Aditya Sharma',
-        clan: 'Clan Hydra Esports',
-        game: 'Battlegrounds Mobile India',
-        format: 'Squad (Erangel + Miramar)',
-        slots: '64 Teams (256 Players)',
-        timing: 'Today, 8:30 PM IST',
-        prizePool: '₹25,000',
-        entryFee: 'Free Entry',
-        email: 'aditya.hydra@gmail.com',
-        mobile: '+91 98765 12345',
-        status: 'PENDING',
-        requestedAt: '12 mins ago'
-      },
-      {
-        id: 'req_h2',
-        title: 'Free Fire MAX Clutch Masters Cup',
-        organizer: 'Karan Patel',
-        clan: 'Team Venom Gaming',
-        game: 'Free Fire MAX',
-        format: 'Clash Squad 4v4 Knockout',
-        slots: '32 Teams (128 Players)',
-        timing: 'Tomorrow, 6:00 PM IST',
-        prizePool: '₹15,000',
-        entryFee: '₹50 / team',
-        email: 'karan.venom@gmail.com',
-        mobile: '+91 98111 88990',
-        status: 'PENDING',
-        requestedAt: '35 mins ago'
-      },
-      {
-        id: 'req_h3',
-        title: 'Valorant Mumbai Spike League',
-        organizer: 'Rohan Mehra',
-        clan: 'Deadly 5 Esports',
-        game: 'Valorant',
-        format: '5v5 Competitive Custom',
-        slots: '16 Teams',
-        timing: 'Nov 21, 7:00 PM IST',
-        prizePool: '₹30,000',
-        entryFee: '₹100 / team',
-        email: 'rohan.val@gmail.com',
-        mobile: '+91 98222 77889',
-        status: 'PENDING',
-        requestedAt: '1 hour ago'
-      },
-      {
-        id: 'req_h4',
-        title: 'COD Mobile Battle Royale War',
-        organizer: 'Sameer Khan',
-        clan: 'Delta Force India',
-        game: 'COD Mobile',
-        format: 'Isolated Squad BR',
-        slots: '25 Squads (100 Players)',
-        timing: 'Nov 22, 5:00 PM IST',
-        prizePool: '₹10,000',
-        entryFee: 'Free',
-        email: 'sameer.delta@gmail.com',
-        mobile: '+91 98444 33221',
-        status: 'PENDING',
-        requestedAt: '2 hours ago'
-      },
-      {
-        id: 'req_h5',
-        title: 'Apex Legends Predators Rumble',
-        organizer: 'Vikram Sethi',
-        clan: 'Apex Gladiators',
-        game: 'Apex Legends',
-        format: 'Trios Worlds Edge',
-        slots: '20 Squads (60 Players)',
-        timing: 'Nov 23, 8:00 PM IST',
-        prizePool: '₹20,000',
-        entryFee: 'Free',
-        email: 'vikram.apex@gmail.com',
-        mobile: '+91 98555 44332',
-        status: 'PENDING',
-        requestedAt: '3 hours ago'
-      },
-      {
-        id: 'req_h6',
-        title: 'BGMI Weekend Midnight Custom',
-        organizer: 'Pooja Verma',
-        clan: 'Shadow Strikers',
-        game: 'Battlegrounds Mobile India',
-        format: 'Duo Sanhok Blitz',
-        slots: '50 Duos (100 Players)',
-        timing: 'Nov 22, 11:00 PM IST',
-        prizePool: '₹12,000',
-        entryFee: '₹20 / duo',
-        email: 'pooja.shadow@gmail.com',
-        mobile: '+91 98666 55443',
-        status: 'PENDING',
-        requestedAt: '4 hours ago'
-      }
-    ];
+    return [];
   });
 
   // 2. SCRIMS REQUESTS (DAILY, WEEKLY, MONTHLY)
-  const [scrimsRequests, setScrimsRequests] = useState(() => {
+    const [scrimsRequests, setScrimsRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_scrims_requests');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      {
-        id: 'scrim_1',
-        clan: 'Team Soul Tier-1 Pro Scrims',
-        tier: 'Tier 1 Pro',
-        type: 'DAILY',
-        game: 'BGMI',
-        format: 'Squad (Miramar + Erangel)',
-        slots: '20 Pro Teams',
-        schedule: 'Daily 6:00 PM & 9:00 PM IST',
-        contact: 'scrims@teamsoul.in',
-        status: 'PENDING',
-        frequencyBadge: 'Daily Scrim'
-      },
-      {
-        id: 'scrim_2',
-        clan: 'GodLike Practice Cup',
-        tier: 'Tier 1 Invited',
-        type: 'DAILY',
-        game: 'BGMI',
-        format: 'Squad (Sanhok + Erangel)',
-        slots: '20 Teams',
-        schedule: 'Daily 8:00 PM IST',
-        contact: 'management@godlike.in',
-        status: 'PENDING',
-        frequencyBadge: 'Daily Scrim'
-      },
-      {
-        id: 'scrim_3',
-        clan: '7Sea Esports Weekly League',
-        tier: 'Tier 2 Open',
-        type: 'WEEKLY',
-        game: 'Free Fire MAX',
-        format: 'Squad (Bermuda + Purgatory)',
-        slots: '24 Teams',
-        schedule: 'Every Saturday 7:00 PM IST',
-        contact: 'ops@7seaesports.com',
-        status: 'PENDING',
-        frequencyBadge: 'Weekly Scrim'
-      },
-      {
-        id: 'scrim_4',
-        clan: 'Entity Gaming Weekly Clash',
-        tier: 'Tier 1 / 2 Semi-Pro',
-        type: 'WEEKLY',
-        game: 'BGMI',
-        format: 'Squad (4 Matches Rotation)',
-        slots: '22 Teams',
-        schedule: 'Every Sunday 5:00 PM IST',
-        contact: 'entity@gaming.in',
-        status: 'PENDING',
-        frequencyBadge: 'Weekly Scrim'
-      },
-      {
-        id: 'scrim_5',
-        clan: 'Reckoning Monthly Qualifier',
-        tier: 'Tier 1 Championship',
-        type: 'MONTHLY',
-        game: 'Valorant',
-        format: '5v5 Single Elimination Bracket',
-        slots: '32 Teams',
-        schedule: 'Last Weekend of Every Month',
-        contact: 'esports@reckoning.in',
-        status: 'PENDING',
-        frequencyBadge: 'Monthly Scrim'
-      },
-      {
-        id: 'scrim_6',
-        clan: 'Orangutan Daily Scrims Pool',
-        tier: 'Tier 2 Elite',
-        type: 'DAILY',
-        game: 'BGMI',
-        format: 'Squad (Erangel)',
-        slots: '20 Teams',
-        schedule: 'Daily 4:00 PM IST',
-        contact: 'scrims@orangutan.in',
-        status: 'PENDING',
-        frequencyBadge: 'Daily Scrim'
-      }
-    ];
+    return [];
   });
 
   // 3. HOSTING TOURNAMENTS REQUESTS (PARTNERED)
-  const [partnerHostingRequests, setPartnerHostingRequests] = useState(() => {
+    const [partnerHostingRequests, setPartnerHostingRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_partner_hostings');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      {
-        id: 'part_1',
-        organization: 'Villager Esports',
-        title: 'Villager Pro Invitational - Winter 2026',
-        game: 'Battlegrounds Mobile India',
-        tier: 'National Tier-1 Invited Championship',
-        prizePool: '₹10,00,000',
-        dates: 'Dec 05 - Dec 12, 2026',
-        verification: 'Verified Partner · GSTIN: 27AABCV1234F1Z5',
-        requestedBy: 'Ankit Panth (Head of Tournaments)',
-        status: 'PENDING'
-      },
-      {
-        id: 'part_2',
-        organization: 'Upthrust Esports',
-        title: 'Diwali Battleground Wars 2026',
-        game: 'Free Fire MAX',
-        tier: 'National Open Championship',
-        prizePool: '₹5,00,000',
-        dates: 'Nov 28 - Nov 30, 2026',
-        verification: 'Verified Partner · GSTIN: 07AAEFU4321D1Z2',
-        requestedBy: 'Karthik Rao (Operations Lead)',
-        status: 'PENDING'
-      },
-      {
-        id: 'part_3',
-        organization: 'Nodwin Gaming Partner League',
-        title: 'All-India College Esports Cup',
-        game: 'Valorant + BGMI',
-        tier: 'Collegiate National Series',
-        prizePool: '₹7,50,000',
-        dates: 'Dec 15 - Dec 22, 2026',
-        verification: 'Verified Partner · GSTIN: 06AABCN8899K1Z9',
-        requestedBy: 'Rhea Sen (Campus Outreach Director)',
-        status: 'PENDING'
-      }
-    ];
+    return [];
   });
 
   // 4. FEATURED TOURNAMENTS REQUESTS
-  const [featuredRequests, setFeaturedRequests] = useState(() => {
+    const [featuredRequests, setFeaturedRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_featured_requests');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      {
-        id: 'feat_1',
-        organizer: 'Red Bull Campus Clutch India',
-        tournament: 'Red Bull Valorant Championship 2026',
-        game: 'Valorant',
-        placement: 'Top Hero Carousel Banner + Pinned Featured Arena',
-        duration: '7 Days (Nov 20 - Nov 27)',
-        budget: '₹2,50,000 Promotional Fee',
-        contact: 'partnerships@redbull.in',
-        status: 'PENDING'
-      },
-      {
-        id: 'feat_2',
-        organizer: 'KRAFTON Community Official',
-        tournament: 'Battlegrounds All-Stars Grand Finale',
-        game: 'Battlegrounds Mobile India',
-        placement: 'Featured Tournaments Row 1 (Pinned #1)',
-        duration: '14 Days (Dec 01 - Dec 14)',
-        budget: 'Official Publisher Sponsored',
-        contact: 'esports-in@krafton.com',
-        status: 'PENDING'
-      },
-      {
-        id: 'feat_3',
-        organizer: 'Skyesports Masters India',
-        tournament: 'Skyesports CS2 Winter Invitational',
-        game: 'Counter-Strike 2',
-        placement: 'Featured Carousel + Live Stream Watermark',
-        duration: '10 Days (Dec 10 - Dec 20)',
-        budget: '₹1,75,000 Promotion Package',
-        contact: 'marketing@skyesports.in',
-        status: 'PENDING'
-      }
-    ];
+    return [];
   });
 
   // 5. ADVERTISEMENT & SPONSORSHIP REQUESTS
-  const [adRequests, setAdRequests] = useState(() => {
+    const [adRequests, setAdRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_ad_requests');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [
-      {
-        id: 'ad_1',
-        sponsor: 'Monster Energy India',
-        type: 'Hero Banner Ad + Live Stream Branding',
-        budget: '₹1,50,000 / month',
-        representative: 'Rahul Malhotra (Director of Partnerships)',
-        email: 'rahul.m@monsterenergy.in',
-        phone: '+91 98990 12345',
-        status: 'PENDING',
-        requestedDate: 'Nov 18, 2026'
-      },
-      {
-        id: 'ad_2',
-        sponsor: 'Razer Gaming Gear',
-        type: 'Official Peripherals & Arena Hardware Partner',
-        budget: '₹85,000 / event',
-        representative: 'Sneha Rao (Brand Lead India)',
-        email: 'sneha.r@razer.com',
-        phone: '+91 98770 54321',
-        status: 'PENDING',
-        requestedDate: 'Nov 17, 2026'
-      },
-      {
-        id: 'ad_3',
-        sponsor: 'iQOO India (Smartphone Series)',
-        type: 'BGMI Championship Title Sponsor',
-        budget: '₹3,00,000 / season',
-        representative: 'Vikram Joshi (Head of Brand Marketing)',
-        email: 'vikram.j@iqoo.in',
-        phone: '+91 98660 99887',
-        status: 'PENDING',
-        requestedDate: 'Nov 16, 2026'
-      },
-      {
-        id: 'ad_4',
-        sponsor: 'boAt Lifestyle (Audio Partner)',
-        type: 'Player Rewards & Stream Overlay Sponsor',
-        budget: '₹1,20,000 / month',
-        representative: 'Amit Trivedi',
-        email: 'esports@boat-lifestyle.com',
-        phone: '+91 98123 45678',
-        status: 'PENDING',
-        requestedDate: 'Nov 15, 2026'
-      }
-    ];
+    return [];
   });
 
   // 6. ALL TOURNAMENTS
@@ -407,23 +131,56 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const pendingFeaturedCount = useMemo(() => featuredRequests.filter(r => r.status === 'PENDING').length, [featuredRequests]);
   const pendingAdCount = useMemo(() => adRequests.filter(r => r.status === 'PENDING').length, [adRequests]);
 
-  // Decision Handlers
+  // Decision Handlers with Suspend & Block Options
   const handleApproveHosting = (id) => {
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'APPROVED' } : r));
     showToast('✅ Tournament Hosting Request Approved & Automated Room Generated!');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectHosting = (id) => {
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'REJECTED' } : r));
     showToast('❌ Tournament Hosting Request Declined');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+  const handleSuspendHosting = (id) => {
+    setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'SUSPENDED' } : r));
+    showToast('⚠️ Tournament Hosting Suspended & Terminated');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+  const handleBlockUser = (name, email, reqId) => {
+    if (window.confirm(`Are you sure you want to BLOCK ${name} (${email || 'User'}) from hosting tournaments?`)) {
+      setBlockedUsers(prev => [...prev.filter(b => b.email !== email), {
+        id: 'blk_' + Date.now(),
+        name: name || 'Blocked User',
+        email: email || 'user@livetournaments.in',
+        reason: 'Violated tournament hosting / thumbnail guidelines',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      }]);
+      setHostingRequests(prev => prev.map(r => (r.id === reqId || r.email === email) ? { ...r, status: 'BLOCKED' } : r));
+      setScrimsRequests(prev => prev.map(s => (s.id === reqId || s.contact === email) ? { ...s, status: 'BLOCKED' } : s));
+      showToast(`🚫 User ${name} has been BLOCKED across the platform`);
+      if (selectedInspectImage) setSelectedInspectImage(null);
+    }
+  };
+  const handleUnblockUser = (email) => {
+    setBlockedUsers(prev => prev.filter(b => b.email !== email));
+    showToast(`✅ User unblocked successfully`);
   };
 
   const handleApproveScrim = (id) => {
     setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'APPROVED' } : s));
     showToast('✅ Scrim Request Approved & Match Slot Scheduled!');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectScrim = (id) => {
     setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'REJECTED' } : s));
     showToast('❌ Scrim Request Declined');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+  const handleSuspendScrim = (id) => {
+    setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'SUSPENDED' } : s));
+    showToast('⚠️ Scrim Schedule Suspended & Terminated');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
 
   const handleApprovePartner = (id) => {
@@ -924,7 +681,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CASH</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY CARDS</span>
                   <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">₹ 1,523</p>
                   <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: ₹ 2,610</p>
                 </div>
@@ -1053,7 +810,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                       <span className="size-2 rounded-full bg-[#3B82F6]"></span>
                       Payment Channels (Today vs Yesterday)
                     </h3>
-                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">Cash, UPI and Card comparison</p>
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">UPI, Card and NetBanking comparison</p>
                   </div>
                   <div className="flex items-center gap-3 text-[10px] font-semibold">
                     <span className="flex items-center gap-1 text-[#1F2937]">
@@ -1067,13 +824,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
                 <div className="relative w-full h-[220px] pt-3">
                   <div className="h-[180px] w-full flex items-end justify-around border-b border-[#E5E7EB] pb-1 px-4">
-                    {/* Cash */}
+                    {/* Cards */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-end gap-1.5 h-36">
                         <div className="w-7 bg-[#C5A059] rounded-t-[4px] h-[35%]" title="Today: ₹1,523"></div>
                         <div className="w-7 bg-[#3B82F6] rounded-t-[4px] h-[60%]" title="Yesterday: ₹2,610"></div>
                       </div>
-                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Cash</span>
+                      <span className="text-[10px] font-semibold text-[#4B5563] mt-1">Cards</span>
                     </div>
 
                     {/* UPI / QR */}
@@ -1160,7 +917,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#3B82F6] text-[15px]">payments</span>
-                        Cash Collections
+                        Card Payments
                       </td>
                       <td className="py-2.5 nagulan-mono font-semibold">₹ 1,523</td>
                       <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 2,610</td>
@@ -1289,46 +1046,172 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             VIEW: REQUEST SECTIONS (USER HOSTING, SCRIMS, PARTNER, FEATURED, ADS)
             ======================================================== */}
         {(activeTab === 'hosting-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
-            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
-              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#DFBD78] text-[18px]">hub</span>
-                Tournament Hosting Requests by Users
-              </h3>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-[#D97706] text-[10px] font-bold border border-amber-200">
-                {pendingHostingCount} Pending
-              </span>
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px]">hub</span>
+                  Tournament Hosting Requests by Users
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Review mandatory thumbnail graphics, organizer credentials, game formats, and enforce compliance decisions.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowBlockedModal(true)}
+                  className="px-2.5 py-1 rounded-[6px] bg-gray-100 hover:bg-gray-200 text-[#4B5563] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[14px]">block</span>
+                  Blocked Users ({blockedUsers.length})
+                </button>
+                <span className="px-3 py-1 rounded-full bg-amber-50 text-[#D97706] text-[11px] font-bold border border-amber-200">
+                  {pendingHostingCount} Pending Review
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Hostings</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{hostingRequests.length}</span>
+                </div>
+                <span className="material-symbols-outlined text-[#9CA3AF] text-[22px]">format_list_bulleted</span>
+              </div>
+
+              <div className="bg-amber-50/70 p-3 rounded-[10px] border border-amber-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Pending Review</span>
+                  <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">{pendingHostingCount}</span>
+                </div>
+                <span className="material-symbols-outlined text-amber-500 text-[22px]">pending_actions</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Approved & Live</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
+                    {hostingRequests.filter(r => r.status === 'APPROVED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">verified</span>
+              </div>
+
+              <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Terminated / Blocked</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">
+                    {hostingRequests.filter(r => r.status === 'REJECTED' || r.status === 'SUSPENDED' || r.status === 'BLOCKED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-rose-500 text-[22px]">do_not_disturb_on</span>
+              </div>
+            </div>
+
+            {/* REQUEST CARDS GRID WITH MANDATORY THUMBNAILS & ADMIN CONTROLS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {hostingRequests.map(req => (
-                <div key={req.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-[13px] font-bold text-[#1F2937]">{req.title}</h4>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${req.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669]' : req.status === 'REJECTED' ? 'bg-rose-50 text-[#EF4444]' : 'bg-amber-50 text-[#D97706]'}`}>
-                        {req.status}
+                <div
+                  key={req.id}
+                  className={`rounded-[14px] border ${req.status === 'BLOCKED' ? 'border-rose-400 bg-rose-50/20' : req.status === 'SUSPENDED' ? 'border-amber-400 bg-amber-50/20' : 'border-[#D1D1D1]/60 bg-white'} shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group`}
+                >
+                  {/* MANDATORY THUMBNAIL GRAPHIC PREVIEW */}
+                  <div className="relative w-full h-40 bg-black/10 overflow-hidden shrink-0">
+                    <img
+                      src={req.thumbnail || '/tournament_bgmi_showdown_4k.jpg'}
+                      alt={req.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-2.5">
+                      <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold">
+                        {req.game}
                       </span>
-                    </div>
-                    <p className="text-[11px] text-[#4B5563]">{req.organizer} &bull; <strong className="text-[#C5A059]">{req.clan}</strong></p>
-                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
-                      <p><strong>Game:</strong> {req.game} ({req.format})</p>
-                      <p><strong>Slots:</strong> {req.slots}</p>
-                      <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold">{req.prizePool}</span></p>
+                      <button
+                        onClick={() => setSelectedInspectImage({ ...req, image: req.thumbnail || '/tournament_bgmi_showdown_4k.jpg' })}
+                        className="px-2 py-1 rounded bg-white hover:bg-gold-primary hover:text-black text-gray-900 text-[10px] font-bold flex items-center gap-1 shadow-md cursor-pointer transition-colors active:scale-95"
+                      >
+                        🔍 Inspect Graphic
+                      </button>
                     </div>
                   </div>
-                  {req.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
-                      <button onClick={() => handleApproveHosting(req.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#10B981] hover:bg-[#059669] text-white text-[11px] font-bold transition-colors cursor-pointer">
-                        Approve & Create
-                      </button>
-                      <button onClick={() => handleRejectHosting(req.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
-                        Decline
-                      </button>
+
+                  {/* DETAILS BODY */}
+                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug line-clamp-1">{req.title}</h4>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${
+                          req.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669] border border-emerald-200' :
+                          req.status === 'BLOCKED' ? 'bg-black text-white' :
+                          req.status === 'SUSPENDED' || req.status === 'REJECTED' ? 'bg-rose-50 text-[#EF4444] border border-rose-200' :
+                          'bg-amber-50 text-[#D97706] border border-amber-200'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-[#4B5563]">
+                        {req.organizer} &bull; <strong className="text-[#C5A059]">{req.clan}</strong>
+                      </p>
+
+                      <div className="text-[10px] text-[#4B5563] space-y-1 bg-[#F9FAFB] p-2.5 rounded-[8px] border border-[#E5E7EB]">
+                        <p><strong>Format:</strong> {req.format} &bull; {req.slots}</p>
+                        <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold font-mono">{req.prizePool}</span> (Entry: {req.entryFee})</p>
+                        <p><strong>Schedule:</strong> {req.timing}</p>
+                        <p className="truncate text-[#6B7280]"><strong>Contact:</strong> {req.email} &bull; {req.mobile}</p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Decision Broadcasted</div>
-                  )}
+
+                    {/* DECISION ACTION BUTTONS (ACCEPT, SUSPEND, BLOCK USER) */}
+                    <div className="pt-2 border-t border-[#F3F4F6] flex flex-col gap-1.5">
+                      {req.status === 'PENDING' ? (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveHosting(req.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-[#10B981] hover:bg-[#059669] text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              onClick={() => handleSuspendHosting(req.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                            >
+                              ⚠️ Suspend
+                            </button>
+                            <button
+                              onClick={() => handleRejectHosting(req.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-50 hover:bg-rose-100 text-[#EF4444] text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => handleBlockUser(req.organizer, req.email, req.id)}
+                            className="w-full py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">block</span>
+                            Block User
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between text-[10px] pt-1">
+                          <span className="text-[#6B7280] font-semibold">Status: <strong className="text-[#1F2937]">{req.status}</strong></span>
+                          {req.status !== 'BLOCKED' && (
+                            <button
+                              onClick={() => handleBlockUser(req.organizer, req.email, req.id)}
+                              className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
+                            >
+                              Block User &rarr;
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1336,43 +1219,157 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {(activeTab === 'scrims-requests' || activeTab === 'all-in-one') && (
-          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
-            <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
-              <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#3B82F6] text-[18px]">timer</span>
-                Scrims Requests (Daily / Weekly / Monthly)
-              </h3>
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#3B82F6] text-[10px] font-bold border border-blue-200">
-                {pendingScrimsCount} Pending
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header & Overall Counter Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#3B82F6] text-[20px]">timer</span>
+                  Scrims Requests (Daily / Weekly / Monthly)
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Inspect clan banners and thumbnails, verify match cadence, and approve slots or suspend non-compliant requests.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-[#3B82F6] text-[11px] font-bold border border-blue-200">
+                {pendingScrimsCount} Pending Scheduling
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {/* LIVE OVERALL COUNTERS ABOVE SECTION */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Scrims</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{scrimsRequests.length}</span>
+                </div>
+                <span className="material-symbols-outlined text-[#9CA3AF] text-[22px]">sports_esports</span>
+              </div>
+
+              <div className="bg-blue-50/70 p-3 rounded-[10px] border border-blue-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-blue-700 uppercase tracking-wider block">Pending Requests</span>
+                  <span className="text-[18px] font-bold text-blue-800 font-mono mt-0.5 block">{pendingScrimsCount}</span>
+                </div>
+                <span className="material-symbols-outlined text-blue-500 text-[22px]">schedule</span>
+              </div>
+
+              <div className="bg-emerald-50/70 p-3 rounded-[10px] border border-emerald-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Active Approved</span>
+                  <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
+                    {scrimsRequests.filter(s => s.status === 'APPROVED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-emerald-500 text-[22px]">check_circle</span>
+              </div>
+
+              <div className="bg-rose-50/70 p-3 rounded-[10px] border border-rose-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Suspended / Declined</span>
+                  <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">
+                    {scrimsRequests.filter(s => s.status === 'REJECTED' || s.status === 'SUSPENDED' || s.status === 'BLOCKED').length}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-rose-500 text-[22px]">cancel</span>
+              </div>
+            </div>
+
+            {/* SCRIMS CARDS WITH THUMBNAIL & MODERATION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {scrimsRequests.map(scrim => (
-                <div key={scrim.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded bg-blue-50 text-[#3B82F6] text-[9px] font-bold uppercase">{scrim.frequencyBadge}</span>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${scrim.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669]' : 'bg-amber-50 text-[#D97706]'}`}>{scrim.status}</span>
-                    </div>
-                    <h4 className="text-[13px] font-bold text-[#1F2937]">{scrim.clan}</h4>
-                    <div className="text-[10px] text-[#6B7280] space-y-0.5 bg-[#F3F4F6] p-2 rounded-[6px]">
-                      <p><strong>Game:</strong> {scrim.game} &bull; {scrim.format}</p>
-                      <p><strong>Schedule:</strong> {scrim.schedule}</p>
+                <div
+                  key={scrim.id}
+                  className={`rounded-[14px] border ${scrim.status === 'BLOCKED' ? 'border-rose-400 bg-rose-50/20' : scrim.status === 'SUSPENDED' ? 'border-amber-400 bg-amber-50/20' : 'border-[#D1D1D1]/60 bg-white'} shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group`}
+                >
+                  {/* SCRIM THUMBNAIL */}
+                  <div className="relative w-full h-36 bg-black/10 overflow-hidden shrink-0">
+                    <img
+                      src={scrim.thumbnail || '/tournament_pubg_ultimate_squad_4k.jpg'}
+                      alt={scrim.clan}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-2.5">
+                      <span className="px-2 py-0.5 rounded bg-blue-600/80 backdrop-blur-xs text-white text-[10px] font-bold">
+                        {scrim.frequencyBadge}
+                      </span>
+                      <button
+                        onClick={() => setSelectedInspectImage({ ...scrim, title: scrim.clan, image: scrim.thumbnail || '/tournament_pubg_ultimate_squad_4k.jpg' })}
+                        className="px-2 py-1 rounded bg-white hover:bg-gold-primary hover:text-black text-gray-900 text-[10px] font-bold flex items-center gap-1 shadow-md cursor-pointer transition-colors active:scale-95"
+                      >
+                        🔍 Inspect Graphic
+                      </button>
                     </div>
                   </div>
-                  {scrim.status === 'PENDING' ? (
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#F3F4F6]">
-                      <button onClick={() => handleApproveScrim(scrim.id)} className="flex-1 py-1.5 rounded-[6px] bg-[#3B82F6] hover:bg-blue-700 text-white text-[11px] font-bold transition-colors cursor-pointer">
-                        Approve Schedule
-                      </button>
-                      <button onClick={() => handleRejectScrim(scrim.id)} className="py-1.5 px-3 rounded-[6px] bg-[#F3F4F6] text-[#EF4444] text-[11px] font-bold hover:bg-rose-50 transition-colors cursor-pointer">
-                        Decline
-                      </button>
+
+                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-[13px] font-bold text-[#1F2937] leading-snug line-clamp-1">{scrim.clan}</h4>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${
+                          scrim.status === 'APPROVED' ? 'bg-emerald-50 text-[#059669] border border-emerald-200' :
+                          scrim.status === 'BLOCKED' ? 'bg-black text-white' :
+                          scrim.status === 'SUSPENDED' || scrim.status === 'REJECTED' ? 'bg-rose-50 text-[#EF4444] border border-rose-200' :
+                          'bg-blue-50 text-[#3B82F6] border border-blue-200'
+                        }`}>
+                          {scrim.status}
+                        </span>
+                      </div>
+
+                      <div className="text-[10px] text-[#4B5563] space-y-1 bg-[#F9FAFB] p-2.5 rounded-[8px] border border-[#E5E7EB]">
+                        <p><strong>Tier:</strong> <span className="text-blue-700 font-bold">{scrim.tier}</span> &bull; {scrim.game}</p>
+                        <p><strong>Format:</strong> {scrim.format}</p>
+                        <p><strong>Schedule:</strong> {scrim.schedule}</p>
+                        <p className="truncate text-[#6B7280]"><strong>Contact:</strong> {scrim.contact}</p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Slot Scheduled</div>
-                  )}
+
+                    <div className="pt-2 border-t border-[#F3F4F6] flex flex-col gap-1.5">
+                      {scrim.status === 'PENDING' ? (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveScrim(scrim.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-[#3B82F6] hover:bg-blue-700 text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              onClick={() => handleSuspendScrim(scrim.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                            >
+                              ⚠️ Suspend
+                            </button>
+                            <button
+                              onClick={() => handleRejectScrim(scrim.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-50 hover:bg-rose-100 text-[#EF4444] text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                            className="w-full py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">block</span>
+                            Block User
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between text-[10px] pt-1">
+                          <span className="text-[#6B7280] font-semibold">Status: <strong className="text-[#1F2937]">{scrim.status}</strong></span>
+                          {scrim.status !== 'BLOCKED' && (
+                            <button
+                              onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                              className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
+                            >
+                              Block Clan &rarr;
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1589,6 +1586,158 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL: FULLSCREEN THUMBNAIL & GRAPHIC INSPECTION (ADMIN VERIFICATION)
+          ======================================================== */}
+      {selectedInspectImage && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[16px] max-w-2xl w-full overflow-hidden shadow-2xl border border-gray-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-gold-primary uppercase tracking-wider block">
+                  Mandatory Graphic Inspection
+                </span>
+                <h3 className="text-base font-bold text-gray-900 leading-tight">
+                  {selectedInspectImage.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedInspectImage(null)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Graphic Image Preview */}
+            <div className="relative w-full h-72 sm:h-80 bg-black overflow-hidden flex items-center justify-center">
+              <img
+                src={selectedInspectImage.image || selectedInspectImage.thumbnail || '/tournament_bgmi_showdown_4k.jpg'}
+                alt={selectedInspectImage.title}
+                className="w-full h-full object-contain"
+              />
+              <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded bg-black/75 backdrop-blur-xs text-white text-[11px] font-bold font-mono">
+                Verified 16:9 Esports Graphic
+              </span>
+            </div>
+
+            {/* Organizer & Meta Specs */}
+            <div className="p-4 bg-gray-50/70 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+              <div>
+                <span className="text-gray-500 font-semibold block text-[10px] uppercase">Organizer</span>
+                <span className="font-bold text-gray-900 truncate block">{selectedInspectImage.organizer || selectedInspectImage.clan || 'Community Host'}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 font-semibold block text-[10px] uppercase">Game Title</span>
+                <span className="font-bold text-blue-600 block">{selectedInspectImage.game || 'Esports'}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 font-semibold block text-[10px] uppercase">Prize Pool</span>
+                <span className="font-bold text-emerald-600 block">{selectedInspectImage.prizePool || 'Custom Prize'}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 font-semibold block text-[10px] uppercase">Current Status</span>
+                <span className="font-bold text-amber-600 block">{selectedInspectImage.status || 'PENDING'}</span>
+              </div>
+            </div>
+
+            {/* Quick Decision Actions in Modal */}
+            <div className="p-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    handleApproveHosting(selectedInspectImage.id);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  ✓ Accept & Approve
+                </button>
+                <button
+                  onClick={() => {
+                    handleSuspendHosting(selectedInspectImage.id);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  ⚠️ Suspend & Terminate
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    handleBlockUser(selectedInspectImage.organizer || selectedInspectImage.clan, selectedInspectImage.email || selectedInspectImage.contact, selectedInspectImage.id);
+                  }}
+                  className="px-3.5 py-2 rounded-lg bg-gray-900 hover:bg-black text-rose-300 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">block</span>
+                  Block User
+                </button>
+                <button
+                  onClick={() => setSelectedInspectImage(null)}
+                  className="px-3.5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL: BLOCKED USERS & CLANS REGISTRY
+          ======================================================== */}
+      {showBlockedModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[16px] max-w-lg w-full overflow-hidden shadow-2xl border border-gray-200">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-rose-500 text-[18px]">block</span>
+                Blocked Users & Organizers Registry ({blockedUsers.length})
+              </h3>
+              <button
+                onClick={() => setShowBlockedModal(false)}
+                className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 divide-y divide-gray-100 max-h-80 overflow-y-auto">
+              {blockedUsers.length === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-6">No users currently blocked.</p>
+              ) : (
+                blockedUsers.map(b => (
+                  <div key={b.id || b.email} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                    <div>
+                      <h5 className="font-bold text-gray-900">{b.name}</h5>
+                      <p className="text-gray-500 text-[11px]">{b.email} &bull; <span className="text-rose-600">{b.reason}</span></p>
+                      <span className="text-[10px] text-gray-400">Blocked on {b.date}</span>
+                    </div>
+                    <button
+                      onClick={() => handleUnblockUser(b.email)}
+                      className="px-2.5 py-1 rounded bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 text-[11px] font-bold border border-gray-200 transition-colors cursor-pointer"
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-3 bg-gray-50 border-t border-gray-100 text-right">
+              <button
+                onClick={() => setShowBlockedModal(false)}
+                className="px-4 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold hover:bg-black cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
