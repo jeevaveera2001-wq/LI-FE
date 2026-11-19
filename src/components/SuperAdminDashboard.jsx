@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import DashboardPage from './DashboardPage';
 
 /**
- * NAGULAN Unisex Salon & LiveTournaments.in Command Center
+ * LiveTournaments.in Command Center
  * Built strictly against the NAGULAN Design System Specification:
  * - Colors: #F3F4F6 (Bg), #1F2937 (Text Primary), #4B5563 (Text Secondary), #6B7280 (Muted), #9CA3AF (Metadata), #D1D1D1 (Border)
  * - Accents: #D4AF37, #C5A059, #DFBD78 (Golds), #3B82F6 (Blue), #9333EA (Purple), #10B981, #059669 (Emeralds), #EF4444 (Red), #F59E0B (Amber)
@@ -11,7 +11,7 @@ import DashboardPage from './DashboardPage';
  * - Elevation: shadow-sm, shadow-md
  */
 export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout }) {
-  // Navigation active tab: defaults to exact Nagulan Salon Dashboard ('dashboard')
+  // Navigation active tab: defaults to exact LiveTournaments Dashboard ('dashboard')
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -337,7 +337,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       {
         id: 'ad_2',
         sponsor: 'Razer Gaming Gear',
-        type: 'Official Peripherals Partner + Product Placements',
+        type: 'Official Peripherals & Arena Hardware Partner',
         budget: '₹85,000 / event',
         representative: 'Sneha Rao (Brand Lead India)',
         email: 'sneha.r@razer.com',
@@ -546,131 +546,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="material-symbols-outlined text-[16px]">dashboard</span>
             <span className="flex-1">Dashboard</span>
           </button>
-
-          {/* Billing / POS */}
-          <button
-            onClick={() => { showToast('Billing & POS console ready'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">point_of_sale</span>
-            <span className="flex-1">Billing / POS</span>
-          </button>
-
-          {/* Sales History */}
-          <button
-            onClick={() => { showToast('Sales history indexed'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">history</span>
-            <span className="flex-1">Sales History</span>
-          </button>
-
-          {/* Payments */}
-          <button
-            onClick={() => { showToast('Payment gateways active'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">payments</span>
-            <span className="flex-1">Payments</span>
-          </button>
-
-          {/* Services & Menu */}
-          <button
-            onClick={() => { showToast('Services menu loaded'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">content_cut</span>
-            <span className="flex-1">Services & Menu</span>
-          </button>
-
-          {/* Products & Stock */}
-          <button
-            onClick={() => { showToast('Products & stock updated'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">inventory_2</span>
-            <span className="flex-1">Products & Stock</span>
-          </button>
-
-          {/* Chairs & Stations */}
-          <button
-            onClick={() => { showToast('9 styling stations monitored'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">chair</span>
-            <span className="flex-1">Chairs & Stations</span>
-          </button>
-
-          {/* Attendants */}
-          <button
-            onClick={() => { showToast('Stylists & attendants loaded'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">person</span>
-            <span className="flex-1">Attendants</span>
-          </button>
-
-          {/* Customers */}
-          <button
-            onClick={() => { showToast('702 registered customers'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">badge</span>
-            <span className="flex-1">Customers</span>
-          </button>
-
-          {/* Reports & Analytics */}
-          <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
-            <span className="flex-1">Reports & Analytics</span>
-          </button>
-
-          {/* Admin & Reception */}
-          <button
-            onClick={() => { showToast('Admin & Reception desk'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">shield_person</span>
-            <span className="flex-1">Admin & Reception</span>
-          </button>
-
-          {/* Activity Logs */}
-          <button
-            onClick={() => { showToast('System audit activity logs'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">event_note</span>
-            <span className="flex-1">Activity Logs</span>
-          </button>
-
-          {/* Expenses */}
-          <button
-            onClick={() => { showToast('Expenses log ledger'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">mail</span>
-            <span className="flex-1">Expenses</span>
-          </button>
-
-          {/* Salon Settings */}
-          <button
-            onClick={() => { showToast('Salon & Hub platform settings'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
-          >
-            <span className="material-symbols-outlined text-[16px]">settings</span>
-            <span className="flex-1">Salon Settings</span>
-          </button>
-
-          {/* Section Divider */}
-          <div className="pt-2 pb-1">
-            <div className="h-px bg-[#1F2937]/80 my-1"></div>
-            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Tournament Requests</span>
-          </div>
-
-          {/* Hosting Requests */}
+          {/* Tournament Hostings */}
           <button
             onClick={() => { setActiveTab('hosting-requests'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'hosting-requests' ? 'active' : ''}`}
@@ -690,7 +566,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             className={`nagulan-sidebar-btn ${activeTab === 'scrims-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-            <span className="flex-1">Scrims Requests</span>
+            <span className="flex-1">Daily & Weekly Scrims</span>
             {pendingScrimsCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
                 {pendingScrimsCount}
@@ -712,13 +588,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             )}
           </button>
 
-          {/* Featured Requests */}
+          {/* Featured Arena */}
           <button
             onClick={() => { setActiveTab('featured-requests'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'featured-requests' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">star</span>
-            <span className="flex-1">Featured Requests</span>
+            <span className="flex-1">Featured Arena</span>
             {pendingFeaturedCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
                 {pendingFeaturedCount}
@@ -739,9 +615,78 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </span>
             )}
           </button>
+
+          {/* Section Divider */}
+          <div className="pt-2 pb-1">
+            <div className="h-px bg-[#1F2937]/80 my-1"></div>
+            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Platform Modules</span>
+          </div>
+
+          {/* All Tournaments */}
+          <button
+            onClick={() => { setActiveTab('all-in-one'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'all-in-one' ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">emoji_events</span>
+            <span className="flex-1">All Tournaments</span>
+          </button>
+
+          {/* Active Match Rooms */}
+          <button
+            onClick={() => { showToast('Active automated rooms online'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+            <span className="flex-1">Active Match Rooms</span>
+          </button>
+
+          {/* User Database */}
+          <button
+            onClick={() => { showToast('52,480 registered platform users'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">groups</span>
+            <span className="flex-1">User Database</span>
+          </button>
+
+          {/* Broadcast & Stream Production */}
+          <button
+            onClick={() => { showToast('Production streaming console active'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">live_tv</span>
+            <span className="flex-1">Broadcast & Stream Production</span>
+          </button>
+
+          {/* Reports & Analytics */}
+          <button
+            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
+            <span className="flex-1">Reports & Analytics</span>
+          </button>
+
+          {/* Activity Logs */}
+          <button
+            onClick={() => { showToast('System audit activity logs'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">event_note</span>
+            <span className="flex-1">Activity Logs</span>
+          </button>
+
+          {/* Platform Settings */}
+          <button
+            onClick={() => { showToast('Esports Hub platform settings'); setSidebarOpen(false); }}
+            className="nagulan-sidebar-btn"
+          >
+            <span className="material-symbols-outlined text-[16px]">settings</span>
+            <span className="flex-1">Platform Settings</span>
+          </button>
         </div>
 
-        {/* Footer of Sidebar */}
+                {/* Footer of Sidebar */}
         <div className="p-3 border-t border-[#1F2937]/80 flex flex-col gap-1.5">
           <button
             onClick={() => onNavigate && onNavigate('home')}
@@ -793,8 +738,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-full !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[15px] !text-white">receipt_long</span>
-              <span className="!text-white">New Bill</span>
+              <span className="material-symbols-outlined text-[15px] !text-white">add</span>
+              <span className="!text-white">Host Tournament</span>
             </button>
 
             {/* User Profile Pill with Avatar Circle */}
@@ -951,7 +896,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
             </div>
 
-            {/* ROW 1: 5 Nagulan Salon Direct Metrics (media_1795009600879_721f2f3a.jpg) */}
+            {/* ROW 1: 5 Live Esports Direct Metrics (media_1795009600879_721f2f3a.jpg) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
@@ -967,9 +912,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
               <div className="bg-white rounded-[16px] p-4 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">PRESENT DAY BILLS</span>
-                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">29 Bills</p>
-                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: 26 Bills</p>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">TODAY'S MATCHES</span>
+                  <p className="text-[20px] font-bold text-[#1F2937] mt-0.5 nagulan-mono">29 Matches</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">Yesterday: 26 Matches</p>
                 </div>
                 <div className="pt-2 border-t border-[#F3F4F6] mt-2 flex items-center justify-between text-[10px]">
                   <span className="text-[#10B981] font-semibold">↗ +11.5%</span>
@@ -1187,7 +1132,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#DFBD78] text-[15px]">trending_down</span>
-                        Total Sales Revenue
+                        Total Tournament Turnover
                       </td>
                       <td className="py-2.5 nagulan-mono font-semibold">₹ 6,004</td>
                       <td className="py-2.5 text-[#9CA3AF] nagulan-mono">₹ 7,099</td>
@@ -1201,11 +1146,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <tr>
                       <td className="py-2.5 flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#10B981] text-[15px]">receipt</span>
-                        Total Sales Invoices
+                        Total Hosted Matches
                       </td>
-                      <td className="py-2.5 nagulan-mono font-semibold">29 Bills</td>
-                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">26 Bills</td>
-                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+3 Bills</td>
+                      <td className="py-2.5 nagulan-mono font-semibold">29 Matches</td>
+                      <td className="py-2.5 text-[#9CA3AF] nagulan-mono">26 Matches</td>
+                      <td className="py-2.5 text-[#10B981] nagulan-mono font-semibold">+3 Matches</td>
                       <td className="py-2.5 text-right">
                         <span className="px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#10B981] text-[9px] font-bold border border-emerald-200">
                           High (+11.5%)
@@ -1571,7 +1516,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <div className="flex items-center justify-between pb-3 border-b border-[#F3F4F6]">
               <h3 className="text-[16px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#C5A059]">add_circle</span>
-                New Tournament / Bill
+                New Tournament Hosting Entry
               </h3>
               <button onClick={() => setShowCreateModal(false)} className="text-[#9CA3AF] hover:text-[#1F2937] p-1">
                 <span className="material-symbols-outlined text-[18px]">close</span>

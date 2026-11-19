@@ -5,10 +5,9 @@ import {
   DollarSign,
   Receipt,
   CreditCard,
-  Armchair,
+  Trophy,
   UserCheck,
   TrendingUp,
-  AlertCircle,
   Sparkles,
 } from 'lucide-react';
 import {
@@ -29,22 +28,21 @@ const COLORS = ['#D4AF37', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'
 const DEFAULT_METRICS = {
   summary: {
     todaySales: 6004,
-    todayBills: 29,
+    todayMatches: 29,
     todayTrend: { percentage: '-15.4%', isPositive: false, label: 'vs yesterday' },
     weekSales: 32468,
-    weekBills: 149,
+    weekTournaments: 149,
     weekTrend: { percentage: '-40.6%', isPositive: false, label: 'vs last week' },
     monthSales: 169400,
-    monthBills: 724,
+    monthTournaments: 724,
     monthTrend: { percentage: '+1025.1%', isPositive: true, label: 'vs last month' },
-    activeChairs: 0,
-    totalChairs: 9,
+    activeHostings: 148,
+    totalHostings: 200,
     cashPayments: 73151,
     upiPayments: 85484,
     cardPayments: 0,
-    totalCustomers: 702,
+    totalUsers: 702,
   },
-  lowStockProducts: [],
   dailySalesChart: [
     { day: 'Thu', sales: 7500 },
     { day: 'Fri', sales: 7800 },
@@ -55,37 +53,37 @@ const DEFAULT_METRICS = {
     { day: 'Wed', sales: 6004 },
   ],
   paymentBreakdown: [
-    { method: 'Cash', amount: 73151 },
-    { method: 'UPI', amount: 85484 },
-    { method: 'Debit card', amount: 0 },
-    { method: 'Credit card', amount: 0 },
-    { method: 'Split payment', amount: 10765 },
+    { method: 'Cash Entry', amount: 73151 },
+    { method: 'UPI / QR', amount: 85484 },
+    { method: 'Card Gateway', amount: 0 },
+    { method: 'NetBanking', amount: 0 },
+    { method: 'Team Split', amount: 10765 },
     { method: 'Other', amount: 0 },
   ],
-  topAttendants: [
+  topOrganizers: [
     {
-      fullName: 'mohan',
-      specialization: 'Hair Cut, Beard Styling',
-      totalSalesGenerated: 110528,
-      servicesCompleted: 486,
+      name: 'Clan Hydra Esports',
+      format: 'BGMI, Squad Pro League',
+      totalPrizeGenerated: 110528,
+      matchesCompleted: 486,
     },
     {
-      fullName: 'SAKTHI 1031',
-      specialization: 'Hair Cut, Beard Styling',
-      totalSalesGenerated: 51801,
-      servicesCompleted: 286,
+      name: 'Team Venom Gaming',
+      format: 'Free Fire MAX, Clash Squad',
+      totalPrizeGenerated: 51801,
+      matchesCompleted: 286,
     },
     {
-      fullName: 'SANU',
-      specialization: 'Hair Cut, Beard Styling',
-      totalSalesGenerated: 10203,
-      servicesCompleted: 63,
+      name: 'Deadly 5 Esports',
+      format: 'Valorant 5v5 Spike Plant',
+      totalPrizeGenerated: 10203,
+      matchesCompleted: 63,
     },
   ],
-  popularServices: [
-    { name: 'Haircut,Trimming(or)shaving', count: 451 },
-    { name: 'beard trimming (OR) shaving', count: 94 },
-    { name: 'haircut only', count: 79 },
+  popularFormats: [
+    { name: 'BGMI Battle Royale (Squad Erangel / Miramar)', count: 451 },
+    { name: 'Free Fire MAX Clash Squad 4v4', count: 94 },
+    { name: 'Valorant 5v5 Spike Plant', count: 79 },
   ],
 };
 
@@ -110,7 +108,7 @@ export const DashboardPage = ({ metricsData = null }) => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2">
-            <SkeletonChart title="Sales Trend Pacing" height="h-56" />
+            <SkeletonChart title="Tournament Trend Pacing" height="h-56" />
           </div>
           <div>
             <SkeletonChart title="Payment Channels" height="h-56" />
@@ -131,68 +129,47 @@ export const DashboardPage = ({ metricsData = null }) => {
   return (
     <PullToRefresh onRefresh={() => setData(DEFAULT_METRICS)}>
       <div className="space-y-3 lg:space-y-3.5 flex flex-col justify-between overflow-y-auto">
-        {/* Low Stock Warning (if any) */}
-        {data?.lowStockProducts?.length > 0 && (
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 shrink-0">
-            <div className="flex items-center gap-2 text-xs">
-              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-              <span className="font-bold text-amber-800">
-                Low Stock Warning ({data.lowStockProducts.length} Items):
-              </span>
-              <span className="text-amber-700 font-medium truncate max-w-xl">
-                {data.lowStockProducts.map((p) => `${p.name} (${p.currentStock})`).join(', ')}
-              </span>
-            </div>
-            <a
-              href="#products"
-              className="text-[11px] font-bold text-amber-600 hover:underline shrink-0"
-            >
-              Manage Stock &rarr;
-            </a>
-          </div>
-        )}
-
         {/* Row 1: Top 4 Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
           <StatCard
             title="Today's Revenue"
             value={`₹ ${Number(summary.todaySales || 0).toLocaleString('en-IN')}`}
-            subtitle={`${summary.todayBills || 0} Bills Today`}
+            subtitle={`${summary.todayMatches || 0} Matches Today`}
             icon={DollarSign}
             trend={summary.todayTrend?.percentage}
             trendPositive={summary.todayTrend?.isPositive}
             comparisonLabel={summary.todayTrend?.label || 'vs yesterday'}
           />
           <StatCard
-            title="Weekly Sales"
+            title="Weekly Volume"
             value={`₹ ${Number(summary.weekSales || 0).toLocaleString('en-IN')}`}
-            subtitle={`${summary.weekBills || 0} Bills this week`}
+            subtitle={`${summary.weekTournaments || 0} Tournaments this week`}
             icon={Receipt}
             trend={summary.weekTrend?.percentage}
             trendPositive={summary.weekTrend?.isPositive}
             comparisonLabel={summary.weekTrend?.label || 'vs last week'}
           />
           <StatCard
-            title="Monthly Sales"
+            title="Monthly Revenue"
             value={`₹ ${Number(summary.monthSales || 0).toLocaleString('en-IN')}`}
-            subtitle={`${summary.monthBills || 0} Bills this month`}
+            subtitle={`${summary.monthTournaments || 0} Tournaments this month`}
             icon={TrendingUp}
             trend={summary.monthTrend?.percentage}
             trendPositive={summary.monthTrend?.isPositive}
             comparisonLabel={summary.monthTrend?.label || 'vs last month'}
           />
           <StatCard
-            title="Styling Stations"
-            value={`${summary.activeChairs || 0} / ${summary.totalChairs || 0}`}
-            subtitle={`${(summary.totalChairs || 0) - (summary.activeChairs || 0)} Stations Free`}
-            icon={Armchair}
-            trend={summary.totalChairs > 0 ? `${Math.round(((summary.activeChairs || 0) / summary.totalChairs) * 100)}%` : null}
-            trendPositive={(summary.activeChairs || 0) > 0}
-            comparisonLabel="Occupancy Rate"
+            title="Monthly Sub Hostings"
+            value={`${summary.activeHostings || 0} / ${summary.totalHostings || 0}`}
+            subtitle={`${(summary.totalHostings || 0) - (summary.activeHostings || 0)} Slots Free`}
+            icon={Trophy}
+            trend="+12.1%"
+            trendPositive={true}
+            comparisonLabel="Growth Rate"
           />
         </div>
 
-        {/* Row 2: 4 Payment Channels Cards */}
+        {/* Row 2: 4 Payment Channels / Registrations Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
           <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
             <div>
@@ -233,10 +210,10 @@ export const DashboardPage = ({ metricsData = null }) => {
           <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
             <div>
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
-                Total Clients
+                Total Users
               </span>
               <span className="text-sm sm:text-base font-bold text-emerald-600 font-mono mt-0.5 block">
-                {summary.totalCustomers || 0} Registered
+                {summary.totalUsers || 702} Registered
               </span>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
@@ -339,22 +316,22 @@ export const DashboardPage = ({ metricsData = null }) => {
           </div>
         </div>
 
-        {/* Row 4: Top Performing Attendants & Popular Services */}
+        {/* Row 4: Top Organizers & Popular Esports Formats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
-          {/* Top Attendants */}
+          {/* Top Organizers & Hosts */}
           <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-gold-500" />
-                Top Stylists & Attendants
+                Top Organizers & Hosts
               </h3>
-              <a href="#attendants" className="text-[10px] text-gold-600 font-semibold hover:underline">
+              <a href="#organizers" className="text-[10px] text-gold-600 font-semibold hover:underline">
                 View All &rarr;
               </a>
             </div>
 
             <div className="space-y-1.5">
-              {(data?.topAttendants || []).slice(0, 3).map((att, idx) => (
+              {(data?.topOrganizers || []).slice(0, 3).map((org, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between p-2 rounded-xl bg-gray-50 border border-gray-100 text-xs"
@@ -364,18 +341,18 @@ export const DashboardPage = ({ metricsData = null }) => {
                       {idx + 1}
                     </div>
                     <div className="truncate">
-                      <h4 className="font-bold text-gray-900 truncate">{att.fullName}</h4>
+                      <h4 className="font-bold text-gray-900 truncate">{org.name}</h4>
                       <p className="text-[9px] text-gray-400 truncate">
-                        {Array.isArray(att.specialization) ? att.specialization.join(', ') : att.specialization || 'Stylist'}
+                        {org.format}
                       </p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="font-bold text-gray-900 font-mono block">
-                      ₹ {Number(att.totalSalesGenerated || 0).toLocaleString('en-IN')}
+                      ₹ {Number(org.totalPrizeGenerated || 0).toLocaleString('en-IN')}
                     </span>
                     <span className="text-[9px] text-green-600 font-semibold">
-                      {att.servicesCompleted || 0} services
+                      {org.matchesCompleted || 0} tournaments
                     </span>
                   </div>
                 </div>
@@ -383,20 +360,20 @@ export const DashboardPage = ({ metricsData = null }) => {
             </div>
           </div>
 
-          {/* Most Popular Services */}
+          {/* Most Popular Esports Formats */}
           <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-                Most Popular Services
+                Most Popular Esports Formats
               </h3>
-              <a href="#services" className="text-[10px] text-gold-600 font-semibold hover:underline">
-                Menu &rarr;
+              <a href="#formats" className="text-[10px] text-gold-600 font-semibold hover:underline">
+                All Modes &rarr;
               </a>
             </div>
 
             <div className="space-y-1.5">
-              {(data?.popularServices || []).slice(0, 3).map((srv, idx) => (
+              {(data?.popularFormats || []).slice(0, 3).map((fmt, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between p-2 rounded-xl bg-gray-50 border border-gray-100 text-xs"
@@ -404,11 +381,11 @@ export const DashboardPage = ({ metricsData = null }) => {
                   <div className="flex items-center gap-2 truncate">
                     <span className="w-1.5 h-1.5 rounded-full bg-gold-500 shrink-0" />
                     <span className="font-medium text-gray-800 truncate">
-                      {srv.name}
+                      {fmt.name}
                     </span>
                   </div>
                   <span className="text-[10px] font-bold text-gold-600 px-2 py-0.5 rounded bg-gold-500/10 shrink-0">
-                    {srv.count} Bookings
+                    {fmt.count} Tournaments
                   </span>
                 </div>
               ))}
