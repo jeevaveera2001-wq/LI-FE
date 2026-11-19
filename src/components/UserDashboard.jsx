@@ -22,58 +22,76 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     }, 600);
   };
 
-  // Joined Tournaments (User Registrations)
+  // Helper to purge legacy mock items from competitor session
+  const isUserMock = (id) => {
+    if (!id) return true;
+    const str = String(id);
+    return str === 'bgmi-sd-reg-01' || str === 'scrim-tier1-01' || str.startsWith('mock_') || str.startsWith('demo_');
+  };
+
+  // Joined Tournaments (User Registrations - Realtime only)
   const [joinedTournaments, setJoinedTournaments] = useState(() => {
     const saved = localStorage.getItem('lt_user_joined_tourneys');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return [
-      {
-        id: 'bgmi-sd-reg-01',
-        title: 'BGMI Showdown Grand Finals',
-        game: 'Battlegrounds Mobile India',
-        format: 'Squad (Erangel + Miramar)',
-        date: 'Today, Nov 19, 2026',
-        time: '7:00 PM IST',
-        slotNumber: 'Slot #14 (Clan Phoenix)',
-        status: 'CONFIRMED',
-        roomCode: 'LT-88421',
-        roomPass: 'BGMI2026',
-        prizePool: '₹ 1,50,000 INR',
-        thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg'
-      }
-    ];
-  });
-
-  // User Hosted Tournaments
-  const [hostedTournaments, setHostedTournaments] = useState(() => {
-    const saved = localStorage.getItem('lt_user_hosted_tourneys');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(t => !isUserMock(t.id));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_user_joined_tourneys', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // User Scrims
+  // User Hosted Tournaments (Realtime only)
+  const [hostedTournaments, setHostedTournaments] = useState(() => {
+    const saved = localStorage.getItem('lt_user_hosted_tourneys');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(t => !isUserMock(t.id));
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  // User Scrims (Realtime only)
   const [joinedScrims, setJoinedScrims] = useState(() => {
     const saved = localStorage.getItem('lt_user_scrims');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(s => !isUserMock(s.id));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_user_scrims', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
-    return [
-      {
-        id: 'scrim-tier1-01',
-        title: 'Daily Tier-1 Erangel Pro Scrim',
-        game: 'BGMI',
-        timing: 'Tonight, 9:30 PM IST',
-        slots: '22/25 Squads',
-        status: 'SLOT ALLOCATED',
-        roomCode: 'SCRIM-7719',
-        roomPass: 'PROPLAY'
-      }
-    ];
+    return [];
   });
+
+  // Proactive cleanup of any legacy user mock entries in localStorage
+  useEffect(() => {
+    ['lt_user_joined_tourneys', 'lt_user_hosted_tourneys', 'lt_user_scrims'].forEach(k => {
+      try {
+        const val = localStorage.getItem(k);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            const clean = parsed.filter(item => !isUserMock(item?.id));
+            localStorage.setItem(k, JSON.stringify(clean));
+          }
+        }
+      } catch (e) {}
+    });
+  }, []);
 
   // User Digital Wallet & Transactions
   const [walletBalance, setWalletBalance] = useState(() => {
@@ -182,6 +200,12 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
 
       const updatedUserHosted = [newHostingEntry, ...hostedTournaments];
       setHostedTournaments(updatedUserHosted);
+
+      // Sync real hosting entry to Super Admin Hosting Requests queue
+      try {
+        const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+        localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newHostingEntry, ...adminHostings]));
+      } catch (e) {}
 
       // Record transaction
       const newTx = {
@@ -492,14 +516,14 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">REGISTERED MATCHES</span>
                     <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedTournaments.length} Matches</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 1 Match</p>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Active Tournament Entries</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                       <span className="material-symbols-outlined text-[15px]">check_circle</span>
                       Confirmed
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">Live Synced</span>
                   </div>
                 </div>
 
@@ -508,14 +532,14 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">HOSTED TOURNAMENTS</span>
                     <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{hostedTournaments.length} Events</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 0 Events</p>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Total Hosted Competitions</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-blue-600">
                       <span className="material-symbols-outlined text-[15px]">verified</span>
                       {hostedTournaments.filter(h => h.status === 'APPROVED').length} Active
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">Organizer Studio</span>
                   </div>
                 </div>
 
@@ -524,14 +548,14 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">DAILY SCRIMS</span>
                     <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedScrims.length} Scrims</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 1 Scrim</p>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Practice Slot Bookings</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                       <span className="material-symbols-outlined text-[15px]">timer</span>
                       Clan Pool
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">Live Allocated</span>
                   </div>
                 </div>
 
@@ -692,22 +716,24 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 </div>
               </div>
 
-              {/* 4 Present Day Core Metric Cards */}
+              {/* 4 Present Day Core Metric Cards (Realtime Competitor Metrics) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 
                 {/* 1. Present Day Total */}
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY TOTAL</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 3,450</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 2,610</p>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
+                      ₹ {transactions.filter(t => t.type === 'DEBIT').reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Realtime Tournament Volume</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
-                      +32.2%
+                      <span className="material-symbols-outlined text-[15px]">verified</span>
+                      Live Synced
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">Session Active</span>
                   </div>
                 </div>
 
@@ -715,15 +741,17 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">TODAY'S MATCHES</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">6 Matches</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: 4 Matches</p>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
+                      {joinedTournaments.length + joinedScrims.length} Matches
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Active Clan &amp; Squad Lobbies</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                       <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
-                      +50.0%
+                      Live Arena
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">Auto Refreshed</span>
                   </div>
                 </div>
 
@@ -731,15 +759,17 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 1,428</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 1,200</p>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
+                      ₹ {transactions.filter(t => t.type === 'DEBIT' && String(t.reference || '').includes('UPI')).reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Instant QR &amp; VPA Transfers</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
-                      +19.0%
+                      <span className="material-symbols-outlined text-[15px]">bolt</span>
+                      Instant
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">0% Fee</span>
                   </div>
                 </div>
 
@@ -747,62 +777,85 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ 499</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Yesterday: ₹ 0</p>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
+                      ₹ {transactions.filter(t => t.type === 'DEBIT' && !String(t.reference || '').includes('UPI')).reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Gateway Direct &amp; NetBanking</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
-                      +100%
+                      <span className="material-symbols-outlined text-[15px]">credit_card</span>
+                      Secure
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">vs Yesterday</span>
+                    <span className="text-xs text-slate-400 font-medium">RBI Compliant</span>
                   </div>
                 </div>
 
               </div>
 
-              {/* Today's Match Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700 border border-red-200">
-                      🔴 In Progress
-                    </span>
-                    <span className="text-xs font-mono text-gray-500">Starts 7:00 PM IST</span>
+              {/* Today's Match Cards (Dynamic & Zero Mock Data) */}
+              {joinedTournaments.length === 0 && joinedScrims.length === 0 ? (
+                <div className="py-12 text-center bg-white rounded-[16px] border border-dashed border-[#D1D1D1]/80 p-8 shadow-xs">
+                  <div className="size-12 rounded-full bg-[#DFBD78]/10 border border-[#DFBD78]/30 flex items-center justify-center text-[#C5A059] mx-auto mb-3">
+                    <span className="material-symbols-outlined text-[24px]">sports_esports</span>
                   </div>
-                  <h3 className="font-bold text-base text-[#1F2937]">BGMI Showdown Grand Finals - Match 4</h3>
-                  <p className="text-xs text-gray-600">Erangel Custom Drop • 16 Top Squads • Official Production</p>
-                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-gray-900">Room: LT-88421</span>
-                    <button
-                      onClick={() => showToast('Connecting to Room Server LT-88421...')}
-                      className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
-                    >
-                      Connect Room
-                    </button>
-                  </div>
+                  <h4 className="font-bold text-sm text-[#1F2937]">No Matches Scheduled for Today</h4>
+                  <p className="text-xs text-[#6B7280] mt-1 max-w-md mx-auto">
+                    You haven't joined any live match rooms or scheduled scrims for today yet. Browse active tournaments to register your squad!
+                  </p>
+                  <button
+                    onClick={() => onNavigate && onNavigate('home')}
+                    className="mt-4 px-4 py-2 rounded-xl bg-[#1E1911] text-[#DFBD78] font-bold text-xs border border-[#DFBD78]/40 hover:bg-black transition-all cursor-pointer"
+                  >
+                    Browse Tournaments
+                  </button>
                 </div>
-
-                <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
-                      ⏱ Upcoming Scrim
-                    </span>
-                    <span className="text-xs font-mono text-gray-500">9:30 PM IST</span>
-                  </div>
-                  <h3 className="font-bold text-base text-[#1F2937]">Tier-1 Daily Practice Scrims</h3>
-                  <p className="text-xs text-gray-600">Miramar Circle Speed • Automatic Leaderboard Points</p>
-                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-gray-900">Slot #14 Assigned</span>
-                    <button
-                      onClick={() => showToast('Slot #14 Confirmed for 9:30 PM Scrim')}
-                      className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
-                    >
-                      Check Slot
-                    </button>
-                  </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {joinedTournaments.map(t => (
+                    <div key={t.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700 border border-red-200">
+                          🔴 {t.status || 'Active'}
+                        </span>
+                        <span className="text-xs font-mono text-gray-500">{t.time || 'Today'}</span>
+                      </div>
+                      <h3 className="font-bold text-base text-[#1F2937]">{t.title}</h3>
+                      <p className="text-xs text-gray-600">{t.format} &bull; {t.slotNumber}</p>
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-gray-900">Room: {t.roomCode || 'TBD'}</span>
+                        <button
+                          onClick={() => setSelectedBriefing(t)}
+                          className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {joinedScrims.map(s => (
+                    <div key={s.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
+                          ⏱ {s.status || 'Upcoming Scrim'}
+                        </span>
+                        <span className="text-xs font-mono text-gray-500">{s.timing}</span>
+                      </div>
+                      <h3 className="font-bold text-base text-[#1F2937]">{s.title}</h3>
+                      <p className="text-xs text-gray-600">{s.game} &bull; Capacity: {s.slots}</p>
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-gray-900">Room: {s.roomCode || 'TBD'}</span>
+                        <button
+                          onClick={() => showToast(`Room credentials: ${s.roomCode} / Pass: ${s.roomPass}`)}
+                          className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
+                        >
+                          Check Slot
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -1245,30 +1298,40 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {joinedScrims.map((s) => (
-                  <div key={s.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
-                        {s.game}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-emerald-600">{s.status}</span>
+              {joinedScrims.length === 0 ? (
+                <div className="bg-white rounded-[12px] p-12 text-center border border-[#D1D1D1]/60 space-y-3">
+                  <span className="text-4xl block">🎯</span>
+                  <h3 className="text-base font-bold text-[#1F2937]">No Active Scrims Assigned</h3>
+                  <p className="text-xs text-[#6B7280] max-w-sm mx-auto">
+                    You haven't booked any daily practice scrims for today. Click Quick Slot Book to allocate clan room codes and schedule briefings.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {joinedScrims.map((s) => (
+                    <div key={s.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
+                          {s.game}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-emerald-600">{s.status}</span>
+                      </div>
+                      <h3 className="font-bold text-base text-[#1F2937]">{s.title}</h3>
+                      <p className="text-xs text-gray-600">{s.timing} &bull; Capacity: {s.slots}</p>
+                      
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode}</span>
+                        <button
+                          onClick={() => showToast(`Room credentials copied: ${s.roomCode} / Pass: ${s.roomPass}`)}
+                          className="px-3 py-1 rounded bg-gray-900 text-white text-xs font-bold hover:bg-black cursor-pointer"
+                        >
+                          Copy Credentials
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="font-bold text-base text-[#1F2937]">{s.title}</h3>
-                    <p className="text-xs text-gray-600">{s.timing} &bull; Capacity: {s.slots}</p>
-                    
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode}</span>
-                      <button
-                        onClick={() => showToast(`Room credentials copied: ${s.roomCode} / Pass: ${s.roomPass}`)}
-                        className="px-3 py-1 rounded bg-gray-900 text-white text-xs font-bold hover:bg-black cursor-pointer"
-                      >
-                        Copy Credentials
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

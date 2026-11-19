@@ -87,62 +87,199 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('⚡ Live telemetry & database synced in real-time');
   };
 
-  // 1. TOURNAMENT HOSTING REQUESTS BY USERS
-    const [hostingRequests, setHostingRequests] = useState(() => {
+  // Comprehensive validator to detect and purge legacy mock data entries
+  const isMockEntry = (item) => {
+    if (!item || typeof item !== 'object') return true;
+    const idStr = String(item.id || '');
+    if (
+      idStr.startsWith('req_h') ||
+      idStr.startsWith('req_s') ||
+      idStr.startsWith('req_p') ||
+      idStr.startsWith('req_f') ||
+      idStr.startsWith('req_a') ||
+      idStr.startsWith('mock_') ||
+      idStr.startsWith('demo_') ||
+      ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2'].includes(idStr)
+    ) {
+      return true;
+    }
+    const organizer = String(item.organizer || item.brand || item.company || item.sponsor || '');
+    const mockOrganizers = [
+      'Aditya Sharma', 'Karan Patel', 'Rohan Mehra', 'Sameer Khan', 'Vikram Sethi', 'Pooja Verma',
+      'Monster Energy India', 'Logitech G India', 'Rooter Esports App', 'OnePlus Nord India',
+      'Red Bull Campus Clutch India', 'KRAFTON Community Official', 'Skyesports Masters India',
+      'Clan Hydra Esports', 'Team Venom Gaming', 'Deadly 5 Esports', 'Delta Force India', 'Apex Gladiators', 'Shadow Strikers'
+    ];
+    if (mockOrganizers.includes(organizer)) return true;
+    const title = String(item.title || item.tournament || item.clan || '');
+    const mockTitles = [
+      'BGMI Underdog Showdown S4', 'Free Fire MAX Clutch Masters Cup', 'Valorant Mumbai Spike League',
+      'COD Mobile Battle Royale War', 'Apex Legends Predators Rumble', 'BGMI Weekend Midnight Custom',
+      'Villager Pro Invitational - Winter 2026', 'Diwali Battleground Wars 2026', 'All-India College Esports Cup',
+      'Red Bull Valorant Championship 2026', 'Battlegrounds All-Stars Grand Finale', 'Skyesports CS2 Winter Invitational',
+      'BGMI Pro Invitational 2026', 'Free Fire MAX Grand Finals', 'Valorant India Championship',
+      'Call of Duty: Mobile Masters', 'Apex Legends Global Series Cup'
+    ];
+    if (mockTitles.includes(title)) return true;
+    return false;
+  };
+
+  // 1. TOURNAMENT HOSTING REQUESTS BY USERS (Realtime submissions only)
+  const [hostingRequests, setHostingRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_hosting_requests');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(r => !isMockEntry(r));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // 2. SCRIMS REQUESTS (DAILY, WEEKLY, MONTHLY)
-    const [scrimsRequests, setScrimsRequests] = useState(() => {
+  // 2. SCRIMS REQUESTS (Realtime only)
+  const [scrimsRequests, setScrimsRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_scrims_requests');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(r => !isMockEntry(r));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // 3. HOSTING TOURNAMENTS REQUESTS (PARTNERED)
-    const [partnerHostingRequests, setPartnerHostingRequests] = useState(() => {
+  // 3. HOSTING TOURNAMENTS REQUESTS (PARTNERED) (Realtime only)
+  const [partnerHostingRequests, setPartnerHostingRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_partner_hostings');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(r => !isMockEntry(r));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_admin_partner_hostings', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // 4. FEATURED TOURNAMENTS REQUESTS
-    const [featuredRequests, setFeaturedRequests] = useState(() => {
+  // 4. FEATURED TOURNAMENTS REQUESTS (Realtime only)
+  const [featuredRequests, setFeaturedRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_featured_requests');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(r => !isMockEntry(r));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_admin_featured_requests', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // 5. ADVERTISEMENT & SPONSORSHIP REQUESTS
-    const [adRequests, setAdRequests] = useState(() => {
+  // 5. ADVERTISEMENT & SPONSORSHIP REQUESTS (Realtime only)
+  const [adRequests, setAdRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_ad_requests');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(r => !isMockEntry(r));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_admin_ad_requests', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
     }
     return [];
   });
 
-  // 6. ALL TOURNAMENTS
+  // 6. ALL TOURNAMENTS (Realtime only)
   const [tournaments, setTournaments] = useState(() => {
     const saved = localStorage.getItem('lt_admin_tournaments');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(t => !isMockEntry(t));
+      } catch (e) {}
     }
     return [];
   });
 
+  // Proactive cleanup across all localStorage keys on mount to wipe any lingering legacy mock data
+  useEffect(() => {
+    const keys = [
+      'lt_admin_hosting_requests',
+      'lt_admin_scrims_requests',
+      'lt_admin_partner_hostings',
+      'lt_admin_featured_requests',
+      'lt_admin_ad_requests',
+      'lt_admin_all_tournaments',
+      'lt_active_match_rooms',
+      'lt_admin_tournaments',
+      'lt_payments_history'
+    ];
+    keys.forEach(k => {
+      try {
+        const val = localStorage.getItem(k);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            const clean = parsed.filter(item => !isMockEntry(item));
+            localStorage.setItem(k, JSON.stringify(clean));
+          }
+        }
+      } catch (e) {}
+    });
+  }, []);
+
+  // Sync real user submissions from competitor portal in real time
+  useEffect(() => {
+    const syncRealUserHostings = () => {
+      try {
+        const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+        if (userHostingsRaw) {
+          const userHostings = JSON.parse(userHostingsRaw);
+          if (Array.isArray(userHostings) && userHostings.length > 0) {
+            setHostingRequests(prev => {
+              const prevIds = new Set(prev.map(p => p.id));
+              const toAdd = userHostings.filter(h => !prevIds.has(h.id) && !isMockEntry(h));
+              if (toAdd.length > 0) {
+                return [...toAdd, ...prev];
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (e) {}
+    };
+    syncRealUserHostings();
+    window.addEventListener('storage', syncRealUserHostings);
+    return () => window.removeEventListener('storage', syncRealUserHostings);
+  }, []);
+
   // Modal State
-    // ==========================================
+  // ==========================================
   // MODULE STATES: ALL TOURNAMENTS, ACTIVE ROOMS, USER DB, BROADCASTS, REPORTS, LOGS, PAYMENTS
   // ==========================================
   const [tournamentFilterGame, setTournamentFilterGame] = useState('ALL');
@@ -154,7 +291,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.filter(t => !isMockEntry(t));
       } catch (e) {}
     }
     return [];
@@ -169,7 +306,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.filter(r => !isMockEntry(r));
       } catch (e) {}
     }
     return [];
@@ -402,7 +539,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.filter(tx => !isMockEntry(tx));
       } catch (e) {}
     }
     return [];
@@ -1584,7 +1721,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
             {/* REQUEST CARDS GRID WITH MANDATORY THUMBNAILS & ADMIN CONTROLS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hostingRequests.map(req => (
+              {hostingRequests.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[32px] text-gray-400">inbox</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937] mt-1.5">No Tournament Hosting Requests</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-sm mx-auto mt-0.5">
+                    Real community tournament hosting submissions will appear here in real time when submitted by organizers.
+                  </p>
+                </div>
+              ) : (
+                hostingRequests.map(req => (
                 <div
                   key={req.id}
                   className={`rounded-[14px] border ${req.status === 'BLOCKED' ? 'border-rose-400 bg-rose-50/20' : req.status === 'SUSPENDED' ? 'border-amber-400 bg-amber-50/20' : 'border-[#D1D1D1]/60 bg-white'} shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group`}
@@ -1684,7 +1830,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </section>
         )}
@@ -1748,7 +1895,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
             {/* SCRIMS CARDS WITH THUMBNAIL & MODERATION */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {scrimsRequests.map(scrim => (
+              {scrimsRequests.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[32px] text-gray-400">sports_esports</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937] mt-1.5">No Scrim Requests</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-sm mx-auto mt-0.5">
+                    Clan practice and daily/weekly scrim submissions will appear here in real time.
+                  </p>
+                </div>
+              ) : (
+                scrimsRequests.map(scrim => (
                 <div
                   key={scrim.id}
                   className={`rounded-[14px] border ${scrim.status === 'BLOCKED' ? 'border-rose-400 bg-rose-50/20' : scrim.status === 'SUSPENDED' ? 'border-amber-400 bg-amber-50/20' : 'border-[#D1D1D1]/60 bg-white'} shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group`}
@@ -1842,7 +1998,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </section>
         )}
@@ -1860,7 +2017,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {partnerHostingRequests.map(part => (
+              {partnerHostingRequests.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[32px] text-gray-400">workspace_premium</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937] mt-1.5">No Partner Hosting Requests</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-sm mx-auto mt-0.5">
+                    Proposals from verified brand partners will appear here in real time.
+                  </p>
+                </div>
+              ) : (
+                partnerHostingRequests.map(part => (
                 <div key={part.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
@@ -1887,7 +2053,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Partner Approved</div>
                   )}
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </section>
         )}
@@ -1905,7 +2072,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {featuredRequests.map(feat => (
+              {featuredRequests.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[32px] text-gray-400">star</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937] mt-1.5">No Featured Arena Requests</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-sm mx-auto mt-0.5">
+                    Featured banner placement requests will appear here in real time.
+                  </p>
+                </div>
+              ) : (
+                featuredRequests.map(feat => (
                 <div key={feat.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
                   <div className="space-y-1.5">
                     <h4 className="text-[13px] font-bold text-[#1F2937]">{feat.tournament}</h4>
@@ -1929,7 +2105,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Featured Active</div>
                   )}
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </section>
         )}
@@ -1947,7 +2124,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {adRequests.map(ad => (
+              {adRequests.length === 0 ? (
+                <div className="col-span-full py-12 text-center bg-[#F9FAFB] rounded-[14px] border border-dashed border-[#D1D1D1]">
+                  <span className="material-symbols-outlined text-[32px] text-gray-400">campaign</span>
+                  <h4 className="text-[14px] font-bold text-[#1F2937] mt-1.5">No Ad or Sponsorship Requests</h4>
+                  <p className="text-[11px] text-[#6B7280] max-w-sm mx-auto mt-0.5">
+                    Brand sponsorship and banner campaign proposals will appear here in real time.
+                  </p>
+                </div>
+              ) : (
+                adRequests.map(ad => (
                 <div key={ad.id} className="rounded-[12px] border border-[#D1D1D1]/60 p-4 bg-white hover:shadow-md transition-shadow flex flex-col justify-between gap-3">
                   <div className="space-y-1.5">
                     <h4 className="text-[13px] font-bold text-[#1F2937]">{ad.sponsor}</h4>
@@ -1970,7 +2156,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <div className="text-center text-[10px] font-bold text-[#9CA3AF] py-1">Sponsorship Confirmed</div>
                   )}
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </section>
         )}
