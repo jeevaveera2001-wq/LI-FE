@@ -41,7 +41,7 @@ export default function App() {
     return 'home';
   });
 
-  const navigateTo = (page) => {
+  const navigateTo = (page, sectionId) => {
     setCurrentPage(page);
     if (typeof window !== 'undefined') {
       let targetUrl = '/';
@@ -50,8 +50,21 @@ export default function App() {
       else if (page === 'about') targetUrl = '/about';
       else if (page !== 'home') targetUrl = `/${page}`;
 
-      window.history.pushState({ page }, '', targetUrl);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (sectionId) {
+        targetUrl += `#${sectionId}`;
+      }
+
+      window.history.pushState({ page, sectionId }, '', targetUrl);
+      if (sectionId) {
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -88,10 +101,27 @@ export default function App() {
         setCurrentPage('about');
       } else {
         setCurrentPage('home');
+        if (window.location.hash) {
+          const hashId = window.location.hash.replace('#', '');
+          setTimeout(() => {
+            const el = document.getElementById(hashId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 150);
+        }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
+    
+    // Check initial hash on mount
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashId = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        const el = document.getElementById(hashId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
@@ -154,9 +184,9 @@ export default function App() {
                 <HeroSection onNavigate={navigateTo} />
                 <NewsletterSection />
                 <GamesSection />
-                <FeaturedTournamentsSection />
-                <ChampionshipTrophySection />
-                <HostTournamentsSection />
+                <FeaturedTournamentsSection onNavigate={navigateTo} />
+                <ChampionshipTrophySection onNavigate={navigateTo} />
+                <HostTournamentsSection onNavigate={navigateTo} />
                 <RecapsSection />
                 <PartnersSection />
               </>

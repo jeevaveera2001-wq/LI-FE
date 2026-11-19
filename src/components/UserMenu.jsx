@@ -18,21 +18,11 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
   const handleNav = (target) => {
     setIsOpen(false);
     if (target === 'tournaments') {
-      if (onNavigate) onNavigate('home');
-      setTimeout(() => {
-        const el = document.getElementById('featured-tournaments') || document.querySelector('[data-section="tournaments"]');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-        else window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' });
-      }, 100);
+      if (onNavigate) onNavigate('home', 'tournaments-section');
       return;
     }
     if (target === 'host') {
-      if (onNavigate) onNavigate('home');
-      setTimeout(() => {
-        const el = document.getElementById('host-tournaments');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-        else window.scrollBy({ top: window.innerHeight * 1.8, behavior: 'smooth' });
-      }, 100);
+      if (onNavigate) onNavigate('home', 'host-tournaments-section');
       return;
     }
     if (onNavigate) onNavigate(target);
