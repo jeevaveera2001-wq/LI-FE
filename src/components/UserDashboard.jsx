@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'present-day', 'my-tournaments', 'host-studio', 'scrims', 'wallet', 'broadcast', 'activity-logs'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'present-day', 'my-tournaments', 'host-studio', 'scrims', 'wallet', 'broadcast'
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
@@ -87,32 +87,6 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
       try { return JSON.parse(saved); } catch (e) {}
     }
     return [];
-  });
-
-  // Activity Logs
-  const [activityLogs, setActivityLogs] = useState(() => {
-    return [
-      {
-        id: 'act-01',
-        action: 'User Session Login',
-        ip: '103.211.54.12',
-        location: 'Chennai, Tamil Nadu, India',
-        device: 'Chrome on Windows 11',
-        timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-        date: '19 Nov 2026',
-        status: 'SUCCESS'
-      },
-      {
-        id: 'act-02',
-        action: 'Tournament Slot Check-In',
-        ip: '103.211.54.12',
-        location: 'Chennai, Tamil Nadu, India',
-        device: 'LiveTournaments Web Client',
-        timestamp: '12:45 PM',
-        date: '19 Nov 2026',
-        status: 'CONFIRMED'
-      }
-    ];
   });
 
   // Persist State
@@ -384,15 +358,6 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           >
             <span className="material-symbols-outlined text-[16px]">live_tv</span>
             <span className="flex-1 text-left">Broadcast &amp; Streams</span>
-          </button>
-
-          {/* Activity Logs */}
-          <button
-            onClick={() => { setActiveTab('activity-logs'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'activity-logs' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">history</span>
-            <span className="flex-1 text-left">Activity &amp; Login Logs</span>
           </button>
         </div>
 
@@ -1319,48 +1284,6 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   <p className="text-xs text-gray-300 max-w-md">
                     Matches are broadcast with caster commentary and real-time kill feed graphics.
                   </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================
-              VIEW 8: ACTIVITY LOGS
-              ======================================================== */}
-          {activeTab === 'activity-logs' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-[#1F2937]">Account Activity &amp; Login Security Logs</h2>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    Logged security events, IP addresses, and session locations.
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">
-                  All Sessions Verified
-                </span>
-              </div>
-
-              <div className="bg-white rounded-[12px] border border-[#D1D1D1]/60 shadow-xs overflow-hidden">
-                <div className="divide-y divide-gray-100">
-                  {activityLogs.map((log) => (
-                    <div key={log.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs hover:bg-gray-50">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#1F2937]">{log.action}</span>
-                          <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-gray-100 text-gray-700 font-mono">
-                            {log.ip}
-                          </span>
-                        </div>
-                        <p className="text-gray-500 text-[11px]">{log.device} &bull; {log.location}</p>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="font-mono text-gray-600 block">{log.date} at {log.timestamp}</span>
-                        <span className="text-[10px] text-emerald-600 font-bold uppercase">{log.status}</span>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

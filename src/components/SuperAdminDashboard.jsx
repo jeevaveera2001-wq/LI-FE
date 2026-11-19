@@ -39,12 +39,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   // Sync Telemetry Handler
-  const handleSyncLive = () => {
+  const handleSyncLive = async () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      showToast('⚡ Live dashboard telemetry synced in real-time');
-    }, 600);
+    await fetchLiveAdminData();
+    setIsSyncing(false);
+    showToast('⚡ Live telemetry & database synced in real-time');
   };
 
   // 1. TOURNAMENT HOSTING REQUESTS BY USERS
@@ -175,12 +174,99 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     localStorage.setItem('lt_user_database', JSON.stringify(userDatabase));
   }, [userDatabase]);
 
+  // Real-time synchronization of MongoDB registered users and activity logs
+  const fetchLiveAdminData = async () => {
+    // 1. Fetch all registered users from MongoDB
+    try {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.users) && data.users.length > 0) {
+          setUserDatabase(prev => {
+            const map = new Map();
+            data.users.forEach(u => map.set(u.email || u.userId, u));
+            prev.forEach(u => {
+              const key = u.email || u.userId;
+              if (!map.has(key)) map.set(key, u);
+            });
+            const merged = Array.from(map.values());
+            localStorage.setItem('lt_user_database', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[SuperAdmin] Failed to fetch users:', err);
+    }
+
+    // 2. Fetch all activity logs from MongoDB
+    try {
+      const res = await fetch('/api/admin/activity-logs');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
+          setActivityLogs(prev => {
+            const map = new Map();
+            data.logs.forEach(l => map.set(l.id || (l.userId + '_' + l.timestamp), l));
+            prev.forEach(l => {
+              const key = l.id || (l.userId + '_' + l.timestamp);
+              if (!map.has(key)) map.set(key, l);
+            });
+            const merged = Array.from(map.values());
+            localStorage.setItem('lt_activity_logs', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[SuperAdmin] Failed to fetch activity logs:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveAdminData();
+  }, []);
+
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('ALL');
 
-  const handleUpdateUserStatus = (userId, newStatus) => {
+  const handleUpdateUserStatus = async (userId, newStatus) => {
     setUserDatabase(prev => prev.map(u => u.userId === userId ? { ...u, status: newStatus } : u));
     showToast(`✓ User ${userId} status set to ${newStatus}`);
+
+    const targetUser = userDatabase.find(u => u.userId === userId);
+    if (newStatus === 'BLOCKED') {
+      setBlockedUsers(prev => {
+        if (!prev.some(b => b.email === targetUser?.email)) {
+          return [{
+            id: userId,
+            name: targetUser?.name || 'Competitor',
+            email: targetUser?.email || '',
+            reason: 'Administrative Super Admin Block',
+            date: new Date().toLocaleDateString('en-IN')
+          }, ...prev];
+        }
+        return prev;
+      });
+    } else {
+      setBlockedUsers(prev => prev.filter(b => b.email !== targetUser?.email && b.id !== userId));
+    }
+
+    try {
+      await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          email: targetUser?.email,
+          username: targetUser?.ign,
+          newStatus
+        })
+      });
+      fetchLiveAdminData();
+    } catch (err) {
+      console.warn('[SuperAdmin] Status update API warning:', err);
+    }
   };
 
   // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)

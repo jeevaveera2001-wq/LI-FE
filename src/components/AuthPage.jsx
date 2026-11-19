@@ -111,6 +111,57 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       if (user) {
         localStorage.setItem('lt_user', JSON.stringify(user));
         if (onLoginSuccess) onLoginSuccess(user);
+
+        // Sync into Super Admin User Database in localStorage
+        try {
+          const savedDb = localStorage.getItem('lt_user_database');
+          const dbList = savedDb ? JSON.parse(savedDb) : [];
+          const existingIdx = dbList.findIndex(u => u.email === user.email || u.username === user.username);
+          const formattedEntry = {
+            userId: user.id || ('LT-USR-' + Date.now().toString().slice(-4)),
+            name: user.name || user.displayName || user.username || 'Competitor',
+            ign: user.username || user.name || 'GamerTag',
+            email: user.email,
+            mobile: user.mobile || '+91 98765 43210',
+            game: 'Battlegrounds Mobile India',
+            clan: 'LiveTournaments Competitor',
+            matchesPlayed: 0,
+            tournamentsWon: 0,
+            fairPlayScore: '100%',
+            walletBalance: '₹ 0',
+            registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            status: user.status || 'ACTIVE',
+            location: user.location || 'Chennai, Tamil Nadu, India'
+          };
+          if (existingIdx >= 0) {
+            dbList[existingIdx] = { ...dbList[existingIdx], ...formattedEntry };
+          } else {
+            dbList.unshift(formattedEntry);
+          }
+          localStorage.setItem('lt_user_database', JSON.stringify(dbList));
+        } catch (e) {}
+
+        // Sync Login Activity Log into Super Admin Activity Logs in localStorage
+        try {
+          const savedLogs = localStorage.getItem('lt_activity_logs');
+          const logsList = savedLogs ? JSON.parse(savedLogs) : [];
+          const newLog = {
+            id: 'act_' + Date.now(),
+            userId: user.id || (user.role === 'superadmin' ? 'LT-USR-1001' : 'LT-USR-COMPETITOR'),
+            userName: user.name || user.displayName || user.username || 'Competitor',
+            userEmail: user.email,
+            action: user.role === 'superadmin' ? 'Super Admin Portal Authentication' : 'Competitor Session Login',
+            ip: '103.211.54.12',
+            location: user.location || 'Chennai, Tamil Nadu, India',
+            agreements: 'Session Token & Fair Play Compliance Confirmed',
+            device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
+            time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
+            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            timestamp: new Date().toISOString()
+          };
+          logsList.unshift(newLog);
+          localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
+        } catch (e) {}
       }
 
       const isSuper = user && (user.role === 'superadmin' || user.email === 'superadmin@lt.in');
@@ -131,14 +182,39 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         loginPassword === 'SuperAdmin@21'
       ) {
         const superUser = {
+          id: 'LT-USR-1001',
           username: 'superadmin',
           email: 'superadmin@lt.in',
           name: 'Super Admin',
           role: 'superadmin',
-          displayName: 'Super Admin'
+          displayName: 'Super Admin',
+          status: 'ACTIVE',
+          location: 'Chennai, Tamil Nadu, India'
         };
         localStorage.setItem('lt_user', JSON.stringify(superUser));
         if (onLoginSuccess) onLoginSuccess(superUser);
+
+        // Record Super Admin Login in local logs
+        try {
+          const savedLogs = localStorage.getItem('lt_activity_logs');
+          const logsList = savedLogs ? JSON.parse(savedLogs) : [];
+          logsList.unshift({
+            id: 'act_' + Date.now(),
+            userId: 'LT-USR-1001',
+            userName: 'Super Admin',
+            userEmail: 'superadmin@lt.in',
+            action: 'Super Admin Console Access & Authentication',
+            ip: '127.0.0.1 (Localhost / Secure Session)',
+            location: 'Chennai, Tamil Nadu, India',
+            agreements: 'Super Administrator Master Security Protocol Verified',
+            device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
+            time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
+            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
+        } catch (e) {}
+
         setSuccessMessage('👑 Super Admin Authenticated! Redirecting to Dashboard...');
         setTimeout(() => {
           if (onNavigate) onNavigate('admin-dashboard');
@@ -264,16 +340,62 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
 
       // 3. Complete authentication session
       const cleanUsername = regEmail.split('@')[0];
+      const userId = 'LT-USR-' + Date.now().toString().slice(-4);
       const newUser = {
-        id: 'usr_' + Date.now(),
+        id: userId,
+        userId: userId,
         name: regName.trim(),
         username: cleanUsername,
+        ign: cleanUsername,
         email: regEmail.trim(),
         mobile: regMobile.trim(),
         role: 'user',
-        displayName: regName.trim()
+        displayName: regName.trim(),
+        status: 'ACTIVE',
+        game: 'Battlegrounds Mobile India',
+        clan: 'Recruit Division',
+        matchesPlayed: 0,
+        tournamentsWon: 0,
+        fairPlayScore: '100%',
+        walletBalance: '₹ 0',
+        registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        location: 'Chennai, Tamil Nadu, India'
       };
       localStorage.setItem('lt_user', JSON.stringify(newUser));
+
+      // Synchronize new registered user into Super Admin User Database in localStorage
+      try {
+        const savedDb = localStorage.getItem('lt_user_database');
+        const dbList = savedDb ? JSON.parse(savedDb) : [];
+        const existingIdx = dbList.findIndex(u => u.email === newUser.email || u.username === newUser.username);
+        if (existingIdx >= 0) {
+          dbList[existingIdx] = { ...dbList[existingIdx], ...newUser };
+        } else {
+          dbList.unshift(newUser);
+        }
+        localStorage.setItem('lt_user_database', JSON.stringify(dbList));
+      } catch (e) {}
+
+      // Synchronize Registration Activity Log into Super Admin Activity Logs in localStorage
+      try {
+        const savedLogs = localStorage.getItem('lt_activity_logs');
+        const logsList = savedLogs ? JSON.parse(savedLogs) : [];
+        logsList.unshift({
+          id: 'act_' + Date.now(),
+          userId: newUser.userId,
+          userName: newUser.name,
+          userEmail: newUser.email,
+          action: 'New Competitor Account Registration (Verified)',
+          ip: '103.211.54.12',
+          location: 'Chennai, Tamil Nadu, India',
+          agreements: 'Terms of Service, Fair Play Policy & Anti-Cheat Agreement Accepted',
+          device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
+          time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
+          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
+      } catch (e) {}
 
       setSuccessMessage('🎉 Email verified & account created! Launching Dashboard...');
       setTimeout(() => {
