@@ -11,8 +11,6 @@ const INITIAL_TOURNAMENTS = [
     schedule: 'Starts Today • 7:00 PM IST',
     prizePool: '₹ 1,50,000 INR',
     format: 'Squad (Erangel + Miramar)',
-    slotsTotal: 25,
-    slotsFilled: 21,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_bgmi_showdown_4k.jpg',
     description: 'Premier Indian battle royale squad championship. Instant custom room credentials and referee oversight upon registration.'
@@ -27,8 +25,6 @@ const INITIAL_TOURNAMENTS = [
     schedule: 'Starts in 2 Days • 8:00 PM IST',
     prizePool: '₹ 5,00,000 INR',
     format: 'Squad Pro Tournament (Erangel + Sanhok)',
-    slotsTotal: 160,
-    slotsFilled: 142,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_pubg_mobile_4k.jpg',
     description: 'Tier-1 competitive international championship. Verified squad rosters with automated match scoring and leaderboard tracking.'
@@ -38,13 +34,11 @@ const INITIAL_TOURNAMENTS = [
     title: 'BGMI LAN WARRIORS CHALLENGE',
     game: 'BATTLEGROUNDS MOBILE INDIA',
     category: 'BGMI',
-    badge: '⚡ SQUAD SLOTS OPEN',
+    badge: '⚡ SQUAD MATCH OPEN',
     badgeColor: 'bg-emerald-600 text-white font-extrabold',
     schedule: 'Starts Tomorrow • 5:00 PM IST',
     prizePool: '₹ 75,000 INR',
     format: 'Squad Tactical Showdown (Miramar)',
-    slotsTotal: 24,
-    slotsFilled: 19,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
     description: 'Clash of top underdog and elite squads in custom rooms. Fair play anti-cheat verified with direct prize distribution.'
@@ -54,16 +48,14 @@ const INITIAL_TOURNAMENTS = [
     title: 'PUBG ULTIMATE SQUAD SERIES',
     game: 'PUBG MOBILE',
     category: 'PUBG',
-    badge: '⏳ REGISTRATION CLOSING',
-    badgeColor: 'bg-rose-600 text-white font-extrabold animate-pulse',
+    badge: '🎯 SQUAD ENTRY LIVE',
+    badgeColor: 'bg-blue-600 text-white font-extrabold',
     schedule: 'Starts Tomorrow • 6:00 PM IST',
     prizePool: '₹ 30,000 INR',
     format: 'Squad Battle Royale (Vikendi + Erangel)',
-    slotsTotal: 50,
-    slotsFilled: 46,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_pubg_ultimate_squad_4k.jpg',
-    description: 'High-octane daily competitive series. Only 4 squad slots left before bracket locks for lobby generation.'
+    description: 'High-octane daily competitive series. Custom room credentials and automated rankings for all verified squad leaders.'
   },
   {
     id: 'freefire-clutch-cup-reg',
@@ -71,12 +63,10 @@ const INITIAL_TOURNAMENTS = [
     game: 'FREE FIRE MAX',
     category: 'FREEFIRE',
     badge: '🎯 OPEN REGISTRATION',
-    badgeColor: 'bg-blue-600 text-white font-extrabold',
+    badgeColor: 'bg-indigo-600 text-white font-extrabold',
     schedule: 'Starts Saturday • 4:00 PM IST',
     prizePool: '₹ 50,000 INR',
     format: 'Squad Clash (Bermuda + Purgatory)',
-    slotsTotal: 20,
-    slotsFilled: 16,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_bgmi_showdown_4k.jpg',
     description: 'Rapid-fire Free Fire MAX squad cup with custom clash maps, automated lobby points, and live referee validation.'
@@ -91,8 +81,6 @@ const INITIAL_TOURNAMENTS = [
     schedule: 'Starts Sunday • 6:00 PM IST',
     prizePool: '₹ 1,00,000 INR',
     format: '5v5 Tactical Shooter (Ascent & Bind)',
-    slotsTotal: 16,
-    slotsFilled: 12,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
     description: 'Competitive tactical PC showdown hosted on Mumbai low-latency dedicated tournament servers.'
@@ -107,8 +95,6 @@ const INITIAL_TOURNAMENTS = [
     schedule: 'Starts Sunday • 8:00 PM IST',
     prizePool: '₹ 40,000 INR',
     format: 'Squad Battle Royale (Isolated Map)',
-    slotsTotal: 25,
-    slotsFilled: 22,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_pubg_mobile_4k.jpg',
     description: 'Mobile battle royale showdown featuring customized weapon loadouts, automated kill feeds, and instant rankings.'
@@ -123,8 +109,6 @@ const INITIAL_TOURNAMENTS = [
     schedule: 'Starts Monday • 7:30 PM IST',
     prizePool: '₹ 60,000 INR',
     format: 'Squad 4-Map Championship Rotation',
-    slotsTotal: 25,
-    slotsFilled: 15,
     entryFee: 'FREE ENTRY',
     image: '/assets/tournament_pubg_ultimate_squad_4k.jpg',
     description: 'Platform dedicated for rising underdog clans and content creators to establish their competitive ranking.'
@@ -132,9 +116,23 @@ const INITIAL_TOURNAMENTS = [
 ];
 
 export default function FeaturedTournamentsSection({ onNavigate, currentUser }) {
-  const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, PUBG, FREEFIRE, FAST_FILLING
+  const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, PUBG, FREEFIRE, OTHER
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllTournaments, setShowAllTournaments] = useState(false);
+
+  // Helper to get active logged-in user
+  const getActiveUser = () => {
+    if (currentUser) return currentUser;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('lt_user');
+        return stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
 
   // Track joined tournaments from localStorage
   const [joinedTourneyIds, setJoinedTourneyIds] = useState(() => {
@@ -154,6 +152,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
 
   // Modal State
   const [selectedTourney, setSelectedTourney] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [squadName, setSquadName] = useState('');
   const [leaderIgn, setLeaderIgn] = useState('');
   const [characterId, setCharacterId] = useState('');
@@ -180,28 +179,25 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     return () => window.removeEventListener('storage', syncJoined);
   }, []);
 
-  // Autofill if currentUser exists
-  useEffect(() => {
-    if (currentUser) {
-      if (!leaderIgn && (currentUser.username || currentUser.name)) {
-        setLeaderIgn(currentUser.username || currentUser.name);
-      }
-      if (!whatsappNumber && (currentUser.mobile || currentUser.phone)) {
-        setWhatsappNumber(currentUser.mobile || currentUser.phone);
-      }
-    }
-  }, [currentUser, selectedTourney]);
-
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Open Registration Modal for a Tournament
+  // Open Registration Modal with strict Sign-In verification
   const handleOpenRegister = (tourney) => {
-    // If already registered, allow viewing or going to dashboard
+    const activeUser = getActiveUser();
+
+    // STRICT CHECK: Only signed-in players can register for a match
+    if (!activeUser) {
+      setSelectedTourney(tourney);
+      setShowAuthModal(true);
+      return;
+    }
+
+    // If already registered, take to Competitor Dashboard
     if (joinedTourneyIds.has(tourney.id) || joinedTourneyIds.has(tourney.title)) {
-      showToast(`✓ You are already registered for ${tourney.title}. Opening your Competitor Dashboard...`);
+      showToast(`✓ You are already registered for ${tourney.title}. Opening your Dashboard...`);
       if (onNavigate) {
         setTimeout(() => onNavigate('user-dashboard'), 600);
       }
@@ -210,10 +206,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
 
     setSelectedTourney(tourney);
     setRegSuccessData(null);
-    setSquadName(currentUser?.clan || '');
-    setLeaderIgn(currentUser?.username || currentUser?.name || '');
+    setSquadName(activeUser.clan || '');
+    setLeaderIgn(activeUser.username || activeUser.name || '');
     setCharacterId('');
-    setWhatsappNumber(currentUser?.mobile || '');
+    setWhatsappNumber(activeUser.mobile || '');
     setTeammates('');
   };
 
@@ -221,6 +217,12 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const handleSubmitRegistration = async (e) => {
     e.preventDefault();
     if (!selectedTourney) return;
+
+    const activeUser = getActiveUser();
+    if (!activeUser) {
+      setShowAuthModal(true);
+      return;
+    }
 
     if (!squadName.trim()) {
       showToast('Please enter your Squad or Clan name');
@@ -235,7 +237,6 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
 
     try {
       // Generate authentic match room credentials
-      const slotNum = Math.floor(1 + Math.random() * (selectedTourney.slotsTotal - selectedTourney.slotsFilled)) + selectedTourney.slotsFilled;
       const roomCode = 'LT-' + Math.floor(10000 + Math.random() * 90000);
       const roomPass = 'PASS' + Math.floor(100 + Math.random() * 900);
       const regId = 'reg_' + Date.now();
@@ -248,7 +249,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
         format: selectedTourney.format,
         date: selectedTourney.schedule.split('•')[0]?.replace('Starts ', '').trim() || 'Today',
         time: selectedTourney.schedule.split('•')[1]?.trim() || '7:00 PM IST',
-        slotNumber: `Slot #${slotNum} (${squadName.trim()})`,
+        slotNumber: `Squad (${squadName.trim()})`,
         status: 'CONFIRMED',
         roomCode: roomCode,
         roomPass: roomPass,
@@ -256,7 +257,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
         thumbnail: selectedTourney.image,
         leader: leaderIgn.trim(),
         characterId: characterId.trim() || 'N/A',
-        whatsapp: whatsappNumber.trim() || 'Registered via Web',
+        whatsapp: whatsappNumber.trim() || activeUser.mobile || 'Registered Player',
         registeredAt: new Date().toISOString()
       };
 
@@ -269,15 +270,15 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
       // 2. Update local state
       setJoinedTourneyIds(prev => new Set([...prev, selectedTourney.id, selectedTourney.title]));
 
-      // 3. Log activity to MongoDB via API for Super Admin visibility
+      // 3. Log activity to MongoDB via API for Super Admin tracking
       try {
         await fetch('/api/admin/activity-logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: currentUser?.userId || currentUser?.id || 'GUEST-PLAYER',
+            userId: activeUser.userId || activeUser.email || 'PLAYER',
             action: 'MATCH_REGISTRATION',
-            details: `Registered squad "${squadName}" for ${selectedTourney.title} (Slot #${slotNum})`,
+            details: `Player "${activeUser.username || activeUser.name}" registered squad "${squadName}" for ${selectedTourney.title}`,
             ipAddress: '106.51.78.200',
             location: 'India'
           })
@@ -285,10 +286,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
       } catch (err) {}
 
       // Set success view
-      setRegSuccessData({
-        ...newJoinedEntry,
-        slotNum
-      });
+      setRegSuccessData(newJoinedEntry);
       showToast('🎉 Match Registration Confirmed!');
     } catch (err) {
       console.error('Registration failed:', err);
@@ -314,7 +312,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     if (activeFilter === 'BGMI') return t.category === 'BGMI';
     if (activeFilter === 'PUBG') return t.category === 'PUBG';
     if (activeFilter === 'FREEFIRE') return t.category === 'FREEFIRE';
-    if (activeFilter === 'FAST_FILLING') return (t.slotsTotal - t.slotsFilled) <= 5;
+    if (activeFilter === 'OTHER') return t.category === 'OTHER';
     return true;
   });
 
@@ -322,6 +320,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const displayedTournaments = showAllTournaments
     ? filteredTournaments
     : filteredTournaments.slice(0, 4);
+
+  const activeUser = getActiveUser();
 
   return (
     <section
@@ -352,31 +352,46 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                   Match Registration Arena
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-                  ● Registrations Live Now
+                  ● Match Entries Open
                 </span>
               </div>
               <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
                 Tournament Match Registrations
               </h2>
               <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B7280]">
-                Register your squad for upcoming competitive tournaments, claim slot allocations, and explore active championship brackets.
+                Sign in to register your squad for upcoming competitive tournaments and explore active championship brackets.
               </p>
             </div>
 
-            {/* Quick Action Link to Dashboard / All Brackets */}
+            {/* Quick Action Link to Dashboard / Sign In */}
             <div className="hidden lg:flex items-center gap-3 text-black shrink-0">
               <div className="h-px w-[60px] bg-black/20"></div>
-              <button
-                onClick={() => onNavigate && onNavigate(currentUser ? 'user-dashboard' : 'register')}
-                className="primary-bold-s12-lh120 whitespace-nowrap uppercase tracking-wider hover:text-gold-primary flex items-center gap-2 transition-colors cursor-pointer"
-              >
-                <span>{currentUser ? 'MY REGISTERED MATCHES' : 'CREATE FREE ACCOUNT'}</span>
-                <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-3 rtl:rotate-180" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                  <path fill="none" d="M0 0h24v24H0z"></path>
-                  <path d="M15.5 5H11l5 7-5 7h4.5l5-7z"></path>
-                  <path d="M8.5 5H4l5 7-5 7h4.5l5-7z"></path>
-                </svg>
-              </button>
+              {activeUser ? (
+                <button
+                  onClick={() => onNavigate && onNavigate('user-dashboard')}
+                  className="primary-bold-s12-lh120 whitespace-nowrap uppercase tracking-wider hover:text-gold-primary flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>MY REGISTERED MATCHES</span>
+                  <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-3 rtl:rotate-180" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path d="M15.5 5H11l5 7-5 7h4.5l5-7z"></path>
+                    <path d="M8.5 5H4l5 7-5 7h4.5l5-7z"></path>
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onNavigate && onNavigate('login')}
+                  className="primary-bold-s12-lh120 whitespace-nowrap uppercase tracking-wider hover:text-gold-primary flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span>SIGN IN TO REGISTER</span>
+                  <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" className="size-3 rtl:rotate-180" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path d="M15.5 5H11l5 7-5 7h4.5l5-7z"></path>
+                    <path d="M8.5 5H4l5 7-5 7h4.5l5-7z"></path>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
@@ -433,15 +448,15 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => setActiveFilter('FAST_FILLING')}
+                onClick={() => setActiveFilter('OTHER')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                  activeFilter === 'FAST_FILLING'
-                    ? 'bg-rose-600 text-white shadow-md'
+                  activeFilter === 'OTHER'
+                    ? 'bg-purple-600 text-white shadow-md'
                     : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
                 }`}
               >
-                <span>⏳</span>
-                <span>Last Few Slots</span>
+                <span>🎮</span>
+                <span>Tactical &amp; PC</span>
               </button>
             </div>
 
@@ -466,12 +481,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
             </div>
           </div>
 
-          {/* Tournament Cards Grid (Dedicated for Match Registration) */}
+          {/* Tournament Cards Grid (NO slot limitations) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {displayedTournaments.map((tourney) => {
               const isRegistered = joinedTourneyIds.has(tourney.id) || joinedTourneyIds.has(tourney.title);
-              const slotsLeft = Math.max(0, tourney.slotsTotal - tourney.slotsFilled);
-              const percentFilled = Math.min(100, Math.round((tourney.slotsFilled / tourney.slotsTotal) * 100));
 
               return (
                 <div
@@ -507,8 +520,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       )}
                     </div>
 
-                    {/* Schedule / Match Timing Bar (Replacing fake viewer count) */}
-                    <div className="absolute bottom-2.5 right-3 bg-black/85 backdrop-blur-md px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-white/95 flex items-center gap-1">
+                    {/* Schedule / Match Timing Bar */}
+                    <div className="absolute bottom-2.5 right-3 bg-black/85 backdrop-blur-md px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-white/95 flex items-center gap-1 shadow-sm">
                       <span className="material-symbols-outlined text-[13px] text-gold-primary">schedule</span>
                       <span>{tourney.schedule}</span>
                     </div>
@@ -533,27 +546,24 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                         {tourney.description}
                       </p>
 
-                      {/* Format Tag & Slots Progress Bar */}
-                      <div className="mt-1 space-y-1.5">
+                      {/* Match Format & Verification Specs (Clean layout, NO slot limitations) */}
+                      <div className="mt-1 space-y-2 pt-2 border-t border-gray-100">
                         <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-medium text-gray-500">{tourney.format}</span>
-                          <span className="font-mono font-bold text-gray-900">
-                            {tourney.slotsFilled}/{tourney.slotsTotal} Slots
+                          <span className="font-semibold text-gray-700 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[15px] text-gold-primary">military_tech</span>
+                            {tourney.format}
+                          </span>
+                          <span className="font-mono font-bold text-emerald-600 flex items-center gap-1">
+                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Open Match
                           </span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              percentFilled > 85 ? 'bg-rose-500' : 'bg-gold-primary'
-                            }`}
-                            style={{ width: `${percentFilled}%` }}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] font-bold">
-                          <span className={`${slotsLeft <= 5 ? 'text-rose-600' : 'text-gray-500'}`}>
-                            {slotsLeft <= 5 ? `🔥 Only ${slotsLeft} slots left` : `${slotsLeft} slots remaining`}
+                        <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px] text-blue-500">verified</span>
+                            Anti-Cheat Verified
                           </span>
-                          <span className="text-gray-400 font-mono">100% Fair Play</span>
+                          <span className="font-mono text-gray-700">Custom Room Match</span>
                         </div>
                       </div>
                     </div>
@@ -600,7 +610,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
             <div className="space-y-1 text-center sm:text-left">
               <h4 className="text-sm md:text-base font-bold text-gray-900 flex items-center justify-center sm:justify-start gap-2">
                 <span className="material-symbols-outlined text-gold-primary text-[20px]">explore</span>
-                <span>Want to explore more tournaments and practice matches?</span>
+                <span>Explore More Tournaments &amp; Practice Scrims</span>
               </h4>
               <p className="text-xs text-gray-500 max-w-xl">
                 Browse our daily tier-1 pro scrims, clan showdowns, partner championships, or host your own customized paid tournament.
@@ -619,10 +629,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => onNavigate && onNavigate(currentUser ? 'user-dashboard' : 'register')}
+                onClick={() => onNavigate && onNavigate(activeUser ? 'user-dashboard' : 'login')}
                 className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >
-                <span>Competitor Hub</span>
+                <span>{activeUser ? 'Competitor Hub' : 'Sign In to Play'}</span>
                 <span className="material-symbols-outlined text-[16px] text-gold-primary">arrow_forward</span>
               </button>
             </div>
@@ -632,9 +642,79 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
       </div>
 
       {/* ========================================================
-          MODAL: MATCH REGISTRATION & INSTANT SLOT ALLOCATION
+          MODAL 1: AUTH REQUIRED NOTICE (Only Sign-In Players)
           ======================================================== */}
-      {selectedTourney && (
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 overflow-hidden text-center p-6 space-y-4">
+            <div className="size-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-3xl shadow-sm">
+              <span className="material-symbols-outlined text-[32px]">lock</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-gold-primary/20 text-black border border-gold-primary/40">
+                Official Match Policy
+              </span>
+              <h3 className="text-xl font-bold text-gray-900">
+                Sign In Required to Register
+              </h3>
+              <p className="text-xs text-gray-600 max-w-xs mx-auto leading-relaxed">
+                Only signed-in players can register for official competitive matches and receive custom room credentials.
+              </p>
+            </div>
+
+            {selectedTourney && (
+              <div className="bg-neutral-50 p-3 rounded-xl border border-gray-200 text-left flex items-center gap-3">
+                <img
+                  src={selectedTourney.image}
+                  alt={selectedTourney.title}
+                  className="size-12 rounded-lg object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-gray-900 truncate">{selectedTourney.title}</h4>
+                  <p className="text-[10px] text-gold-primary font-bold uppercase">{selectedTourney.game}</p>
+                  <p className="text-[10px] text-gray-500">{selectedTourney.schedule}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  if (onNavigate) onNavigate('login');
+                }}
+                className="w-full py-3 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Sign In to Register</span>
+                <span className="material-symbols-outlined text-[16px]">login</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  if (onNavigate) onNavigate('register');
+                }}
+                className="w-full py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Create New Player Account
+              </button>
+
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="w-full py-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL 2: MATCH REGISTRATION FOR SIGNED-IN PLAYERS
+          ======================================================== */}
+      {selectedTourney && !showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
             
@@ -677,10 +757,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     </p>
                   </div>
 
-                  {/* Allocated Slot & Room Credential Card */}
+                  {/* Room Credential Card */}
                   <div className="bg-neutral-50 rounded-xl p-4 border border-gray-200 text-left space-y-2.5">
                     <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                      <span className="text-xs text-gray-500 font-medium">Assigned Slot:</span>
+                      <span className="text-xs text-gray-500 font-medium">Registered Squad:</span>
                       <span className="text-xs font-mono font-bold text-gray-900 bg-white px-2.5 py-0.5 rounded border border-gray-200">
                         {regSuccessData.slotNumber}
                       </span>
@@ -709,7 +789,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                   </div>
 
                   <p className="text-[11px] text-gray-500">
-                    💡 You can review all tournament details and live room credentials under your Competitor Dashboard.
+                    💡 You can review all tournament details and live room credentials inside your Competitor Dashboard.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
@@ -750,6 +830,19 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       <span className="font-bold text-gray-900">{selectedTourney.entryFee}</span>
                     </div>
                   </div>
+
+                  {/* Signed-in Player Indicator */}
+                  {activeUser && (
+                    <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 font-semibold">
+                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Verified Account: {activeUser.username || activeUser.name}
+                      </span>
+                      <span className="font-mono text-[10px] bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold">
+                        LOGGED IN
+                      </span>
+                    </div>
+                  )}
 
                   {/* Field 1: Clan / Squad Name */}
                   <div>
@@ -799,7 +892,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                   {/* Field 4: WhatsApp Mobile Number */}
                   <div>
                     <label className="block text-xs font-bold text-gray-800 mb-1">
-                      WhatsApp Number (For Instant Room Password Dispatch)
+                      WhatsApp Number (For Instant Match Credentials &amp; Updates)
                     </label>
                     <input
                       type="tel"
@@ -831,7 +924,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                   <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200/60 text-[11px] text-blue-800 flex items-start gap-2">
                     <span className="material-symbols-outlined text-[16px] text-blue-600 shrink-0 mt-0.5">verified_user</span>
                     <span>
-                      Instant slot confirmation with official room ID and password active on your profile. Free automated referee scoring and rank tracking.
+                      Instant match entry with official room ID and password active on your profile. Free automated referee scoring and rank tracking.
                     </span>
                   </div>
 
@@ -845,7 +938,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       {isRegistering ? (
                         <>
                           <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                          <span>Allocating Squad Slot...</span>
+                          <span>Confirming Match Registration...</span>
                         </>
                       ) : (
                         <>
