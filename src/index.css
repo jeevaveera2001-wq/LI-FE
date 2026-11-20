@@ -191,3 +191,62 @@ img {
 .bg-gradient-primary {
   background: linear-gradient(90deg, #A8894E 0%, #856934 100%) !important;
 }
+
+/* ========================================================
+   LIVETOURNAMENTS OFFICIAL ESPORTS LOADERS & ANIMATIONS
+   Same aesthetic as home screen: #DFBD78 gold, #0E0E10 dark,
+   esports crest pulse, shimmering gold sweep
+   ======================================================== */
+@keyframes lt-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes lt-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes lt-pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 10px rgba(223, 189, 120, 0.35)); }
+  50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 22px rgba(223, 189, 120, 0.75)); }
+}
+
+@keyframes lt-radar {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  50% { opacity: 0.45; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes lt-progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(20%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-lt-spin {
+  animation: lt-spin 0.85s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-lt-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-lt-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(223, 189, 120, 0.14) 50%, transparent 100%);
+  animation: lt-shimmer 1.8s infinite;
+}
+
+.animate-lt-pulse {
+  animation: lt-pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-lt-radar {
+  animation: lt-radar 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+

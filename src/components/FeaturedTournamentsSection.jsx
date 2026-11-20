@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './Loaders';
 
 const INITIAL_TOURNAMENTS = [
   {
@@ -119,6 +120,28 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, PUBG, FREEFIRE, OTHER
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllTournaments, setShowAllTournaments] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const handleFilterChange = (filter) => {
+    setIsFiltering(true);
+    setActiveFilter(filter);
+    setTimeout(() => setIsFiltering(false), 240);
+  };
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    setIsFiltering(true);
+    setTimeout(() => setIsFiltering(false), 200);
+  };
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    setTimeout(() => {
+      setShowAllTournaments(true);
+      setLoadingMore(false);
+    }, 600);
+  };
 
   // Helper to get active logged-in user
   const getActiveUser = () => {
@@ -414,7 +437,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
             {/* Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
               <button
-                onClick={() => setActiveFilter('ALL')}
+                onClick={() => handleFilterChange('ALL')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'ALL'
                     ? 'bg-black text-white shadow-md'
@@ -426,7 +449,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => setActiveFilter('BGMI')}
+                onClick={() => handleFilterChange('BGMI')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'BGMI'
                     ? 'bg-gold-primary text-black shadow-md font-extrabold'
@@ -438,7 +461,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => setActiveFilter('PUBG')}
+                onClick={() => handleFilterChange('PUBG')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'PUBG'
                     ? 'bg-black text-white shadow-md'
@@ -450,7 +473,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => setActiveFilter('FREEFIRE')}
+                onClick={() => handleFilterChange('FREEFIRE')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'FREEFIRE'
                     ? 'bg-blue-600 text-white shadow-md'
@@ -462,7 +485,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
-                onClick={() => setActiveFilter('OTHER')}
+                onClick={() => handleFilterChange('OTHER')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'OTHER'
                     ? 'bg-purple-600 text-white shadow-md'
@@ -481,12 +504,12 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 type="text"
                 placeholder="Search tournaments..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-gray-300 bg-white focus:border-gold-primary focus:outline-hidden transition-colors font-medium text-gray-800"
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => handleSearchChange('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer text-xs"
                 >
                   ✕
@@ -495,8 +518,11 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
             </div>
           </div>
 
-          {/* Tournament Cards Grid (NO slot limitations) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          {/* Tournament Cards Grid with Skeleton Loader on Filter Change */}
+          {isFiltering ? (
+            <SkeletonLoader variant="tournament-card" count={4} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {displayedTournaments.map((tourney) => {
               const isRegistered = joinedTourneyIds.has(tourney.id) || joinedTourneyIds.has(tourney.title);
 
@@ -618,6 +644,14 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               );
             })}
           </div>
+          )}
+
+          {/* Infinite Scroll Loader for Pagination */}
+          <InfiniteScrollLoader
+            loading={loadingMore}
+            hasMore={!showAllTournaments && filteredTournaments.length > 4}
+            onLoadMore={handleLoadMore}
+          />
 
           {/* Explore More Tournaments Action Strip */}
           <div className="mt-2 p-5 md:p-6 rounded-2xl bg-white border border-gray-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -961,25 +995,17 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     </span>
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Submit Button with ButtonLoader */}
                   <div className="pt-2">
-                    <button
+                    <ButtonLoader
                       type="submit"
-                      disabled={isRegistering}
-                      className="w-full py-3 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                      loading={isRegistering}
+                      loadingText="Confirming Match Registration..."
+                      className="w-full !py-3 !rounded-xl !bg-black hover:!bg-gold-primary hover:!text-black !text-white text-xs font-bold uppercase tracking-wider shadow-md"
                     >
-                      {isRegistering ? (
-                        <>
-                          <span className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                          <span>Confirming Match Registration...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Confirm Squad Match Registration</span>
-                          <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-                        </>
-                      )}
-                    </button>
+                      <span>Confirm Squad Match Registration</span>
+                      <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                    </ButtonLoader>
                   </div>
                 </form>
               )}

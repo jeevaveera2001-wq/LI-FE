@@ -14,6 +14,7 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
+import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/Loaders';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -81,7 +82,15 @@ export default function App() {
     return 'home';
   });
 
+  // Global Loaders State
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showLoadersModal, setShowLoadersModal] = useState(false);
+  const [fullScreenLoading, setFullScreenLoading] = useState(false);
+
   const navigateTo = (page, sectionId) => {
+    setIsNavigating(true);
+    setTimeout(() => setIsNavigating(false), 450);
     setCurrentPage(page);
     if (typeof window !== 'undefined') {
       let targetUrl = '/';
@@ -106,6 +115,15 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
+  };
+
+  const handlePullRefresh = () => {
+    setIsRefreshing(true);
+    setIsNavigating(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      setIsNavigating(false);
+    }, 1200);
   };
 
   const handleLoginSuccess = (user) => {
@@ -167,6 +185,9 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      {/* 3. Top Progress Bar for Page Navigation & Transitions */}
+      <TopProgressBar active={isNavigating || isRefreshing} />
+
       <div className="flex min-h-screen flex-col antialiased MQe55a_variable ExPGsG_variable JZWkmW_variable Ia0HiG_variable eSu7da_variable wat7GG_variable n_j4Eq_variable gsYqIG_variable">
         <a className="skip-link primary-bold-s14-lh120 webview-hide" href="#main-content">
           Skip to main content
@@ -194,7 +215,7 @@ export default function App() {
           />
         ) : (
           /* HOME & ABOUT ARENA SHELL */
-          <>
+          <PullToRefreshLoader onRefresh={handlePullRefresh} isRefreshing={isRefreshing}>
             {/* User Menu Header Dropdown Option */}
             <UserMenu
               currentUser={currentUser}
@@ -236,8 +257,30 @@ export default function App() {
 
             {/* Footer */}
             <Footer />
-          </>
+          </PullToRefreshLoader>
         )}
+
+        {/* Interactive Loaders Suite Showcase Trigger Pill */}
+        <button
+          onClick={() => setShowLoadersModal(true)}
+          title="Preview All 8 LiveTournaments Loaders"
+          className="fixed bottom-5 left-5 z-40 px-3.5 py-2 rounded-full bg-[#0E0E10] text-[#DFBD78] hover:bg-gold-primary hover:text-black border border-[#DFBD78]/60 shadow-2xl text-[11px] font-mono font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2 cursor-pointer group"
+        >
+          <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-500">hourglass_top</span>
+          <span>Loaders Suite (8)</span>
+        </button>
+
+        {/* All 8 Loaders Interactive Suite Modal */}
+        <LoadersShowcaseModal
+          isOpen={showLoadersModal}
+          onClose={() => setShowLoadersModal(false)}
+        />
+
+        {/* Full Screen Esports Loader */}
+        <FullScreenLoader
+          isOpen={fullScreenLoading}
+          onClose={() => setFullScreenLoading(false)}
+        />
       </div>
     </ErrorBoundary>
   );
