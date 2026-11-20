@@ -395,7 +395,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     <section
       id="tournaments-section"
       data-section="play"
-      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-neutral-50/60"
+      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-white-dirty"
     >
       {/* Anchor for direct #play link support */}
       <span id="play" className="absolute -top-24 block invisible pointer-events-none" />

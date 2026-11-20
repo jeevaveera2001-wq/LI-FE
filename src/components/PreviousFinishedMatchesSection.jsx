@@ -278,7 +278,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
     <section
       id="finished-matches-section"
       data-section="finished-matches"
-      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-neutral-50/60 text-dark-default"
+      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-white-dirty text-dark-default"
     >
       {/* Toast Alert */}
       {toastMsg && (
@@ -415,14 +415,14 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
       {selectedMatch && (
         <div
           onClick={() => setSelectedMatch(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-xs animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#14151B] text-white rounded-3xl w-full max-w-4xl shadow-2xl border border-white/20 overflow-hidden flex flex-col max-h-[92vh]"
+            className="bg-white text-dark-default rounded-3xl w-full max-w-4xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[92vh]"
           >
             {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-white/10 bg-neutral-950 flex items-center justify-between">
+            <div className="p-5 sm:p-6 border-b border-gray-200 bg-white-dirty flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-600 text-white">
@@ -432,54 +432,54 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     {selectedMatch.game} &bull; {selectedMatch.format}
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-2xl font-black uppercase text-white mt-1">
+                <h3 className="text-lg sm:text-2xl font-black uppercase text-dark-default mt-1">
                   {selectedMatch.title}
                 </h3>
               </div>
 
               <button
                 onClick={() => setSelectedMatch(null)}
-                className="size-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm cursor-pointer transition-colors"
+                className="size-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-sm cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
             {/* Results Body: Choice of 25-Slot Table OR Scoreboard Image */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-6 bg-white">
               
               {/* Champion Squad Banner */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-linear-to-r from-gold-primary/20 via-black/40 to-transparent border border-gold-primary/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-gold-primary/40 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3 text-center sm:text-left">
-                  <div className="size-14 rounded-2xl bg-gold-primary text-black flex items-center justify-center text-3xl font-black shadow-lg">
+                  <div className="size-14 rounded-2xl bg-gold-primary text-black flex items-center justify-center text-3xl font-black shadow-md">
                     🏆
                   </div>
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-gold-primary font-bold block">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-800 font-bold block">
                       TOURNAMENT CHAMPION
                     </span>
-                    <h4 className="text-xl font-black text-white uppercase mt-0.5">
+                    <h4 className="text-xl font-black text-dark-default uppercase mt-0.5">
                       {selectedMatch.winnerClan}
                     </h4>
-                    <p className="text-xs text-gray-400 font-mono">
+                    <p className="text-xs text-gray-600 font-mono">
                       Completed: {selectedMatch.completedAt} &bull; {selectedMatch.totalKills}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-center sm:text-right">
-                  <span className="text-[10px] font-mono text-gray-400 uppercase block">Total Prize Pool</span>
-                  <span className="text-lg font-black text-gold-primary font-mono">{selectedMatch.prizePool}</span>
+                <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-center sm:text-right shadow-xs">
+                  <span className="text-[10px] font-mono text-gray-500 uppercase block">Total Prize Pool</span>
+                  <span className="text-lg font-black text-dark-default font-mono">{selectedMatch.prizePool}</span>
                 </div>
               </div>
 
               {/* If Host Uploaded an Image Scoreboard */}
               {selectedMatch.resultType === 'image' && selectedMatch.scoreboardImage && (
                 <div className="space-y-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400 block">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-600 block">
                     Host Verified Final Trophy &amp; Scoreboard Graphic:
                   </span>
-                  <div className="rounded-2xl overflow-hidden border border-white/20 bg-black shadow-xl">
+                  <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white-dirty shadow-sm">
                     <img
                       src={selectedMatch.scoreboardImage}
                       alt="Verified Trophy Scoreboard"
@@ -493,17 +493,17 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
               {selectedMatch.slotsData && selectedMatch.slotsData.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-700">
                       Official 25-Slot Ranking Table (Kill Pts + Position Pts = Overall Pts)
                     </span>
-                    <span className="text-[11px] font-mono text-gray-400">
+                    <span className="text-[11px] font-mono text-gray-500">
                       25 Competing Squads
                     </span>
                   </div>
 
-                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/40">
+                  <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-xs">
                     <table className="w-full text-left text-xs font-mono">
-                      <thead className="bg-white/5 text-gray-400 uppercase text-[10px] border-b border-white/10">
+                      <thead className="bg-white-dirty text-gray-700 uppercase text-[10px] border-b border-gray-200 font-bold">
                         <tr>
                           <th className="py-3 px-4">Rank</th>
                           <th className="py-3 px-4">Slot</th>
@@ -514,31 +514,31 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                           <th className="py-3 px-4 text-right">Prize / Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-gray-100">
                         {selectedMatch.slotsData.map((s) => (
                           <tr
                             key={s.rank}
                             className={`transition-colors ${
                               s.rank === 1
-                                ? 'bg-gold-primary/15 font-bold text-white'
+                                ? 'bg-gold-primary/20 font-bold text-dark-default'
                                 : s.rank === 2
-                                ? 'bg-white/5 font-semibold text-gray-200'
+                                ? 'bg-amber-50 font-semibold text-dark-default'
                                 : s.rank === 3
-                                ? 'bg-amber-900/20 text-gray-200'
-                                : 'hover:bg-white/5 text-gray-300'
+                                ? 'bg-amber-50/50 text-dark-default'
+                                : 'hover:bg-gray-50 text-gray-800'
                             }`}
                           >
-                            <td className="py-2.5 px-4">
+                            <td className="py-2.5 px-4 font-bold text-dark-default">
                               {s.rank === 1 ? '🥇 1st' : s.rank === 2 ? '🥈 2nd' : s.rank === 3 ? '🥉 3rd' : `#${s.rank}`}
                             </td>
-                            <td className="py-2.5 px-4 text-gray-400">{s.slot}</td>
-                            <td className="py-2.5 px-4 font-bold text-white font-sans">{s.clan}</td>
-                            <td className="py-2.5 px-4 text-center text-amber-400">{s.kills}</td>
-                            <td className="py-2.5 px-4 text-center text-emerald-400">{s.positionPts}</td>
-                            <td className="py-2.5 px-4 text-right font-black text-white text-sm">
+                            <td className="py-2.5 px-4 text-gray-500">{s.slot}</td>
+                            <td className="py-2.5 px-4 font-bold text-dark-default font-sans">{s.clan}</td>
+                            <td className="py-2.5 px-4 text-center text-amber-700 font-bold">{s.kills}</td>
+                            <td className="py-2.5 px-4 text-center text-emerald-700 font-bold">{s.positionPts}</td>
+                            <td className="py-2.5 px-4 text-right font-black text-dark-default text-sm">
                               {s.totalPts}
                             </td>
-                            <td className="py-2.5 px-4 text-right text-gray-400">
+                            <td className="py-2.5 px-4 text-right text-gray-500">
                               <span className={s.rank <= 3 ? 'text-gold-primary font-bold' : ''}>
                                 {s.prize}
                               </span>
@@ -562,38 +562,38 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
       {showHostModal && (
         <div
           onClick={() => setShowHostModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-xs animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#14151B] text-white rounded-3xl w-full max-w-3xl shadow-2xl border border-white/20 overflow-hidden flex flex-col max-h-[92vh]"
+            className="bg-white text-dark-default rounded-3xl w-full max-w-3xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[92vh]"
           >
             {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-white/10 bg-neutral-950 flex items-center justify-between">
+            <div className="p-5 sm:p-6 border-b border-gray-200 bg-white-dirty flex items-center justify-between">
               <div>
                 <span className="px-2.5 py-0.5 rounded text-[9px] font-black uppercase bg-gold-primary text-black">
                   Conductor / Host Studio
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black uppercase text-white mt-1">
+                <h3 className="text-xl sm:text-2xl font-black uppercase text-dark-default mt-1">
                   Publish Finished Match Results
                 </h3>
               </div>
 
               <button
                 onClick={() => setShowHostModal(false)}
-                className="size-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm cursor-pointer transition-colors"
+                className="size-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-sm cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
             {/* Submission Form */}
-            <form onSubmit={handleSubmitResults} className="p-5 sm:p-6 overflow-y-auto space-y-5">
+            <form onSubmit={handleSubmitResults} className="p-5 sm:p-6 overflow-y-auto space-y-5 bg-white text-dark-default">
               
               {/* Tournament Basic Details */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
-                  <label className="block text-gray-400 font-bold uppercase tracking-wider mb-1">
+                  <label className="block text-gray-700 font-bold uppercase tracking-wider mb-1">
                     Tournament Title <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -602,18 +602,18 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     placeholder="e.g. BGMI BATTLE SHOWDOWN S2"
                     value={tourneyTitle}
                     onChange={(e) => setTourneyTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/20 focus:border-gold-primary focus:outline-hidden text-white font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 font-bold uppercase tracking-wider mb-1">
+                  <label className="block text-gray-700 font-bold uppercase tracking-wider mb-1">
                     Game Category
                   </label>
                   <select
                     value={tourneyGame}
                     onChange={(e) => setTourneyGame(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-800 border border-white/20 focus:border-gold-primary focus:outline-hidden text-white font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
                   >
                     <option value="BATTLEGROUNDS MOBILE INDIA">BATTLEGROUNDS MOBILE INDIA (BGMI)</option>
                     <option value="PUBG MOBILE">PUBG MOBILE</option>
@@ -623,7 +623,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 font-bold uppercase tracking-wider mb-1">
+                  <label className="block text-gray-700 font-bold uppercase tracking-wider mb-1">
                     Champion Clan Name <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -632,14 +632,14 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     placeholder="e.g. Team Soul, GodLike"
                     value={winnerClanName}
                     onChange={(e) => setWinnerClanName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/20 focus:border-gold-primary focus:outline-hidden text-white font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
                   />
                 </div>
               </div>
 
               {/* Choose Publishing Mode: Slots Points OR Direct Image Upload */}
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-300 block">
+              <div className="bg-white-dirty p-4 rounded-2xl border border-gray-200 space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-700 block">
                   How would you like to submit the match results?
                 </span>
 
@@ -649,8 +649,8 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     onClick={() => setEntryMethod('slots')}
                     className={`p-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       entryMethod === 'slots'
-                        ? 'bg-gold-primary text-black border-gold-primary font-black shadow-md'
-                        : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                        ? 'bg-gold-primary text-black border-gold-primary font-black shadow-sm'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     <span className="material-symbols-outlined text-[18px]">format_list_numbered</span>
@@ -662,8 +662,8 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     onClick={() => setEntryMethod('image')}
                     className={`p-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       entryMethod === 'image'
-                        ? 'bg-gold-primary text-black border-gold-primary font-black shadow-md'
-                        : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                        ? 'bg-gold-primary text-black border-gold-primary font-black shadow-sm'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     <span className="material-symbols-outlined text-[18px]">image</span>
@@ -676,18 +676,18 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
               {entryMethod === 'slots' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-300">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-700">
                       Enter Slots 1 to 25 (Kill Points &amp; Position Points):
                     </span>
-                    <span className="text-[10px] text-gray-400 font-mono">
+                    <span className="text-[10px] text-gray-500 font-mono">
                       Overall points = Kill Pts + Position Pts
                     </span>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto space-y-2 border border-white/10 rounded-2xl p-3 bg-black/40">
+                  <div className="max-h-60 overflow-y-auto space-y-2 border border-gray-200 rounded-2xl p-3 bg-white-dirty/50">
                     {slotsList.map((slot, idx) => (
                       <div key={slot.slotNum} className="grid grid-cols-12 gap-2 items-center text-xs">
-                        <span className="col-span-2 font-mono text-gray-400 font-bold">
+                        <span className="col-span-2 font-mono text-gray-600 font-bold">
                           Slot {slot.slotNum}:
                         </span>
                         <input
@@ -695,23 +695,23 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                           placeholder={idx === 0 ? 'Winner Clan' : `Slot ${slot.slotNum} Clan`}
                           value={slot.clan}
                           onChange={(e) => handleSlotChange(idx, 'clan', e.target.value)}
-                          className="col-span-5 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/15 text-white text-xs"
+                          className="col-span-5 px-2.5 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-900 text-xs"
                         />
                         <input
                           type="number"
                           placeholder="Kill Pts"
                           value={slot.kills}
                           onChange={(e) => handleSlotChange(idx, 'kills', e.target.value)}
-                          className="col-span-2 px-2 py-1.5 rounded-lg bg-white/5 border border-white/15 text-amber-400 font-mono text-center text-xs"
+                          className="col-span-2 px-2 py-1.5 rounded-lg bg-white border border-gray-300 text-amber-700 font-mono text-center text-xs"
                         />
                         <input
                           type="number"
                           placeholder="Pos Pts"
                           value={slot.positionPts}
                           onChange={(e) => handleSlotChange(idx, 'positionPts', e.target.value)}
-                          className="col-span-2 px-2 py-1.5 rounded-lg bg-white/5 border border-white/15 text-emerald-400 font-mono text-center text-xs"
+                          className="col-span-2 px-2 py-1.5 rounded-lg bg-white border border-gray-300 text-emerald-700 font-mono text-center text-xs"
                         />
-                        <span className="col-span-1 text-right font-mono font-black text-white text-xs">
+                        <span className="col-span-1 text-right font-mono font-black text-dark-default text-xs">
                           {(parseInt(slot.kills) || 0) + (parseInt(slot.positionPts) || 0)}
                         </span>
                       </div>
@@ -723,11 +723,11 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
               {/* Mode B: Direct Image Upload */}
               {entryMethod === 'image' && (
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
                     Upload Scoreboard / Trophy Winner Graphic:
                   </label>
                   
-                  <div className="border-2 border-dashed border-white/20 rounded-2xl p-6 text-center space-y-3 bg-white/5 hover:border-gold-primary transition-colors cursor-pointer relative">
+                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center space-y-3 bg-white-dirty/50 hover:border-gold-primary transition-colors cursor-pointer relative">
                     <input
                       type="file"
                       accept="image/*"
@@ -735,7 +735,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />
                     <span className="material-symbols-outlined text-4xl text-gold-primary">add_photo_alternate</span>
-                    <p className="text-xs text-gray-300">
+                    <p className="text-xs text-gray-600">
                       Click to choose image or drag &amp; drop final match screenshot / scoreboard graphic
                     </p>
                     <span className="text-[10px] text-gray-400 font-mono block">Supports PNG, JPG, WebP</span>
@@ -750,11 +750,11 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
               )}
 
               {/* Submit CTA */}
-              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowHostModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/20 text-gray-300 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
