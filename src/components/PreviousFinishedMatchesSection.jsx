@@ -278,7 +278,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
     <section
       id="finished-matches-section"
       data-section="finished-matches"
-      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-neutral-900 text-white"
+      className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 bg-neutral-50/60 text-dark-default"
     >
       {/* Toast Alert */}
       {toastMsg && (
@@ -292,21 +292,21 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
         <div className="relative flex flex-col gap-6 md:gap-8">
           
           {/* Header Title & Host Action Bar */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-white/10 pb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-black/10 pb-6">
             <div className="space-y-2 text-left">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gold-primary text-black">
                   Esports Hall of Fame
                 </span>
-                <span className="text-xs text-gray-400 font-mono">
+                <span className="text-xs text-gray-500 font-mono">
                   45+ Official Matches Completed
                 </span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-white">
+              <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90 text-dark-default">
                 Previous Finished Matches &amp; Leaderboards
               </h2>
-              <p className="text-xs sm:text-sm text-gray-400 max-w-2xl leading-relaxed">
+              <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B7280] max-w-3xl leading-relaxed">
                 Review verified results, complete 1 to 25 slot rankings (Kill Points, Position Points &amp; Overall Scores), and champion squads across all completed tournaments on LiveTournaments.in.
               </p>
             </div>
@@ -315,7 +315,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setShowHostModal(true)}
-                className="px-5 py-3 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-lg flex items-center gap-2"
+                className="px-5 py-3 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-2"
               >
                 <span className="material-symbols-outlined text-[18px]">upload_file</span>
                 <span>Host: Publish Match Results</span>
@@ -323,22 +323,21 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
             </div>
           </div>
 
-          {/* Finished Matches Cards Grid */}
+          {/* Finished Matches Cards Grid (White Theme Matching Homepage Canvas) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {finishedMatches.map((match) => (
               <div
                 key={match.id}
                 onClick={() => setSelectedMatch(match)}
-                className="group relative flex flex-col rounded-2xl bg-[#14151B] border border-white/10 hover:border-gold-primary/80 overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/70 transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.05] hover:-translate-y-2.5 hover:z-30 hover:ring-2 hover:ring-gold-primary/40 flex flex-col justify-between"
+                className="group relative flex flex-col rounded-2xl bg-white border border-black/10 hover:border-gold-primary/80 overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.04] hover:-translate-y-2 hover:z-20 hover:ring-2 hover:ring-gold-primary/30 flex flex-col justify-between"
               >
-                {/* Image Banner with Sleek Prize Overlay */}
-                <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-950">
+                {/* Image Banner with Smooth Hover Zoom & Coming Forward (No Overlays Above Card) */}
+                <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-900 rounded-t-2xl">
                   <img
                     src={match.image}
                     alt={match.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-112 transform-gpu"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-[#14151B] via-transparent to-transparent"></div>
 
                   {/* Status Badge */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5">
@@ -349,29 +348,17 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                       {match.category}
                     </span>
                   </div>
-
-                  {/* Clean Minimal Hover Overlay: Exclusively Showing Image & Prize Amount */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-3 text-center pointer-events-none">
-                    <div className="bg-black/85 backdrop-blur-md border border-gold-primary/70 rounded-xl px-4 py-1.5 shadow-xl transform-gpu translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-gold-primary font-bold block">
-                        Prize Disbursed
-                      </span>
-                      <span className="text-lg font-black text-white font-mono drop-shadow-md">
-                        {match.prizePool}
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Content Section */}
                 <div className="p-4 sm:p-5 flex flex-col justify-between flex-1 gap-3">
                   <div>
-                    <h3 className="text-sm sm:text-base font-black uppercase text-white group-hover:text-gold-primary transition-colors line-clamp-1">
+                    <h3 className="text-sm sm:text-base font-black uppercase text-dark-default group-hover:text-gold-primary transition-colors line-clamp-1">
                       {match.title}
                     </h3>
                     
                     {/* Completion Timestamp */}
-                    <p className="text-[11px] text-gray-400 font-mono mt-1 flex items-center gap-1">
+                    <p className="text-[11px] text-gray-500 font-mono mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[13px] text-gold-primary">history</span>
                       <span>{match.completedAt}</span>
                     </p>
@@ -383,21 +370,21 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                       <span className="text-[9px] font-bold uppercase tracking-widest text-gold-primary block">
                         CHAMPION SQUAD (RANK 1)
                       </span>
-                      <span className="text-xs font-black text-white font-mono block mt-0.5">
+                      <span className="text-xs font-black text-dark-default font-mono block mt-0.5">
                         👑 {match.winnerClan}
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[9px] text-gray-400 block font-mono">PRIZE WON</span>
-                      <span className="text-xs font-bold text-emerald-400 font-mono">
+                      <span className="text-[9px] text-gray-500 block font-mono">PRIZE WON</span>
+                      <span className="text-xs font-extrabold text-emerald-700 font-mono">
                         {match.prizePool.split(' ')[0]} {match.prizePool.split(' ')[1]}
                       </span>
                     </div>
                   </div>
 
                   {/* Leaderboard CTA Button */}
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-gray-400">
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-gray-500">
                       {match.slotsData ? '25 Slot Breakdown' : 'Scoreboard Ready'}
                     </span>
 
@@ -407,7 +394,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                         e.stopPropagation();
                         setSelectedMatch(match);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-gold-primary hover:text-black text-white text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-lg bg-black hover:bg-gold-primary hover:text-black text-white text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1 shadow-xs"
                     >
                       <span>View Results</span>
                       <span className="material-symbols-outlined text-[13px]">leaderboard</span>

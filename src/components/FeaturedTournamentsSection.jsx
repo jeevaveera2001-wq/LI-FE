@@ -570,7 +570,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     isRegistered ? 'border-emerald-500/80 ring-2 ring-emerald-500/20' : 'border-black/10'
                   }`}
                 >
-                  {/* Image Banner with Smooth Hover Zoom & Glowing Prize Pool Reveal */}
+                  {/* Image Banner with Smooth Hover Zoom & Coming Forward (No Overlays Above Card) */}
                   <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-900">
                     <img
                       alt={tourney.title}
@@ -578,21 +578,9 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       width="462"
                       height="266"
                       decoding="async"
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-112 transform-gpu"
                       src={tourney.image}
                     />
-
-                    {/* Sleek Minimal Hover Prize Overlay: Exclusively Showing Image & Prize Amount */}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-3.5 text-center pointer-events-none">
-                      <div className="bg-black/80 backdrop-blur-md border border-gold-primary/70 rounded-xl px-4 py-1.5 shadow-xl transform-gpu translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <span className="text-[9px] font-mono uppercase tracking-widest text-gold-primary font-bold block">
-                          Prize Pool
-                        </span>
-                        <span className="text-lg font-black text-white font-mono drop-shadow-md">
-                          {tourney.prizePool}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Clean Content Details: Tournament Title, Timing, Free/Paid Status, Prize Pool & CTA */}
