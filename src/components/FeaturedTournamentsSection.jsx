@@ -184,6 +184,20 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     setTimeout(() => setToastMessage(''), 3500);
   };
 
+  // Close Auth Required modal and dismiss selection completely
+  const handleCloseAuthModal = (e) => {
+    if (e) e.stopPropagation();
+    setShowAuthModal(false);
+    setSelectedTourney(null);
+  };
+
+  // Close Match Registration modal and dismiss selection completely
+  const handleCloseRegistrationModal = (e) => {
+    if (e) e.stopPropagation();
+    setSelectedTourney(null);
+    setRegSuccessData(null);
+  };
+
   // Open Registration Modal with strict Sign-In verification
   const handleOpenRegister = (tourney) => {
     const activeUser = getActiveUser();
@@ -646,7 +660,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           ======================================================== */}
       {showAuthModal && (
         <div 
-          onClick={() => setShowAuthModal(false)}
+          onClick={handleCloseAuthModal}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
         >
           <div 
@@ -655,7 +669,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           >
             {/* Top-right close button */}
             <button
-              onClick={() => setShowAuthModal(false)}
+              type="button"
+              onClick={handleCloseAuthModal}
               className="absolute top-4 right-4 size-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm cursor-pointer transition-colors"
             >
               ✕
@@ -694,8 +709,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
 
             <div className="space-y-2 pt-2">
               <button
+                type="button"
                 onClick={() => {
                   setShowAuthModal(false);
+                  setSelectedTourney(null);
                   if (onNavigate) onNavigate('login');
                 }}
                 className="w-full py-3 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
@@ -705,8 +722,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   setShowAuthModal(false);
+                  setSelectedTourney(null);
                   if (onNavigate) onNavigate('register');
                 }}
                 className="w-full py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
@@ -722,8 +741,14 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           MODAL 2: MATCH REGISTRATION FOR SIGNED-IN PLAYERS
           ======================================================== */}
       {selectedTourney && !showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div 
+          onClick={handleCloseRegistrationModal}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]"
+          >
             
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-gray-100 bg-neutral-900 text-white flex items-center justify-between">
@@ -741,7 +766,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 </h3>
               </div>
               <button
-                onClick={() => setSelectedTourney(null)}
+                type="button"
+                onClick={handleCloseRegistrationModal}
                 className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm cursor-pointer transition-colors"
               >
                 ✕
