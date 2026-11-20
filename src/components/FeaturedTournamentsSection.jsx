@@ -582,17 +582,16 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       src={tourney.image}
                     />
 
-                    {/* Smooth Gold Glass Hover Overlay: Exclusively Showing Image & Prize Amount */}
-                    <div className="absolute inset-0 bg-black/65 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-3 text-center pointer-events-none">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-gold-primary font-bold">
-                        Prize Pool
-                      </span>
-                      <span className="text-xl font-black text-white font-mono drop-shadow-md mt-0.5">
-                        {tourney.prizePool}
-                      </span>
-                      <span className="mt-2 px-3 py-1 rounded-full bg-gold-primary text-black font-extrabold text-[10px] uppercase tracking-wider shadow">
-                        Explore &amp; Register &rarr;
-                      </span>
+                    {/* Sleek Minimal Hover Prize Overlay: Exclusively Showing Image & Prize Amount */}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-3.5 text-center pointer-events-none">
+                      <div className="bg-black/80 backdrop-blur-md border border-gold-primary/70 rounded-xl px-4 py-1.5 shadow-xl transform-gpu translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-gold-primary font-bold block">
+                          Prize Pool
+                        </span>
+                        <span className="text-lg font-black text-white font-mono drop-shadow-md">
+                          {tourney.prizePool}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

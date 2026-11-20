@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
+import PreviousFinishedMatchesSection from './PreviousFinishedMatchesSection';
 
 const ALL_TOURNAMENTS_CATALOG = [
   {
@@ -615,17 +616,16 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       src={tourney.image}
                     />
 
-                    {/* Smooth Hover Prize Banner Pop */}
-                    <div className="absolute inset-0 bg-black/65 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-3 text-center pointer-events-none">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-gold-primary font-bold">
-                        Prize Pool
-                      </span>
-                      <span className="text-lg font-black text-white font-mono drop-shadow-md">
-                        {tourney.prizePool}
-                      </span>
-                      <span className="mt-2 px-3 py-1 rounded-full bg-gold-primary text-black font-bold text-[10px] uppercase tracking-wider shadow">
-                        {isRegistered ? 'Slot Active ✓' : 'Register Now →'}
-                      </span>
+                    {/* Sleek Minimal Hover Prize Overlay: Exclusively Showing Image & Prize Amount */}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-3.5 text-center pointer-events-none">
+                      <div className="bg-black/80 backdrop-blur-md border border-gold-primary/70 rounded-xl px-4 py-1.5 shadow-xl transform-gpu translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-gold-primary font-bold block">
+                          Prize Pool
+                        </span>
+                        <span className="text-lg font-black text-white font-mono drop-shadow-md">
+                          {tourney.prizePool}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -964,6 +964,11 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
           </div>
         </div>
       )}
+      {/* Previous Finished Matches & 25-Slot Leaderboards */}
+      <div className="mt-12">
+        <PreviousFinishedMatchesSection onNavigate={onNavigate} currentUser={currentUser} />
+      </div>
+
       {/* 3D Interactive Glossy Card Spotlight Modal */}
       <InteractiveTournamentSpotlight
         tourney={spotlightTourney}

@@ -16,6 +16,7 @@ import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
 import TournamentsPage from './components/TournamentsPage';
 import TournamentRegistrationPage from './components/TournamentRegistrationPage';
+import PreviousFinishedMatchesSection from './components/PreviousFinishedMatchesSection';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
@@ -288,6 +289,7 @@ export default function App() {
                   <NewsletterSection />
                   <GamesSection />
                   <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
+                  <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />
                   <HostTournamentsSection onNavigate={navigateTo} />
                   <RecapsSection />
