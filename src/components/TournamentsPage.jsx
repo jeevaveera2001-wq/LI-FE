@@ -592,7 +592,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 pt-2 pb-6">
             {filteredTournaments.map((tourney) => {
               const isRegistered = joinedTourneyIds.has(tourney.id) || joinedTourneyIds.has(tourney.title);
 
@@ -600,11 +600,11 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                 <div
                   key={tourney.id}
                   onClick={() => setSpotlightTourney(tourney)}
-                  className={`group relative flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform-gpu will-change-transform hover:scale-[1.07] hover:-translate-y-3 hover:z-30 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/40 ${
+                  className={`group relative flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform-gpu will-change-transform hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-30 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 ${
                     isRegistered ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-black/10'
                   }`}
                 >
-                  {/* Image Banner with Smooth Hover Zoom & Coming Forward (No Overlays Above Card) */}
+                  {/* Image Banner with Smooth Hover Zoom & Forward Elevation */}
                   <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-900">
                     <img
                       alt={tourney.title}
@@ -612,9 +612,10 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       width="462"
                       height="266"
                       decoding="async"
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-112 transform-gpu"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 transform-gpu"
                       src={tourney.image}
                     />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </div>
 
                   {/* Clean Content: Title, Timing, Free/Paid Status & Prize Pool */}

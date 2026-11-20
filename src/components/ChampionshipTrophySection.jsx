@@ -70,13 +70,13 @@ export default function ChampionshipTrophySection({ onNavigate }) {
             </div>
           </div>
 
-          {/* Championship Visual Showcase Card */}
-          <div className="flex w-full flex-col items-center gap-4 md:gap-8">
-            <div className="w-full overflow-hidden rounded-2xl md:rounded-3xl xl:rounded-4xl shadow-2xl bg-dark-default relative group">
+          {/* Championship Visual Showcase Card with Smooth Hover Elevation */}
+          <div className="flex w-full flex-col items-center gap-4 md:gap-8 pt-2 pb-4">
+            <div className="w-full overflow-hidden rounded-2xl md:rounded-3xl xl:rounded-4xl shadow-2xl hover:shadow-black/35 border border-white/10 hover:border-gold-primary/60 bg-dark-default relative group transition-all duration-500 ease-out transform-gpu hover:-translate-y-1.5 cursor-pointer">
               <img
                 src="/assets/lt_championship_trophy_card_4k.png"
                 alt="LT.IN Championship Trophy - Coming Soon"
-                className="w-full h-auto object-cover block transition-transform duration-700 group-hover:scale-102"
+                className="w-full h-auto object-cover block transition-transform duration-700 ease-out group-hover:scale-103 group-hover:brightness-105"
               />
 
               {/* Dynamic Live Estimation Ribbon */}

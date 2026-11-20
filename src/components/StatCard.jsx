@@ -10,7 +10,7 @@ export default function StatCard({
   comparisonLabel = 'vs yesterday'
 }) {
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between hover:shadow-sm transition-shadow">
+    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:shadow-xl hover:border-gold-primary/50 hover:-translate-y-1 transition-all duration-300 ease-out transform-gpu flex flex-col justify-between">
       <div className="flex items-start justify-between">
         <div>
           <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">

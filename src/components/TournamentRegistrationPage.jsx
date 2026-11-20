@@ -254,14 +254,14 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
               ========================================================= */}
           <div className="lg:col-span-5 space-y-6">
             
-            <div className="bg-[#111217] rounded-3xl overflow-hidden border border-white/10 shadow-2xl text-white">
+            <div className="bg-[#111217] rounded-3xl overflow-hidden border border-white/10 hover:border-gold-primary/50 shadow-2xl text-white group transition-all duration-300 ease-out hover:shadow-gold-primary/10">
               
               {/* High-Res Tournament Image */}
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-900 group">
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-900">
                 <img
                   src={activeTourney.image}
                   alt={activeTourney.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 transform-gpu"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-[#111217] via-transparent to-transparent"></div>
 

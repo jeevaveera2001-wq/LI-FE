@@ -82,18 +82,18 @@ export default function GamesSection() {
             </div>
           </div>
 
-          {/* Games Slider with Centralized Cards */}
+          {/* Games Slider with Centralized Cards & Smooth Elevated Hover */}
           <div className="relative">
             <div
               ref={scrollContainerRef}
-              className="hide-scrollbar flex gap-4 overflow-x-auto pb-4 pt-2 scroll-smooth"
+              className="hide-scrollbar flex gap-4 overflow-x-auto pt-3 pb-6 px-1 scroll-smooth"
               role="region"
               tabIndex="0"
             >
               {GAMES_CATALOG.map((game) => (
                 <div
                   key={game.name}
-                  className="group relative flex w-[249px] h-[249px] flex-none flex-col items-center justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-xl border border-gray-100 hover:border-gold-primary/60 transition-all duration-300 select-none lg:rounded-3xl cursor-pointer"
+                  className="group relative flex w-[249px] h-[249px] flex-none flex-col items-center justify-between rounded-2xl bg-white p-5 shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:scale-[1.025] hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/40 relative z-0 hover:z-20 transition-all duration-300 ease-out transform-gpu will-change-transform select-none lg:rounded-3xl cursor-pointer"
                 >
                   {/* Top Category Badge */}
                   <div className="w-full flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
@@ -106,7 +106,7 @@ export default function GamesSection() {
                     </span>
                   </div>
 
-                  {/* Perfectly Centralized Game Logo - No Upper Offset or Empty Gaps */}
+                  {/* Perfectly Centralized Game Logo - Smooth Hover Zoom */}
                   <div className="flex-1 flex items-center justify-center w-full px-2 py-3 my-auto overflow-hidden">
                     <img
                       alt={game.name}
@@ -114,7 +114,7 @@ export default function GamesSection() {
                       width="200"
                       height="120"
                       decoding="async"
-                      className="max-h-[115px] max-w-[190px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-108 filter drop-shadow-xs pointer-events-none"
+                      className="max-h-[115px] max-w-[190px] w-auto h-auto object-contain transition-transform duration-300 ease-out group-hover:scale-110 group-hover:brightness-105 filter drop-shadow-xs pointer-events-none transform-gpu"
                       src={game.logo}
                     />
                   </div>
@@ -132,7 +132,7 @@ export default function GamesSection() {
               ))}
 
               {/* More Tournaments Planned Card */}
-              <div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-md select-none lg:rounded-3xl border border-dashed border-gray-200 text-center">
+              <div className="group relative flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-5 shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:scale-[1.025] hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 relative z-0 hover:z-20 transition-all duration-300 ease-out transform-gpu will-change-transform select-none lg:rounded-3xl border border-dashed border-gray-200 text-center cursor-pointer">
                 <div className="w-full flex items-center justify-end text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
                   <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[9px]">
                     UPCOMING

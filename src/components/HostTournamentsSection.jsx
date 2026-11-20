@@ -44,12 +44,12 @@ export default function HostTournamentsSection({ onNavigate }) {
           </div>
 
           {/* 3 Pillars / Media Showcase Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 pb-6">
             
             {/* Card 1 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -57,7 +57,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Host Your Live Tournaments Directly With Us"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
                     src="/assets/host_directly_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
@@ -86,7 +86,7 @@ export default function HostTournamentsSection({ onNavigate }) {
             {/* Card 2 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -94,7 +94,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Launch with Our Expert Pilots and Production Teams"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
                     src="/assets/experienced_pilot_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-blue-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
@@ -123,7 +123,7 @@ export default function HostTournamentsSection({ onNavigate }) {
             {/* Card 3 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -131,7 +131,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Give Your Event a Professional Broadcaster Polish"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
                     src="/assets/professional_quality_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-purple-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">

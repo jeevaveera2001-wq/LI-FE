@@ -324,20 +324,21 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
           </div>
 
           {/* Finished Matches Cards Grid (White Theme Matching Homepage Canvas) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 pt-2 pb-6">
             {finishedMatches.map((match) => (
               <div
                 key={match.id}
                 onClick={() => setSelectedMatch(match)}
-                className="group relative flex flex-col rounded-2xl bg-white border border-black/10 hover:border-gold-primary/80 overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out transform-gpu will-change-transform hover:scale-[1.04] hover:-translate-y-2 hover:z-20 hover:ring-2 hover:ring-gold-primary/30 flex flex-col justify-between"
+                className="group relative flex flex-col rounded-2xl bg-white border border-black/10 hover:border-gold-primary overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out transform-gpu will-change-transform hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-30 hover:ring-2 hover:ring-gold-primary/50 flex flex-col justify-between"
               >
-                {/* Image Banner with Smooth Hover Zoom & Coming Forward (No Overlays Above Card) */}
+                {/* Image Banner with Smooth Hover Zoom & Forward Elevation */}
                 <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-900 rounded-t-2xl">
                   <img
                     src={match.image}
                     alt={match.title}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-112 transform-gpu"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 transform-gpu"
                   />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   {/* Status Badge */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5">
@@ -365,12 +366,12 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                   </div>
 
                   {/* Winner Clan Card Highlight */}
-                  <div className="p-3 rounded-xl bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-between group-hover:bg-gold-primary/15 transition-colors">
                     <div>
                       <span className="text-[9px] font-bold uppercase tracking-widest text-gold-primary block">
                         CHAMPION SQUAD (RANK 1)
                       </span>
-                      <span className="text-xs font-black text-dark-default font-mono block mt-0.5">
+                      <span className="text-xs font-black text-dark-default font-mono block mt-0.5 group-hover:text-gold-primary transition-colors">
                         👑 {match.winnerClan}
                       </span>
                     </div>
@@ -394,7 +395,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                         e.stopPropagation();
                         setSelectedMatch(match);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-black hover:bg-gold-primary hover:text-black text-white text-[11px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1 shadow-xs"
+                      className="px-3 py-1.5 rounded-lg bg-black text-white group-hover:bg-gold-primary group-hover:text-black text-[11px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs group-hover:shadow-md"
                     >
                       <span>View Results</span>
                       <span className="material-symbols-outlined text-[13px]">leaderboard</span>
