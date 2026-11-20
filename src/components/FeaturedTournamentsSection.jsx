@@ -504,7 +504,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 <div
                   key={tourney.id}
                   onClick={() => handleOpenRegister(tourney)}
-                  className={`group flex flex-col rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border overflow-hidden cursor-pointer transform hover:-translate-y-1 ${
+                  className={`group flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform hover:-translate-y-2 hover:border-gold-primary/70 hover:ring-2 hover:ring-gold-primary/30 ${
                     isRegistered ? 'border-emerald-500/80 ring-2 ring-emerald-500/20' : 'border-black/10'
                   }`}
                 >
@@ -516,7 +516,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       width="462"
                       height="266"
                       decoding="async"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                       src={tourney.image}
                     />
 
@@ -606,7 +606,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                             e.stopPropagation();
                             handleOpenRegister(tourney);
                           }}
-                          className="px-3.5 py-1.5 rounded-lg bg-black text-white group-hover:bg-gold-primary group-hover:text-black text-xs font-bold uppercase tracking-wider transition-colors shadow-sm cursor-pointer flex items-center gap-1"
+                          className="px-3.5 py-1.5 rounded-lg bg-black text-white group-hover:bg-gold-primary group-hover:text-black text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm cursor-pointer flex items-center gap-1 group-hover:shadow-md"
                         >
                           <span>Register Match</span>
                           <span className="material-symbols-outlined text-[14px]">how_to_reg</span>

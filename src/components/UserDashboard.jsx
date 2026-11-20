@@ -288,37 +288,37 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           LEFT DARK SIDEBAR (EXACT NAGULAN SUPERADMIN REPLICA)
           ======================================================== */}
       <aside
-        style={{ minHeight: '100vh', width: '240px', backgroundColor: '#0E0E10' }}
-        className={`w-60 bg-[#0E0E10] text-[#9CA3AF] flex-col border-r border-[#1F2937] shrink-0 z-50 transition-all duration-200 ${
-          sidebarOpen ? 'fixed inset-y-0 left-0 flex shadow-2xl' : 'hidden lg:flex'
+        style={{ width: '240px', backgroundColor: '#0E0E10' }}
+        className={`w-60 bg-[#0E0E10] text-[#9CA3AF] flex-col border-r border-[#1F2937] shrink-0 z-50 transition-all duration-200 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:overflow-hidden ${
+          sidebarOpen ? 'fixed inset-y-0 left-0 flex shadow-2xl h-screen overflow-hidden' : 'hidden lg:flex'
         }`}
       >
         {/* Brand Header */}
-        <div className="px-4 py-4 border-b border-[#1F2937]/80 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-[#1F2937]/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onNavigate && onNavigate('home')}>
-            <div className="size-9 rounded-full bg-[#18181B] border border-[#DFBD78]/40 flex items-center justify-center text-[#DFBD78] font-bold text-xs shadow-inner">
+            <div className="size-8 rounded-full bg-[#18181B] border border-[#DFBD78]/40 flex items-center justify-center text-[#DFBD78] font-bold text-xs shadow-inner">
               LT
             </div>
             <div className="flex flex-col">
-              <span className="text-[12px] font-bold tracking-tight text-white uppercase leading-tight">LiveTournaments</span>
-              <span className="text-[8px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">COMPETITOR HUB</span>
+              <span className="text-[11px] font-bold tracking-tight text-white uppercase leading-tight">LiveTournaments</span>
+              <span className="text-[7.5px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">COMPETITOR HUB</span>
             </div>
           </div>
-          <div className="size-7 rounded-[6px] bg-[#1E1911] border border-[#DFBD78]/50 flex items-center justify-center text-[#DFBD78] font-bold text-[10px]">
+          <div className="size-6 rounded-[5px] bg-[#1E1911] border border-[#DFBD78]/50 flex items-center justify-center text-[#DFBD78] font-bold text-[9px]">
             HQ
           </div>
         </div>
 
         {/* Competitor Role Badge Strip */}
-        <div className="px-4 py-3 border-b border-[#1F2937]/60 flex items-center justify-between bg-[#131316]">
-          <span className="text-[11px] font-semibold text-white/90 truncate max-w-[120px]">{displayName}</span>
-          <span className="px-2 py-0.5 rounded-[4px] bg-[#2A2312] text-[#DFBD78] text-[9px] font-bold tracking-wider uppercase border border-[#DFBD78]/40">
+        <div className="px-4 py-2 border-b border-[#1F2937]/60 flex items-center justify-between bg-[#131316] shrink-0">
+          <span className="text-[10.5px] font-semibold text-white/90 truncate max-w-[120px]">{displayName}</span>
+          <span className="px-1.5 py-0.5 rounded-[4px] bg-[#2A2312] text-[#DFBD78] text-[8.5px] font-bold tracking-wider uppercase border border-[#DFBD78]/40">
             PLAYER
           </span>
         </div>
 
-        {/* Navigation Items (Exact Nagulan Classes) */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-[11px] font-medium scrollbar-thin">
+        {/* Navigation Items (Static & Non-scrollable) */}
+        <div className="flex-1 overflow-hidden px-3 py-2 space-y-0.5 text-[11px] font-medium">
           
           {/* Present Day */}
           <button
@@ -411,10 +411,10 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-[#1F2937]/80 bg-[#0E0E10] space-y-2">
+        <div className="p-2.5 border-t border-[#1F2937]/80 bg-[#0E0E10] flex flex-col gap-1 shrink-0">
           <button
             onClick={() => onNavigate && onNavigate('home')}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-[6px] text-[#9CA3AF] hover:text-white hover:bg-[#18181B] text-[11px] font-semibold transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-[#9CA3AF] hover:text-white hover:bg-[#18181B] text-[10.5px] font-semibold transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">arrow_back</span>
             <span>Return to Home Arena</span>
@@ -422,7 +422,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
 
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-[6px] text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 text-[11px] font-semibold transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 text-[10.5px] font-semibold transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">logout</span>
             <span>Sign Out</span>
