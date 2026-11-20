@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './Loaders';
+import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 
 const INITIAL_TOURNAMENTS = [
   {

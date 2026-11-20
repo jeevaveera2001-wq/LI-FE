@@ -14,7 +14,7 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
-import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/Loaders';
+import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
   constructor(props) {
