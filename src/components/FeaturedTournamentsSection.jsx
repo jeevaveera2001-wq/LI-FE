@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
+import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
 
 const INITIAL_TOURNAMENTS = [
   {
@@ -17,6 +18,20 @@ const INITIAL_TOURNAMENTS = [
     image: '/assets/tournament_bgmi_showdown_4k.jpg'
   },
   {
+    id: 'bgmi-tier1-daily-scrims',
+    title: 'BGMI TIER-1 PRO DAILY SCRIMS',
+    game: 'BATTLEGROUNDS MOBILE INDIA',
+    category: 'SCRIMS',
+    badge: '⚔️ DAILY SCRIMS LIVE',
+    badgeColor: 'bg-orange-500 text-white font-extrabold',
+    schedule: 'Starts Today • 9:00 PM IST',
+    prizePool: '₹ 25,000 INR',
+    squadType: 'Squad',
+    format: 'Squad (Tier-1 Practice)',
+    entryFee: 'FREE ENTRY',
+    image: '/assets/tournament_bgmi_showdown_4k.jpg'
+  },
+  {
     id: 'pubg-mobile-global-reg',
     title: 'PUBG MOBILE GLOBAL CHAMPIONSHIP',
     game: 'PUBG MOBILE',
@@ -28,6 +43,20 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Squad',
     format: 'Squad',
     entryFee: 'FREE ENTRY',
+    image: '/assets/tournament_pubg_mobile_4k.jpg'
+  },
+  {
+    id: 'pubg-night-grind-scrims',
+    title: 'PUBG NIGHT GRIND CUSTOM SCRIMS',
+    game: 'PUBG MOBILE',
+    category: 'SCRIMS',
+    badge: '⚡ VERIFIED SCRIMS',
+    badgeColor: 'bg-amber-600 text-white font-extrabold',
+    schedule: 'Starts Tomorrow • 10:00 PM IST',
+    prizePool: '₹ 15,000 INR',
+    squadType: 'Squad',
+    format: 'Squad Custom Scrim',
+    entryFee: '₹ 50 / Slot (Paid Entry)',
     image: '/assets/tournament_pubg_mobile_4k.jpg'
   },
   {
@@ -111,17 +140,18 @@ const INITIAL_TOURNAMENTS = [
     prizePool: '₹ 60,000 INR',
     squadType: 'Squad',
     format: 'Squad',
-    entryFee: 'FREE ENTRY',
+    entryFee: '₹ 100 / Squad (Paid Entry)',
     image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
   }
 ];
 
 export default function FeaturedTournamentsSection({ onNavigate, currentUser }) {
-  const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, PUBG, FREEFIRE, OTHER
+  const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, SCRIMS, PUBG, FREEFIRE, OTHER
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllTournaments, setShowAllTournaments] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [spotlightTourney, setSpotlightTourney] = useState(null);
 
   const handleFilterChange = (filter) => {
     setIsFiltering(true);
@@ -347,6 +377,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     // Category filter
     if (activeFilter === 'ALL') return true;
     if (activeFilter === 'BGMI') return t.category === 'BGMI';
+    if (activeFilter === 'SCRIMS') return t.category === 'SCRIMS';
     if (activeFilter === 'PUBG') return t.category === 'PUBG';
     if (activeFilter === 'FREEFIRE') return t.category === 'FREEFIRE';
     if (activeFilter === 'OTHER') return t.category === 'OTHER';
@@ -452,6 +483,18 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
               </button>
 
               <button
+                onClick={() => handleFilterChange('SCRIMS')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeFilter === 'SCRIMS'
+                    ? 'bg-orange-500 text-white shadow-md font-extrabold'
+                    : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+                }`}
+              >
+                <span>⚔️</span>
+                <span>Daily Scrims</span>
+              </button>
+
+              <button
                 onClick={() => handleFilterChange('PUBG')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   activeFilter === 'PUBG'
@@ -521,11 +564,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 <div
                   key={tourney.id}
                   onClick={() => {
-                    if (onNavigate) {
-                      onNavigate('tournaments');
-                    } else {
-                      handleOpenRegister(tourney);
-                    }
+                    setSpotlightTourney(tourney);
                   }}
                   className={`group relative flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/35 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform-gpu will-change-transform hover:scale-[1.08] hover:-translate-y-3.5 hover:z-50 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 ${
                     isRegistered ? 'border-emerald-500/80 ring-2 ring-emerald-500/20' : 'border-black/10'
@@ -599,7 +638,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onNavigate) {
-                              onNavigate('tournaments');
+                              onNavigate('tournament-register', tourney);
                             } else {
                               handleOpenRegister(tourney);
                             }
@@ -984,6 +1023,22 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           </div>
         </div>
       )}
+
+      {/* 3D Interactive Glossy Card Spotlight Modal */}
+      <InteractiveTournamentSpotlight
+        tourney={spotlightTourney}
+        onClose={() => setSpotlightTourney(null)}
+        onRegister={(tourney) => {
+          setSpotlightTourney(null);
+          if (onNavigate) {
+            onNavigate('tournament-register', tourney);
+          } else {
+            handleOpenRegister(tourney);
+          }
+        }}
+        onNavigate={onNavigate}
+        isRegistered={spotlightTourney && (joinedTourneyIds.has(spotlightTourney.id) || joinedTourneyIds.has(spotlightTourney.title))}
+      />
 
     </section>
   );

@@ -4,17 +4,22 @@ export default function ChampionshipTrophySection({ onNavigate }) {
   const [notified, setNotified] = useState(false);
 
   // Dynamic Live Estimation Counter for Championship Prize Pool
-  const [liveEstimatedPool, setLiveEstimatedPool] = useState(2485000);
+  // First two characters masked with ??, balance five digits are live counting numbers
+  const [liveTrailingDigits, setLiveTrailingDigits] = useState(48520);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setLiveEstimatedPool(prev => {
-        const increment = Math.floor(Math.random() * 1200) + 400;
-        return prev + increment;
+      setLiveTrailingDigits(prev => {
+        const increment = Math.floor(Math.random() * 85) + 15;
+        const nextVal = prev + increment;
+        return nextVal > 99999 ? 10000 + (nextVal % 90000) : nextVal;
       });
-    }, 3500);
+    }, 2800);
     return () => clearInterval(timer);
   }, []);
+
+  const formattedFiveDigits = liveTrailingDigits.toString().padStart(5, '0');
+  const displayTrailingDigits = `${formattedFiveDigits.slice(0, 2)},${formattedFiveDigits.slice(2)}`;
 
   const handleNotifyMe = () => {
     setNotified(true);
@@ -77,19 +82,18 @@ export default function ChampionshipTrophySection({ onNavigate }) {
               {/* Dynamic Live Estimation Ribbon */}
               <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-black/85 backdrop-blur-md border border-gold-primary/50 rounded-2xl p-4 md:p-6 text-right max-w-sm shadow-2xl">
                 <div className="flex items-center justify-end gap-1.5 mb-1">
-                  <span className="size-2 rounded-full bg-emerald-400 animate-ping"></span>
                   <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-gold-primary">
-                    Live Prize Pool Estimation
+                    Prize Pool Estimation
                   </span>
                 </div>
                 <div className="flex items-baseline justify-end gap-1.5">
                   <span className="text-xl md:text-3xl font-black text-white font-mono drop-shadow-md">
-                    ₹ {liveEstimatedPool.toLocaleString('en-IN')}+
+                    ₹ ??,{displayTrailingDigits}+
                   </span>
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-1">
                   <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-gold-primary/20 text-gold-primary border border-gold-primary/30">
-                    ● Growing Live Pool Tally
+                    ● Live Counting Pool
                   </span>
                 </div>
                 <p className="text-[11px] text-white/80 mt-1.5 leading-snug">

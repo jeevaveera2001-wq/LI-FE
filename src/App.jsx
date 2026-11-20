@@ -15,6 +15,7 @@ import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
 import TournamentsPage from './components/TournamentsPage';
+import TournamentRegistrationPage from './components/TournamentRegistrationPage';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
@@ -70,6 +71,18 @@ export default function App() {
     return null;
   });
 
+  const [selectedRegistrationTourney, setSelectedRegistrationTourney] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('lt_active_reg_tourney');
+        return stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
@@ -79,6 +92,7 @@ export default function App() {
       if (path.includes('login') || hash.includes('login')) return 'login';
       if (path.includes('register') || hash.includes('register')) return 'register';
       if (path.includes('about') || hash.includes('about')) return 'about';
+      if (path.includes('tournament-register') || hash.includes('tournament-register')) return 'tournament-register';
       if (path.includes('tournaments') || hash.includes('tournaments')) return 'tournaments';
     }
     return 'home';
@@ -90,25 +104,35 @@ export default function App() {
   const [showLoadersModal, setShowLoadersModal] = useState(false);
   const [fullScreenLoading, setFullScreenLoading] = useState(false);
 
-  const navigateTo = (page, sectionId) => {
+  const navigateTo = (page, param) => {
     setIsNavigating(true);
     setTimeout(() => setIsNavigating(false), 450);
+
+    if (page === 'tournament-register' && param && typeof param === 'object') {
+      setSelectedRegistrationTourney(param);
+      try {
+        localStorage.setItem('lt_active_reg_tourney', JSON.stringify(param));
+      } catch (e) {}
+    }
+
     setCurrentPage(page);
     if (typeof window !== 'undefined') {
       let targetUrl = '/';
       if (page === 'admin-dashboard') targetUrl = '/admin';
       else if (page === 'user-dashboard') targetUrl = '/dashboard';
       else if (page === 'about') targetUrl = '/about';
+      else if (page === 'tournaments') targetUrl = '/tournaments';
+      else if (page === 'tournament-register') targetUrl = '/tournament-register';
       else if (page !== 'home') targetUrl = `/${page}`;
 
-      if (sectionId) {
-        targetUrl += `#${sectionId}`;
+      if (param && typeof param === 'string') {
+        targetUrl += `#${param}`;
       }
 
-      window.history.pushState({ page, sectionId }, '', targetUrl);
-      if (sectionId) {
+      window.history.pushState({ page, param }, '', targetUrl);
+      if (param && typeof param === 'string') {
         setTimeout(() => {
-          const el = document.getElementById(sectionId);
+          const el = document.getElementById(param);
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
@@ -159,6 +183,10 @@ export default function App() {
         setCurrentPage('register');
       } else if (path.includes('about') || hash.includes('about')) {
         setCurrentPage('about');
+      } else if (path.includes('tournament-register') || hash.includes('tournament-register')) {
+        setCurrentPage('tournament-register');
+      } else if (path.includes('tournaments') || hash.includes('tournaments')) {
+        setCurrentPage('tournaments');
       } else {
         setCurrentPage('home');
         if (window.location.hash) {
@@ -245,6 +273,12 @@ export default function App() {
                 />
               ) : currentPage === 'tournaments' ? (
                 <TournamentsPage
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                />
+              ) : currentPage === 'tournament-register' ? (
+                <TournamentRegistrationPage
+                  tourney={selectedRegistrationTourney}
                   currentUser={currentUser}
                   onNavigate={navigateTo}
                 />
