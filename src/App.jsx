@@ -225,7 +225,7 @@ export default function App() {
                   <HeroSection onNavigate={navigateTo} />
                   <NewsletterSection />
                   <GamesSection />
-                  <FeaturedTournamentsSection onNavigate={navigateTo} />
+                  <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />
                   <HostTournamentsSection onNavigate={navigateTo} />
                   <RecapsSection />
