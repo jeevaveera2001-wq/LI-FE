@@ -22,16 +22,6 @@ export default function HostTournamentsSection({ onNavigate }) {
           {/* Header Title & Subtitle */}
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="text-dark-default section-title flex w-full flex-col gap-2 normal-case text-left">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gold-primary text-black shadow-sm">
-                  <span className="material-symbols-outlined text-[16px]">gallery_thumbnail</span>
-                  Media &amp; Broadcasting
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Creator &amp; Clan Studio
-                </span>
-              </div>
-
               <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
                 Host Your Tournaments
               </h2>
@@ -59,7 +49,7 @@ export default function HostTournamentsSection({ onNavigate }) {
             {/* Card 1 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:border-gold-primary/70 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -67,7 +57,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Host Your Live Tournaments Directly With Us"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
                     src="/assets/host_directly_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
@@ -96,7 +86,7 @@ export default function HostTournamentsSection({ onNavigate }) {
             {/* Card 2 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:border-gold-primary/70 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -104,7 +94,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Launch with Our Expert Pilots and Production Teams"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
                     src="/assets/experienced_pilot_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-blue-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
@@ -133,7 +123,7 @@ export default function HostTournamentsSection({ onNavigate }) {
             {/* Card 3 */}
             <div
               onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:border-gold-primary/70 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform"
+              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2.5 hover:scale-[1.04] hover:z-20 hover:border-gold-primary/80 hover:ring-2 hover:ring-gold-primary/30 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
             >
               <div>
                 <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
@@ -141,7 +131,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                     alt="Give Your Event a Professional Broadcaster Polish"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 rounded-t-2xl w-full h-full"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 rounded-t-2xl w-full h-full"
                     src="/assets/professional_quality_4k.jpg"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-purple-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">

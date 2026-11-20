@@ -25,17 +25,6 @@ export default function ChampionshipTrophySection({ onNavigate }) {
           {/* Header Title & Subtitle */}
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="text-dark-default section-title flex w-full flex-col gap-2 normal-case text-left">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gold-primary text-black shadow-sm">
-                  <span className="material-symbols-outlined text-[16px]">tv</span>
-                  Official Programs
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
-                  <span className="size-2 rounded-full bg-red-600 animate-ping inline-block mr-1"></span>
-                  Coming Soon
-                </span>
-              </div>
-
               <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90 text-dark-default">
                 LT.IN Championship Trophy — Coming Soon
               </h2>

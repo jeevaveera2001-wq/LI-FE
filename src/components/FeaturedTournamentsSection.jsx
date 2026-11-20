@@ -11,10 +11,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-amber-500 text-black font-extrabold',
     schedule: 'Starts Today • 7:00 PM IST',
     prizePool: '₹ 1,50,000 INR',
-    format: 'Squad (Erangel + Miramar)',
+    squadType: 'Squad',
+    format: 'Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg',
-    description: 'Premier Indian battle royale squad championship. Instant custom room credentials and referee oversight upon registration.'
+    image: '/assets/tournament_bgmi_showdown_4k.jpg'
   },
   {
     id: 'pubg-mobile-global-reg',
@@ -25,10 +25,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-[#DFBD78] text-black font-extrabold shadow-sm',
     schedule: 'Starts in 2 Days • 8:00 PM IST',
     prizePool: '₹ 5,00,000 INR',
-    format: 'Squad Pro Tournament (Erangel + Sanhok)',
+    squadType: 'Squad',
+    format: 'Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_mobile_4k.jpg',
-    description: 'Tier-1 competitive international championship. Verified squad rosters with automated match scoring and leaderboard tracking.'
+    image: '/assets/tournament_pubg_mobile_4k.jpg'
   },
   {
     id: 'bgmi-lan-warriors-reg',
@@ -39,10 +39,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-emerald-600 text-white font-extrabold',
     schedule: 'Starts Tomorrow • 5:00 PM IST',
     prizePool: '₹ 75,000 INR',
-    format: 'Squad Tactical Showdown (Miramar)',
+    squadType: 'Duo',
+    format: 'Duo',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
-    description: 'Clash of top underdog and elite squads in custom rooms. Fair play anti-cheat verified with direct prize distribution.'
+    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg'
   },
   {
     id: 'pubg-ultimate-squad-reg',
@@ -53,10 +53,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-blue-600 text-white font-extrabold',
     schedule: 'Starts Tomorrow • 6:00 PM IST',
     prizePool: '₹ 30,000 INR',
-    format: 'Squad Battle Royale (Vikendi + Erangel)',
+    squadType: 'Solo',
+    format: 'Solo',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg',
-    description: 'High-octane daily competitive series. Custom room credentials and automated rankings for all verified squad leaders.'
+    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
   },
   {
     id: 'freefire-clutch-cup-reg',
@@ -67,10 +67,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-indigo-600 text-white font-extrabold',
     schedule: 'Starts Saturday • 4:00 PM IST',
     prizePool: '₹ 50,000 INR',
-    format: 'Squad Clash (Bermuda + Purgatory)',
+    squadType: 'Squad',
+    format: 'Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg',
-    description: 'Rapid-fire Free Fire MAX squad cup with custom clash maps, automated lobby points, and live referee validation.'
+    image: '/assets/tournament_bgmi_showdown_4k.jpg'
   },
   {
     id: 'valorant-spike-masters-reg',
@@ -81,10 +81,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-purple-600 text-white font-extrabold',
     schedule: 'Starts Sunday • 6:00 PM IST',
     prizePool: '₹ 1,00,000 INR',
-    format: '5v5 Tactical Shooter (Ascent & Bind)',
+    squadType: '5v5 Squad',
+    format: '5v5 Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
-    description: 'Competitive tactical PC showdown hosted on Mumbai low-latency dedicated tournament servers.'
+    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg'
   },
   {
     id: 'codm-battle-royale-reg',
@@ -95,10 +95,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-amber-600 text-white font-extrabold',
     schedule: 'Starts Sunday • 8:00 PM IST',
     prizePool: '₹ 40,000 INR',
-    format: 'Squad Battle Royale (Isolated Map)',
+    squadType: 'Solo',
+    format: 'Solo',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_mobile_4k.jpg',
-    description: 'Mobile battle royale showdown featuring customized weapon loadouts, automated kill feeds, and instant rankings.'
+    image: '/assets/tournament_pubg_mobile_4k.jpg'
   },
   {
     id: 'bgmi-underdog-pro-reg',
@@ -109,10 +109,10 @@ const INITIAL_TOURNAMENTS = [
     badgeColor: 'bg-[#DFBD78] text-black font-extrabold',
     schedule: 'Starts Monday • 7:30 PM IST',
     prizePool: '₹ 60,000 INR',
-    format: 'Squad 4-Map Championship Rotation',
+    squadType: 'Squad',
+    format: 'Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg',
-    description: 'Platform dedicated for rising underdog clans and content creators to establish their competitive ranking.'
+    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
   }
 ];
 
@@ -383,15 +383,6 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           {/* Header Title & Subtitle */}
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="text-dark-default section-title flex w-full flex-col gap-2 text-left">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gold-primary/20 text-black border border-gold-primary/40">
-                  <span className="material-symbols-outlined text-[16px] text-gold-primary">how_to_reg</span>
-                  Match Registration Arena
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-                  ● Match Entries Open
-                </span>
-              </div>
               <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
                 Tournament Match Registrations
               </h2>
@@ -530,7 +521,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 <div
                   key={tourney.id}
                   onClick={() => handleOpenRegister(tourney)}
-                  className={`group flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform hover:-translate-y-2 hover:border-gold-primary/70 hover:ring-2 hover:ring-gold-primary/30 ${
+                  className={`group relative flex flex-col rounded-2xl bg-white shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out border overflow-hidden cursor-pointer transform-gpu will-change-transform hover:scale-[1.04] hover:-translate-y-2.5 hover:z-30 hover:border-gold-primary/80 ${
                     isRegistered ? 'border-emerald-500/80 ring-2 ring-emerald-500/20' : 'border-black/10'
                   }`}
                 >
@@ -542,7 +533,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       width="462"
                       height="266"
                       decoding="async"
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108"
                       src={tourney.image}
                     />
 
@@ -567,45 +558,22 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     </div>
                   </div>
 
-                  {/* Content Details */}
-                  <div className="flex flex-col justify-between flex-1 p-4 lg:p-5 gap-3">
+                  {/* Content Details (Clean & Focused: Image, Title, Squad Type, Prize Pool) */}
+                  <div className="flex flex-col justify-between flex-1 p-4 lg:p-5 gap-3.5">
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-gold-primary">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gold-primary">
                           {tourney.game}
-                        </p>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          {tourney.entryFee}
+                        </span>
+                        {/* Type of Squad: Solo / Duo / Squad */}
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/5 text-gray-800 border border-black/10 font-mono">
+                          {tourney.squadType || 'Squad'}
                         </span>
                       </div>
 
-                      <h3 className="primary-bold-s16-lh120 text-dark-default uppercase group-hover:text-gold-primary transition-colors line-clamp-1">
+                      <h3 className="primary-bold-s16-lh120 text-dark-default uppercase group-hover:text-gold-primary transition-colors duration-200 line-clamp-1">
                         {tourney.title}
                       </h3>
-                      <p className="text-[11px] text-[#6B7280] line-clamp-2 leading-relaxed">
-                        {tourney.description}
-                      </p>
-
-                      {/* Match Format & Verification Specs (Clean layout, NO slot limitations) */}
-                      <div className="mt-1 space-y-2 pt-2 border-t border-gray-100">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-gray-700 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[15px] text-gold-primary">military_tech</span>
-                            {tourney.format}
-                          </span>
-                          <span className="font-mono font-bold text-emerald-600 flex items-center gap-1">
-                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Open Match
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[13px] text-blue-500">verified</span>
-                            Anti-Cheat Verified
-                          </span>
-                          <span className="font-mono text-gray-700">Custom Room Match</span>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Prize Pool & Registration Action Button */}

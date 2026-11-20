@@ -260,22 +260,6 @@ export default function App() {
           </PullToRefreshLoader>
         )}
 
-        {/* Interactive Loaders Suite Showcase Trigger Pill */}
-        <button
-          onClick={() => setShowLoadersModal(true)}
-          title="Preview All 8 LiveTournaments Loaders"
-          className="fixed bottom-5 left-5 z-40 px-3.5 py-2 rounded-full bg-[#0E0E10] text-[#DFBD78] hover:bg-gold-primary hover:text-black border border-[#DFBD78]/60 shadow-2xl text-[11px] font-mono font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2 cursor-pointer group"
-        >
-          <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-500">hourglass_top</span>
-          <span>Loaders Suite (8)</span>
-        </button>
-
-        {/* All 8 Loaders Interactive Suite Modal */}
-        <LoadersShowcaseModal
-          isOpen={showLoadersModal}
-          onClose={() => setShowLoadersModal(false)}
-        />
-
         {/* Full Screen Esports Loader */}
         <FullScreenLoader
           isOpen={fullScreenLoading}
