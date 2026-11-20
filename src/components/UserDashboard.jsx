@@ -93,18 +93,64 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     });
   }, []);
 
-  // User Digital Wallet & Transactions
+  // User Digital Wallet, Bonus & Winnings
   const [walletBalance, setWalletBalance] = useState(() => {
     const saved = localStorage.getItem('lt_user_wallet_balance');
-    return saved ? Number(saved) : 0;
+    return saved ? Number(saved) : 1550;
   });
+
+  const [winningsBalance, setWinningsBalance] = useState(() => {
+    const saved = localStorage.getItem('lt_user_winnings_balance');
+    return saved ? Number(saved) : 1200;
+  });
+
+  const [bonusBalance, setBonusBalance] = useState(() => {
+    const saved = localStorage.getItem('lt_user_bonus_balance');
+    return saved ? Number(saved) : 350;
+  });
+
+  // Dynamic Bonus Withdrawal Rate (%) from Super Admin Platform Settings
+  const [bonusWithdrawalRate, setBonusWithdrawalRate] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_platform_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.bonusWithdrawalRate !== undefined) return Number(parsed.bonusWithdrawalRate);
+      }
+    } catch (e) {}
+    return 20; // Default 20% bonus withdrawal release rate
+  });
+
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('500');
+  const [withdrawUpi, setWithdrawUpi] = useState('');
+  const [isProcessingPayout, setIsProcessingPayout] = useState(false);
 
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('lt_user_transactions');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return [];
+    return [
+      {
+        id: 'tx_init_1',
+        description: 'Championship Prize Credit',
+        amount: 1200,
+        type: 'CREDIT',
+        status: 'SUCCESS',
+        date: 'Today, 2:30 PM',
+        reference: 'UPI_9832718921'
+      },
+      {
+        id: 'tx_init_2',
+        description: 'New Competitor Welcome Bonus (20% Withdrawable)',
+        amount: 350,
+        type: 'BONUS',
+        status: 'ACTIVE',
+        date: 'Yesterday',
+        reference: 'PROMO_WELCOME_BONUS'
+      }
+    ];
   });
 
   // Persist State
@@ -121,8 +167,17 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
   }, [joinedScrims]);
 
   useEffect(() => {
-    localStorage.setItem('lt_user_wallet_balance', walletBalance.toString());
-  }, [walletBalance]);
+    localStorage.setItem('lt_user_wallet_balance', (winningsBalance + bonusBalance).toString());
+    setWalletBalance(winningsBalance + bonusBalance);
+  }, [winningsBalance, bonusBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('lt_user_winnings_balance', winningsBalance.toString());
+  }, [winningsBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('lt_user_bonus_balance', bonusBalance.toString());
+  }, [bonusBalance]);
 
   useEffect(() => {
     localStorage.setItem('lt_user_transactions', JSON.stringify(transactions));
@@ -1336,61 +1391,102 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           )}
 
           {/* ========================================================
-              VIEW 6: DIGITAL WALLET & PAYOUTS
+              VIEW 6: DIGITAL WALLET & PAYOUTS WITH BONUS WITHDRAWAL RATE
               ======================================================== */}
           {activeTab === 'wallet' && (
             <div className="space-y-6">
               
-              {/* Wallet Summary Card */}
-              <div className="bg-white rounded-[12px] p-6 border border-[#D1D1D1]/60 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Available Digital Balance</span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl md:text-4xl font-extrabold font-mono text-[#1F2937]">₹ {walletBalance}.00</span>
-                    <span className="text-xs text-emerald-600 font-semibold font-mono">INR Verified</span>
+              {/* Wallet Summary Card with Bonus Breakdown */}
+              <div className="bg-white rounded-[16px] p-6 border border-[#D1D1D1]/60 shadow-xs space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Digital Wallet Balance</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800">
+                        100% Digital • Zero Cash
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="text-3xl md:text-4xl font-extrabold font-mono text-[#1F2937]">₹ {walletBalance}.00</span>
+                      <span className="text-xs text-emerald-600 font-semibold font-mono">INR Verified</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Connected UPI Address: <strong className="text-gray-900">{displayEmail.split('@')[0]}@okaxis</strong>
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Connected UPI: <strong className="text-gray-900">{displayEmail.split('@')[0]}@okaxis</strong>
-                  </p>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        const amount = prompt('Enter deposit amount in INR (e.g. 500):', '500');
+                        if (amount && !isNaN(amount)) {
+                          const num = Number(amount);
+                          setWinningsBalance(prev => prev + num);
+                          const newTx = {
+                            id: 'dep_' + Date.now(),
+                            description: 'Fast-Pay UPI Wallet Deposit',
+                            amount: num,
+                            type: 'CREDIT',
+                            status: 'SUCCESS',
+                            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            reference: 'UPI_' + Math.floor(1000000000 + Math.random() * 9000000000)
+                          };
+                          setTransactions([newTx, ...transactions]);
+                          showToast(`✓ Deposited ₹${amount} successfully!`);
+                        }
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
+                    >
+                      + Add Funds
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (winningsBalance <= 0 && bonusBalance <= 0) {
+                          showToast('⚠️ No withdrawable balance available.');
+                          return;
+                        }
+                        setWithdrawUpi(`${displayEmail.split('@')[0]}@okaxis`);
+                        setShowWithdrawModal(true);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+                    >
+                      Request Payout &rarr;
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      const amount = prompt('Enter deposit amount in INR (e.g. 500):', '500');
-                      if (amount && !isNaN(amount)) {
-                        const newBal = walletBalance + Number(amount);
-                        setWalletBalance(newBal);
-                        const newTx = {
-                          id: 'dep_' + Date.now(),
-                          description: 'Fast-Pay UPI Wallet Deposit',
-                          amount: Number(amount),
-                          type: 'CREDIT',
-                          status: 'SUCCESS',
-                          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
-                          reference: 'UPI_' + Math.floor(1000000000 + Math.random() * 9000000000)
-                        };
-                        setTransactions([newTx, ...transactions]);
-                        showToast(`✓ Deposited ₹${amount} successfully!`);
-                      }
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
-                  >
-                    + Add Funds
-                  </button>
+                {/* Sub-balances: Winnings vs Bonus Cash & Live Bonus Withdrawal Rate */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-[#F9FAFB] border border-[#E5E7EB]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Withdrawable Winnings</span>
+                    <span className="text-2xl font-black text-gray-900 font-mono block mt-1">₹ {winningsBalance}.00</span>
+                    <span className="text-[11px] text-emerald-600 font-medium block mt-0.5">100% Unrestricted Payout</span>
+                  </div>
 
-                  <button
-                    onClick={() => {
-                      if (walletBalance <= 0) {
-                        alert('No withdrawable balance available.');
-                        return;
-                      }
-                      showToast('Withdrawal request initiated to your linked UPI address.');
-                    }}
-                    className="px-4 py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    Request Payout
-                  </button>
+                  <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Promotional Bonus Cash</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 text-[9px] font-extrabold uppercase">
+                        Bonus
+                      </span>
+                    </div>
+                    <span className="text-2xl font-black text-amber-900 font-mono block mt-1">₹ {bonusBalance}.00</span>
+                    <span className="text-[11px] text-amber-700 font-medium block mt-0.5">
+                      Earned via Welcome &amp; Tournaments
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/70">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">Bonus Withdrawal Rate</span>
+                      <span className="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    </div>
+                    <span className="text-2xl font-black text-blue-900 font-mono block mt-1">{bonusWithdrawalRate}% Active</span>
+                    <span className="text-[11px] text-blue-700 font-medium block mt-0.5">
+                      Release up to {bonusWithdrawalRate}% of payout from Bonus
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -1457,6 +1553,156 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
 
         </main>
       </div>
+
+      {/* ========================================================
+          MODAL: DIGITAL PAYOUT WITH BONUS WITHDRAWAL RATE
+          ======================================================== */}
+      {showWithdrawModal && (
+        <div 
+          onClick={() => setShowWithdrawModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 overflow-hidden p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-600 text-2xl">account_balance_wallet</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Instant UPI Prize Payout</h3>
+                  <p className="text-[10px] text-gray-500">Bonus Withdrawal Rate Applied: {bonusWithdrawalRate}%</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="size-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Withdrawal Amount (INR) *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    min="100"
+                    max={winningsBalance + Math.min(bonusBalance, Math.round(winningsBalance * (bonusWithdrawalRate / 100)))}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 text-sm font-bold font-mono rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Recipient Virtual Payment Address (VPA / UPI ID) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. mobile@upi, player@okhdfcbank"
+                  value={withdrawUpi}
+                  onChange={(e) => setWithdrawUpi(e.target.value)}
+                  className="w-full px-3 py-2 font-mono text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
+                />
+              </div>
+
+              {/* Dynamic Bonus Withdrawal Calculation Card */}
+              {(() => {
+                const req = Number(withdrawAmount) || 0;
+                const bonusPart = Math.min(bonusBalance, Math.round(req * (bonusWithdrawalRate / 100)));
+                const winningsPart = Math.max(0, req - bonusPart);
+                const hasSufficient = winningsBalance >= winningsPart;
+
+                return (
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-gray-200 space-y-2">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Total Payout to UPI:</span>
+                      <strong className="font-mono text-gray-900">₹ {req}.00</strong>
+                    </div>
+                    <div className="flex justify-between text-emerald-700">
+                      <span>Winnings Deducted:</span>
+                      <strong className="font-mono">₹ {winningsPart}.00</strong>
+                    </div>
+                    <div className="flex justify-between text-blue-700">
+                      <span>Bonus Cash Released ({bonusWithdrawalRate}%):</span>
+                      <strong className="font-mono">+ ₹ {bonusPart}.00</strong>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200 flex justify-between font-bold text-xs">
+                      <span>Instant Transfer Status:</span>
+                      <span className={hasSufficient ? 'text-emerald-600' : 'text-rose-600 font-normal'}>
+                        {hasSufficient ? 'Eligible for Fast-Pay UPI' : 'Insufficient Winnings for Release'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="p-2.5 rounded-lg bg-blue-50/80 border border-blue-200 text-blue-800 text-[11px] leading-relaxed">
+                ℹ️ <strong>Bonus Withdrawal Policy:</strong> With every withdrawal, {bonusWithdrawalRate}% is automatically drawn from your Promotional Bonus balance, converting your bonus into real cash.
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowWithdrawModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isProcessingPayout}
+                onClick={() => {
+                  const req = Number(withdrawAmount) || 0;
+                  if (req < 100) {
+                    showToast('⚠️ Minimum withdrawal amount is ₹100.');
+                    return;
+                  }
+                  const bonusPart = Math.min(bonusBalance, Math.round(req * (bonusWithdrawalRate / 100)));
+                  const winningsPart = Math.max(0, req - bonusPart);
+
+                  if (winningsBalance < winningsPart) {
+                    showToast('⚠️ Insufficient winnings balance to satisfy this withdrawal.');
+                    return;
+                  }
+
+                  setIsProcessingPayout(true);
+                  setTimeout(() => {
+                    setWinningsBalance(prev => Math.max(0, prev - winningsPart));
+                    setBonusBalance(prev => Math.max(0, prev - bonusPart));
+
+                    const payoutTx = {
+                      id: 'payout_' + Date.now(),
+                      description: `UPI Payout to ${withdrawUpi} (${bonusWithdrawalRate}% Bonus Released)`,
+                      amount: -req,
+                      type: 'DEBIT',
+                      status: 'SUCCESS',
+                      date: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+                      reference: 'FASTPAY_UPI_' + Math.floor(1000000000 + Math.random() * 9000000000)
+                    };
+                    setTransactions(prev => [payoutTx, ...prev]);
+                    setIsProcessingPayout(false);
+                    setShowWithdrawModal(false);
+                    showToast(`🎉 Payout of ₹${req} initiated to ${withdrawUpi}!`);
+                  }, 800);
+                }}
+                className="px-5 py-2 rounded-lg bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {isProcessingPayout ? 'Processing UPI Transfer...' : 'Confirm UPI Payout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ROOM CODE BRIEFING MODAL */}
       {selectedBriefing && (

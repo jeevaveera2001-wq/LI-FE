@@ -14,6 +14,7 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserMenu from './components/UserMenu';
 import AboutPage from './components/AboutPage';
+import TournamentsPage from './components/TournamentsPage';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
@@ -78,6 +79,7 @@ export default function App() {
       if (path.includes('login') || hash.includes('login')) return 'login';
       if (path.includes('register') || hash.includes('register')) return 'register';
       if (path.includes('about') || hash.includes('about')) return 'about';
+      if (path.includes('tournaments') || hash.includes('tournaments')) return 'tournaments';
     }
     return 'home';
   });
@@ -238,6 +240,11 @@ export default function App() {
             >
               {currentPage === 'about' ? (
                 <AboutPage
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                />
+              ) : currentPage === 'tournaments' ? (
+                <TournamentsPage
                   currentUser={currentUser}
                   onNavigate={navigateTo}
                 />

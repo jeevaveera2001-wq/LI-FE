@@ -1,7 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ChampionshipTrophySection({ onNavigate }) {
   const [notified, setNotified] = useState(false);
+
+  // Dynamic Live Estimation Counter for Championship Prize Pool
+  const [liveEstimatedPool, setLiveEstimatedPool] = useState(2485000);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveEstimatedPool(prev => {
+        const increment = Math.floor(Math.random() * 1200) + 400;
+        return prev + increment;
+      });
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleNotifyMe = () => {
     setNotified(true);
@@ -30,7 +43,7 @@ export default function ChampionshipTrophySection({ onNavigate }) {
               </h2>
               
               <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B6B6B] max-w-3xl">
-                Our Championship It Will Be Soon. The premier national esports spectacle arrives soon on LiveTournaments.in, pitting the top 32 verified clans for the handcrafted 24K championship trophy.
+                Our Championship It Will Be Soon. The premier national esports spectacle arrives soon on LiveTournaments.in, pitting the top 32 verified clans for the handcrafted championship trophy.
               </p>
             </div>
 
@@ -61,11 +74,27 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                 className="w-full h-auto object-cover block transition-transform duration-700 group-hover:scale-102"
               />
 
-              {/* Overlay Ribbon */}
-              <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-black/80 backdrop-blur-md border border-gold-primary/40 rounded-2xl p-4 md:p-6 text-right max-w-xs shadow-xl hidden sm:block">
-                <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-gold-primary block">Grand Prize Pool</span>
-                <span className="text-xl md:text-3xl font-extrabold text-white font-mono block">₹ 25,00,000</span>
-                <p className="text-[11px] text-white/70 mt-1">32 Verified Clans &bull; LAN Stage &bull; Live Broadcast</p>
+              {/* Dynamic Live Estimation Ribbon */}
+              <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-black/85 backdrop-blur-md border border-gold-primary/50 rounded-2xl p-4 md:p-6 text-right max-w-sm shadow-2xl">
+                <div className="flex items-center justify-end gap-1.5 mb-1">
+                  <span className="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-gold-primary">
+                    Live Prize Pool Estimation
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-end gap-1.5">
+                  <span className="text-xl md:text-3xl font-black text-white font-mono drop-shadow-md">
+                    ₹ {liveEstimatedPool.toLocaleString('en-IN')}+
+                  </span>
+                </div>
+                <div className="flex items-center justify-end gap-2 mt-1">
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-gold-primary/20 text-gold-primary border border-gold-primary/30">
+                    ● Growing Live Pool Tally
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/80 mt-1.5 leading-snug">
+                  32 Verified Clans &bull; LAN Stage &bull; Live Broadcast
+                </p>
               </div>
 
               {/* Floating Status Bar Bottom */}
@@ -92,7 +121,7 @@ export default function ChampionshipTrophySection({ onNavigate }) {
               <div className="size-10 rounded-xl bg-gold-primary/20 flex items-center justify-center text-gold-primary mb-3">
                 <span className="material-symbols-outlined">emoji_events</span>
               </div>
-              <h4 className="font-bold text-base text-gray-900 mb-1">Handcrafted 24K Trophy</h4>
+              <h4 className="font-bold text-base text-gray-900 mb-1">Handcrafted Championship Trophy</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
                 A custom solid-metal trophy forged exclusively for India's champion squad, presented on the live broadcast stage.
               </p>
