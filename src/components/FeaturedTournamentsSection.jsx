@@ -645,8 +645,22 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           MODAL 1: AUTH REQUIRED NOTICE (Only Sign-In Players)
           ======================================================== */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 overflow-hidden text-center p-6 space-y-4">
+        <div 
+          onClick={() => setShowAuthModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 overflow-hidden text-center p-6 space-y-4"
+          >
+            {/* Top-right close button */}
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 size-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm cursor-pointer transition-colors"
+            >
+              ✕
+            </button>
+
             <div className="size-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-3xl shadow-sm">
               <span className="material-symbols-outlined text-[32px]">lock</span>
             </div>
@@ -698,13 +712,6 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 className="w-full py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Create New Player Account
-              </button>
-
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="w-full py-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                Cancel
               </button>
             </div>
           </div>
