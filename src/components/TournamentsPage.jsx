@@ -164,6 +164,8 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
     return null;
   };
 
+  const activeUser = getActiveUser();
+
   // Joined Tournaments Sync
   const [joinedTourneyIds, setJoinedTourneyIds] = useState(() => {
     if (typeof window !== 'undefined') {
