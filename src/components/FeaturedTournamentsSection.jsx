@@ -29,7 +29,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Squad',
     format: 'Squad (Tier-1 Practice)',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg'
+    image: '/assets/tournament_bgmi_scrims_tier1_4k.jpg'
   },
   {
     id: 'pubg-mobile-global-reg',
@@ -57,7 +57,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Squad',
     format: 'Squad Custom Scrim',
     entryFee: '₹ 50 / Slot (Paid Entry)',
-    image: '/assets/tournament_pubg_mobile_4k.jpg'
+    image: '/assets/tournament_pubg_night_grind_4k.jpg'
   },
   {
     id: 'bgmi-lan-warriors-reg',
@@ -99,7 +99,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Squad',
     format: 'Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg'
+    image: '/assets/tournament_freefire_clutch_4k.jpg'
   },
   {
     id: 'valorant-spike-masters-reg',
@@ -113,7 +113,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: '5v5 Squad',
     format: '5v5 Squad',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg'
+    image: '/assets/tournament_valorant_mumbai_4k.jpg'
   },
   {
     id: 'codm-battle-royale-reg',
@@ -127,7 +127,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Solo',
     format: 'Solo',
     entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_mobile_4k.jpg'
+    image: '/assets/tournament_codm_battle_royale_4k.jpg'
   },
   {
     id: 'bgmi-underdog-pro-reg',
@@ -141,7 +141,7 @@ const INITIAL_TOURNAMENTS = [
     squadType: 'Squad',
     format: 'Squad',
     entryFee: '₹ 100 / Squad (Paid Entry)',
-    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
+    image: '/assets/tournament_bgmi_underdog_rumble_4k.jpg'
   }
 ];
 

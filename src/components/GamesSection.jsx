@@ -1,7 +1,177 @@
 import React from 'react';
 
+const GAMES_CATALOG = [
+  {
+    name: 'Counter-Strike 2',
+    genre: 'Tactical FPS',
+    logo: 'https://d3h9qea4qy4169.cloudfront.net/cs2_00be38ddd1.png'
+  },
+  {
+    name: 'Valorant',
+    genre: 'Hero Shooter',
+    logo: 'https://d3h9qea4qy4169.cloudfront.net/Valorant_1710f7c511.png'
+  },
+  {
+    name: 'Fatal Fury: CotW',
+    genre: 'Fighting',
+    logo: 'https://d3h9qea4qy4169.cloudfront.net/Fatal_Fury_5779ac62be.png'
+  },
+  {
+    name: 'Chess.com',
+    genre: 'Strategy',
+    logo: 'https://d3h9qea4qy4169.cloudfront.net/chess_logo_v1_8b2f61713b.png'
+  },
+  {
+    name: 'Dota 2',
+    genre: 'MOBA',
+    logo: 'https://d3h9qea4qy4169.cloudfront.net/dota2_logo_v1_c810ca7889.png'
+  }
+];
+
 export default function GamesSection() {
+  const scrollContainerRef = React.useRef(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -280, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 280, behavior: 'smooth' });
+    }
+  };
+
   return (
-<section className="relative block-default-horizontal-spacing block-default-vertical-spacing"><div className="block-default-content-width mx-auto"><div className="relative flex flex-col gap-5 md:gap-8"><div className="flex items-end justify-between gap-8"><div className="flex w-full flex-col gap-5 lg:flex-row lg:items-center"><div className="text-dark-default section-title flex w-full flex-col gap-1 normal-case text-left"><h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">LT.IN27 Games</h2><p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120">Every game brings a new battle to the global stage. Keep watch here as we reveal the games that will set the stage for our next chapter.</p></div></div><div className="hidden lg:contents"> </div></div><div className="scroll-with-fade-wrapper--custom-inset relative" style={{ 'margin-bottom': '-36px', 'margin-top': '-12px', '--scroll-inset-x-base': '16px', '--scroll-inset-x-tablet': '16px', '--scroll-inset-x-lg': '32px', '--scroll-inset-x-xl': '32px', '--scroll-inset-x-2xl': '32px' }}><div className="w-15 md:w-40 lg:w-84 2xl:w-85.25 pointer-events-none absolute z-10 from-white-dirty to-transparent bg-linear-to-r -left-px invisible scroll-with-fade-wrapper__overlay" style={{ 'bottom': '36px', 'top': '12px' }}><button aria-label="Scroll left" className="pointer-events-auto flex h-full cursor-pointer items-center border-none bg-transparent p-0 w-15 max-lg:hidden mr-auto justify-start" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" aria-hidden="true" className="text-gray-dark rotate-180"><path fill="currentColor" d="M10.277 7.611a2 2 0 0 0 0 2.827l7.254 7.253-7.254 7.253a2 2 0 0 0 2.827 2.827l8.667-8.667a2 2 0 0 0 0-2.826L13.104 7.61a2 2 0 0 0-2.827 0"></path></svg></button></div><div className="hide-scrollbar scroll-with-fade-wrapper__scroll h-full overflow-x-scroll" role="region" style={{ 'padding-bottom': '36px', 'padding-top': '12px' }} tabIndex="0"><div className="scroll-with-fade-wrapper__inner h-full w-max min-w-full"><div className="flex gap-4"><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4 shadow-md select-none lg:rounded-3xl"><div className="flex flex-col gap-5"><img alt="" loading="lazy" width="249" height="249" decoding="async" data-nimg="1" className="pointer-events-none w-full rounded-lg object-cover lg:rounded-2xl" style={{ 'color': 'transparent' }} srcSet="https://d3h9qea4qy4169.cloudfront.net/cs2_00be38ddd1.png" src="https://d3h9qea4qy4169.cloudfront.net/cs2_00be38ddd1.png"/></div></div><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4 shadow-md select-none lg:rounded-3xl"><div className="flex flex-col gap-5"><img alt="" loading="lazy" width="249" height="249" decoding="async" data-nimg="1" className="pointer-events-none w-full rounded-lg object-cover lg:rounded-2xl" style={{ 'color': 'transparent' }} srcSet="https://d3h9qea4qy4169.cloudfront.net/Valorant_1710f7c511.png" src="https://d3h9qea4qy4169.cloudfront.net/Valorant_1710f7c511.png"/></div></div><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4 shadow-md select-none lg:rounded-3xl"><div className="flex flex-col gap-5"><img alt="" loading="lazy" width="249" height="249" decoding="async" data-nimg="1" className="pointer-events-none w-full rounded-lg object-cover lg:rounded-2xl" style={{ 'color': 'transparent' }} srcSet="https://d3h9qea4qy4169.cloudfront.net/Fatal_Fury_5779ac62be.png" src="https://d3h9qea4qy4169.cloudfront.net/Fatal_Fury_5779ac62be.png"/></div></div><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4 shadow-md select-none lg:rounded-3xl"><div className="flex flex-col gap-5"><img alt="" loading="lazy" width="249" height="249" decoding="async" data-nimg="1" className="pointer-events-none w-full rounded-lg object-cover lg:rounded-2xl" style={{ 'color': 'transparent' }} srcSet="https://d3h9qea4qy4169.cloudfront.net/chess_logo_v1_8b2f61713b.png" src="https://d3h9qea4qy4169.cloudfront.net/chess_logo_v1_8b2f61713b.png"/></div></div><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4 shadow-md select-none lg:rounded-3xl"><div className="flex flex-col gap-5"><img alt="" loading="lazy" width="249" height="249" decoding="async" data-nimg="1" className="pointer-events-none w-full rounded-lg object-cover lg:rounded-2xl" style={{ 'color': 'transparent' }} srcSet="https://d3h9qea4qy4169.cloudfront.net/dota2_logo_v1_c810ca7889.png" src="https://d3h9qea4qy4169.cloudfront.net/dota2_logo_v1_c810ca7889.png"/></div></div><div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-4.5 shadow-md select-none lg:rounded-3xl border border-[#EBEBEB] text-center"><div className="flex flex-col items-center justify-center flex-1 my-auto"><div className="size-11 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-2 shadow-xs"><img alt="Upcoming Games" loading="lazy" width="28" height="28" decoding="async" className="size-6 object-contain opacity-70" src="https://d3h9qea4qy4169.cloudfront.net/quest_c164a01d20.png"/></div><p className="primary-bold-s14-lh120 text-dark-default uppercase tracking-tight">More Tournaments</p><p className="primary-medium-s12-lh120 text-[#6B6B6B] mt-1.5 px-1 leading-snug">We&#x27;re planning to conduct tournaments on this also.</p></div><div className="pt-2.5 border-t border-[#F0F0F0] flex items-center justify-between"><span className="text-[11px] uppercase font-bold text-gold-primary tracking-wider">We&#x27;ll update soon</span><span className="size-1.5 rounded-full bg-gold-primary animate-pulse"></span></div></div></div></div></div><div className="w-15 md:w-40 lg:w-84 2xl:w-85.25 pointer-events-none absolute z-10 from-white-dirty to-transparent bg-linear-to-l -right-px invisible scroll-with-fade-wrapper__overlay" style={{ 'bottom': '36px', 'top': '12px' }}><button aria-label="Scroll right" className="pointer-events-auto flex h-full cursor-pointer items-center border-none bg-transparent p-0 w-15 max-lg:hidden ml-auto justify-end" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" aria-hidden="true" className="text-gray-dark"><path fill="currentColor" d="M10.277 7.611a2 2 0 0 0 0 2.827l7.254 7.253-7.254 7.253a2 2 0 0 0 2.827 2.827l8.667-8.667a2 2 0 0 0 0-2.826L13.104 7.61a2 2 0 0 0-2.827 0"></path></svg></button></div></div><div className="hidden max-lg:contents"></div></div></div></section>
+    <section className="relative block-default-horizontal-spacing block-default-vertical-spacing bg-white-dirty">
+      <div className="block-default-content-width mx-auto">
+        <div className="relative flex flex-col gap-5 md:gap-8">
+          
+          {/* Header Title & Subtitle */}
+          <div className="flex items-end justify-between gap-8">
+            <div className="flex w-full flex-col gap-5 lg:flex-row lg:items-center">
+              <div className="text-dark-default section-title flex w-full flex-col gap-1 normal-case text-left">
+                <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
+                  LT.IN 27 Games
+                </h2>
+                <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B7280]">
+                  Every game brings a new battle to the global stage. Keep watch here as we reveal the games that will set the stage for our next chapter.
+                </p>
+              </div>
+            </div>
+            
+            {/* Scroll Navigation Arrows */}
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
+              <button
+                onClick={scrollLeft}
+                aria-label="Scroll left"
+                type="button"
+                className="size-10 rounded-full border border-gray-200 bg-white hover:border-gold-primary hover:text-gold-primary flex items-center justify-center text-gray-600 transition-colors shadow-xs cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+              </button>
+              <button
+                onClick={scrollRight}
+                aria-label="Scroll right"
+                type="button"
+                className="size-10 rounded-full border border-gray-200 bg-white hover:border-gold-primary hover:text-gold-primary flex items-center justify-center text-gray-600 transition-colors shadow-xs cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Games Slider with Centralized Cards */}
+          <div className="relative">
+            <div
+              ref={scrollContainerRef}
+              className="hide-scrollbar flex gap-4 overflow-x-auto pb-4 pt-2 scroll-smooth"
+              role="region"
+              tabIndex="0"
+            >
+              {GAMES_CATALOG.map((game) => (
+                <div
+                  key={game.name}
+                  className="group relative flex w-[249px] h-[249px] flex-none flex-col items-center justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-xl border border-gray-100 hover:border-gold-primary/60 transition-all duration-300 select-none lg:rounded-3xl cursor-pointer"
+                >
+                  {/* Top Category Badge */}
+                  <div className="w-full flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                    <span className="flex items-center gap-1.5 text-gold-primary">
+                      <span className="size-1.5 rounded-full bg-gold-primary"></span>
+                      {game.genre}
+                    </span>
+                    <span className="text-[9px] bg-gray-100 group-hover:bg-gold-primary/10 group-hover:text-gold-primary text-gray-600 px-2 py-0.5 rounded transition-colors font-semibold">
+                      FEATURED
+                    </span>
+                  </div>
+
+                  {/* Perfectly Centralized Game Logo - No Upper Offset or Empty Gaps */}
+                  <div className="flex-1 flex items-center justify-center w-full px-2 py-3 my-auto overflow-hidden">
+                    <img
+                      alt={game.name}
+                      loading="lazy"
+                      width="200"
+                      height="120"
+                      decoding="async"
+                      className="max-h-[115px] max-w-[190px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-108 filter drop-shadow-xs pointer-events-none"
+                      src={game.logo}
+                    />
+                  </div>
+
+                  {/* Bottom Game Title & Arrow */}
+                  <div className="w-full pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span className="primary-bold-s14-lh120 text-dark-default group-hover:text-gold-primary transition-colors truncate">
+                      {game.name}
+                    </span>
+                    <span className="material-symbols-outlined text-[16px] text-gray-400 group-hover:text-gold-primary group-hover:translate-x-0.5 transition-all">
+                      arrow_forward
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* More Tournaments Planned Card */}
+              <div className="flex w-[249px] h-[249px] flex-none flex-col justify-between rounded-2xl bg-white p-5 shadow-sm hover:shadow-md select-none lg:rounded-3xl border border-dashed border-gray-200 text-center">
+                <div className="w-full flex items-center justify-end text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                  <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[9px]">
+                    UPCOMING
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center flex-1 my-auto px-2">
+                  <div className="size-12 rounded-2xl bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-2.5 shadow-xs">
+                    <img
+                      alt="Upcoming Games"
+                      loading="lazy"
+                      width="28"
+                      height="28"
+                      decoding="async"
+                      className="size-7 object-contain opacity-80"
+                      src="https://d3h9qea4qy4169.cloudfront.net/quest_c164a01d20.png"
+                    />
+                  </div>
+                  <p className="primary-bold-s14-lh120 text-dark-default uppercase tracking-tight">
+                    More Tournaments
+                  </p>
+                  <p className="primary-medium-s12-lh120 text-[#6B7280] mt-1 px-1 leading-snug">
+                    We're planning to conduct tournaments on this also.
+                  </p>
+                </div>
+
+                <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-[11px] uppercase font-bold text-gold-primary tracking-wider">
+                    We'll update soon
+                  </span>
+                  <span className="size-1.5 rounded-full bg-gold-primary animate-pulse"></span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
   );
 }

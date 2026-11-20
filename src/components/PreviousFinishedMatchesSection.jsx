@@ -100,7 +100,7 @@ const DEFAULT_FINISHED_MATCHES = [
     mvpPlayer: 'Jahanzeb (18 Kills)',
     totalKills: '48 Team Kills',
     disbursed: '₹ 40,000 Disbursed to 1st Place',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg',
+    image: '/assets/tournament_freefire_clutch_4k.jpg',
     resultType: 'image', // direct scoreboard upload
     scoreboardImage: '/assets/lt_championship_trophy_card_4k.png',
     slotsData: [
@@ -122,7 +122,7 @@ const DEFAULT_FINISHED_MATCHES = [
     mvpPlayer: 'Punk_God (16 Kills)',
     totalKills: '24 Team Kills',
     disbursed: '₹ 30,000 Disbursed to 1st Place',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
+    image: '/assets/tournament_bgmi_underdog_rumble_4k.jpg',
     resultType: 'table',
     slotsData: Array.from({ length: 25 }, (_, idx) => ({
       rank: idx + 1,
