@@ -166,14 +166,41 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
         registeredAt: new Date().toISOString()
       };
 
-      // 1. Save to local storage
+      // 1. Save to user joined tourneys
       const existingRaw = localStorage.getItem('lt_user_joined_tourneys');
       const existingList = existingRaw ? JSON.parse(existingRaw) : [];
       const updatedList = [newRegistration, ...existingList];
       localStorage.setItem('lt_user_joined_tourneys', JSON.stringify(updatedList));
 
-      // 2. Dispatch storage event for live tabs
+      // 2. Sync to Super Admin Tournament Registrations Queue
+      try {
+        const adminRegsRaw = localStorage.getItem('lt_admin_tournament_registrations');
+        const adminRegs = adminRegsRaw ? JSON.parse(adminRegsRaw) : [];
+        localStorage.setItem('lt_admin_tournament_registrations', JSON.stringify([newRegistration, ...adminRegs.filter(r => r.id !== newRegistration.id)]));
+      } catch (e) {}
+
+      // 3. Sync to Super Admin Activity Logs
+      try {
+        const adminLogsRaw = localStorage.getItem('lt_admin_activity_logs');
+        const adminLogs = adminLogsRaw ? JSON.parse(adminLogsRaw) : [];
+        const newLog = {
+          id: 'log_' + Date.now(),
+          user: activeUser?.username || activeUser?.name || p1Ign || 'Competitor',
+          userName: activeUser?.name || p1Ign || 'Competitor',
+          userEmail: activeUser?.email || `${whatsapp.trim()}@sms.in`,
+          action: 'Player Tournament Registration',
+          details: `Registered ${isSolo ? 'Solo Player' : teamName} (${activeTourney.squadType}) for ${activeTourney.title}`,
+          timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          ipAddress: '106.51.78.200',
+          location: 'India'
+        };
+        localStorage.setItem('lt_admin_activity_logs', JSON.stringify([newLog, ...adminLogs]));
+      } catch (e) {}
+
+      // 4. Dispatch storage and real-time event for live tabs
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_registration_submitted'));
 
       // 3. Post audit log
       try {

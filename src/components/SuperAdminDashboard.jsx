@@ -325,40 +325,112 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     }
   };
 
+  // Helper to load and merge hosting requests from all storage channels without data loss
+  const loadHostingRequestsFromStorage = () => {
+    try {
+      const h1Raw = localStorage.getItem('lt_admin_hosting_requests');
+      const h2Raw = localStorage.getItem('lt_user_hosted_tourneys');
+      let list1 = [];
+      let list2 = [];
+      if (h1Raw) {
+        try {
+          const parsed = JSON.parse(h1Raw);
+          if (Array.isArray(parsed)) list1 = parsed;
+        } catch (e) {}
+      }
+      if (h2Raw) {
+        try {
+          const parsed = JSON.parse(h2Raw);
+          if (Array.isArray(parsed)) list2 = parsed.filter(x => x.type === 'TOURNAMENT' || !x.type);
+        } catch (e) {}
+      }
+      const map = new Map();
+      [...list1, ...list2].forEach(item => {
+        if (item && item.id && !isMockEntry(item)) {
+          map.set(item.id, item);
+        }
+      });
+      return Array.from(map.values());
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // Helper to load and merge scrims requests from all storage channels without data loss
+  const loadScrimsRequestsFromStorage = () => {
+    try {
+      const s1Raw = localStorage.getItem('lt_admin_scrims_requests');
+      const s2Raw = localStorage.getItem('lt_user_hosted_tourneys');
+      let list1 = [];
+      let list2 = [];
+      if (s1Raw) {
+        try {
+          const parsed = JSON.parse(s1Raw);
+          if (Array.isArray(parsed)) list1 = parsed;
+        } catch (e) {}
+      }
+      if (s2Raw) {
+        try {
+          const parsed = JSON.parse(s2Raw);
+          if (Array.isArray(parsed)) list2 = parsed.filter(x => x.type === 'SCRIM');
+        } catch (e) {}
+      }
+      const map = new Map();
+      [...list1, ...list2].forEach(item => {
+        if (item && item.id && !isMockEntry(item)) {
+          map.set(item.id, item);
+        }
+      });
+      return Array.from(map.values());
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // Helper to load match registrations submitted from /tournament-register
+  const loadMatchRegistrationsFromStorage = () => {
+    try {
+      const r1Raw = localStorage.getItem('lt_admin_tournament_registrations');
+      const r2Raw = localStorage.getItem('lt_user_joined_tourneys');
+      let list1 = [];
+      let list2 = [];
+      if (r1Raw) {
+        try {
+          const parsed = JSON.parse(r1Raw);
+          if (Array.isArray(parsed)) list1 = parsed;
+        } catch (e) {}
+      }
+      if (r2Raw) {
+        try {
+          const parsed = JSON.parse(r2Raw);
+          if (Array.isArray(parsed)) list2 = parsed;
+        } catch (e) {}
+      }
+      const map = new Map();
+      [...list1, ...list2].forEach(item => {
+        if (item && item.id && !isMockEntry(item)) {
+          map.set(item.id, item);
+        }
+      });
+      return Array.from(map.values());
+    } catch (e) {
+      return [];
+    }
+  };
+
   // 1. TOURNAMENT HOSTING REQUESTS BY USERS (Realtime submissions only)
   const [hostingRequests, setHostingRequests] = useState(() => {
-    const saved = localStorage.getItem('lt_admin_hosting_requests');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          const clean = parsed.filter(r => !isMockEntry(r));
-          if (clean.length !== parsed.length) {
-            localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(clean));
-          }
-          return clean;
-        }
-      } catch (e) {}
-    }
-    return [];
+    return loadHostingRequestsFromStorage();
   });
 
   // 2. SCRIMS REQUESTS (Realtime only)
   const [scrimsRequests, setScrimsRequests] = useState(() => {
-    const saved = localStorage.getItem('lt_admin_scrims_requests');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          const clean = parsed.filter(r => !isMockEntry(r));
-          if (clean.length !== parsed.length) {
-            localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(clean));
-          }
-          return clean;
-        }
-      } catch (e) {}
-    }
-    return [];
+    return loadScrimsRequestsFromStorage();
+  });
+
+  // 2.5 PLAYER MATCH REGISTRATIONS (From /tournament-register)
+  const [matchRegistrations, setMatchRegistrations] = useState(() => {
+    return loadMatchRegistrationsFromStorage();
   });
 
   // 3. HOSTING TOURNAMENTS REQUESTS (PARTNERED) (Realtime only)
@@ -468,21 +540,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     const syncAllUserSubmissions = () => {
       try {
         // 1. Hosting / Room Requests
-        const hostingsRaw = localStorage.getItem('lt_admin_hosting_requests') || localStorage.getItem('lt_user_hosted_tourneys');
-        if (hostingsRaw) {
-          const hostings = JSON.parse(hostingsRaw);
-          if (Array.isArray(hostings)) {
-            setHostingRequests(hostings.filter(h => !isMockEntry(h)));
-          }
-        }
+        setHostingRequests(loadHostingRequestsFromStorage());
         // 2. Scrims Requests
-        const scrimsRaw = localStorage.getItem('lt_admin_scrims_requests');
-        if (scrimsRaw) {
-          const scrims = JSON.parse(scrimsRaw);
-          if (Array.isArray(scrims)) {
-            setScrimsRequests(scrims.filter(s => !isMockEntry(s)));
-          }
-        }
+        setScrimsRequests(loadScrimsRequestsFromStorage());
+        // 2.5 Match Registrations
+        setMatchRegistrations(loadMatchRegistrationsFromStorage());
         // 3. Featured Requests
         const featsRaw = localStorage.getItem('lt_admin_featured_requests');
         if (featsRaw) {
@@ -513,7 +575,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       'lt_scrim_requested',
       'lt_featured_requested',
       'lt_broadcast_requested',
-      'lt_results_submitted'
+      'lt_results_submitted',
+      'lt_registration_submitted'
     ];
     eventNames.forEach(evt => window.addEventListener(evt, syncAllUserSubmissions));
     return () => eventNames.forEach(evt => window.removeEventListener(evt, syncAllUserSubmissions));
@@ -1394,9 +1457,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           >
             <span className="material-symbols-outlined text-[16px] text-[#DFBD78]">emoji_events</span>
             <span className="flex-1 text-left">Tournaments Approvals</span>
-            {pendingHostingCount > 0 && (
+            {(pendingHostingCount + matchRegistrations.length) > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
-                {pendingHostingCount}
+                {pendingHostingCount + matchRegistrations.length}
               </span>
             )}
           </button>
@@ -1647,9 +1710,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         >
           <span className="material-symbols-outlined text-[14px] text-[#DFBD78]">emoji_events</span>
           <span>Tournaments</span>
-          {pendingHostingCount > 0 && (
+          {(pendingHostingCount + matchRegistrations.length) > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
-              {pendingHostingCount}
+              {pendingHostingCount + matchRegistrations.length}
             </span>
           )}
         </button>
@@ -2509,6 +2572,80 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </div>
                 </div>
               ))
+              )}
+            </div>
+            {/* INCOMING PLAYER TOURNAMENT REGISTRATIONS FROM COMPETITORS */}
+            <div className="pt-6 border-t border-gray-200 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-amber-600 text-[20px]">how_to_reg</span>
+                  <h4 className="text-[14px] font-bold text-gray-900">
+                    Player Match Registrations by Competitors ({matchRegistrations.length})
+                  </h4>
+                </div>
+                <span className="text-[11px] font-mono text-gray-500">
+                  Real-time sync from /tournament-register
+                </span>
+              </div>
+
+              {matchRegistrations.length === 0 ? (
+                <div className="text-center py-8 bg-[#F9FAFB] rounded-[12px] border border-dashed border-[#D1D1D1] text-gray-500 text-xs">
+                  No player match registrations yet. Submissions from players on the tournament registration portal will appear here in real-time.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {matchRegistrations.map((reg) => (
+                    <div key={reg.id} className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-3.5 shadow-xs flex flex-col justify-between gap-2.5">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold uppercase">
+                            {reg.status || 'CONFIRMED'}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            {new Date(reg.registeredAt || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <h4 className="text-[13px] font-bold text-gray-900 leading-snug line-clamp-1">
+                          {reg.title}
+                        </h4>
+                        <div className="text-[10.5px] text-gray-600 bg-white p-2.5 rounded-lg border border-gray-200 space-y-1">
+                          <p><strong>Team / Player:</strong> <span className="text-gray-900 font-bold">{reg.slotNumber || reg.leader}</span></p>
+                          <p><strong>Leader IGN:</strong> {reg.leader} (UID: <span className="font-mono">{reg.characterId}</span>)</p>
+                          <p><strong>WhatsApp:</strong> <span className="text-emerald-700 font-bold">{reg.whatsapp}</span></p>
+                          <p><strong>Schedule:</strong> {reg.date} &bull; {reg.time}</p>
+                          {reg.roomCode && (
+                            <p className="text-[9.5px] font-mono text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">
+                              Room Code: {reg.roomCode} | Pass: {reg.roomPass}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-200 flex items-center justify-between gap-2">
+                        <button
+                          onClick={() => showToast(`Room credentials dispatched to ${reg.whatsapp}`)}
+                          className="flex-1 py-1.5 rounded-lg bg-[#1F2937] hover:bg-black text-white text-[10.5px] font-bold transition-colors cursor-pointer"
+                        >
+                          Dispatch Room ID
+                        </button>
+                        <button
+                          onClick={() => {
+                            const remaining = matchRegistrations.filter(r => r.id !== reg.id);
+                            setMatchRegistrations(remaining);
+                            try {
+                              localStorage.setItem('lt_admin_tournament_registrations', JSON.stringify(remaining));
+                              localStorage.setItem('lt_user_joined_tourneys', JSON.stringify(remaining));
+                            } catch (e) {}
+                            showToast(`Registration verified and saved.`);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10.5px] font-bold transition-colors cursor-pointer"
+                        >
+                          ✓ Verify
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </section>
