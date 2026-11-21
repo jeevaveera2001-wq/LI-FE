@@ -243,6 +243,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   // Result Submission Modal State (for Super Admin Result Verifier)
   const [showResultSubmitModal, setShowResultSubmitModal] = useState(false);
   const [resultMatch, setResultMatch] = useState(null);
+  const [resultSubmissionType, setResultSubmissionType] = useState('SLOT_POINTS'); // 'SLOT_POINTS' | 'SINGLE_IMAGE' | 'BOTH'
   const [resultWinnerClan, setResultWinnerClan] = useState('GodLike Esports');
   const [resultRunnerUpClan, setResultRunnerUpClan] = useState('Team Soul');
   const [resultThirdClan, setResultThirdClan] = useState('Blind Esports');
@@ -251,6 +252,89 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [resultVideoUrl, setResultVideoUrl] = useState('https://www.youtube.com/watch?v=jfKfPfyJRdk');
   const [resultAnimationTheme, setResultAnimationTheme] = useState('gold-championship');
   const [resultNotes, setResultNotes] = useState('Grand Finals Match concluded with official clan points recorded.');
+  const [resultSlotPoints, setResultSlotPoints] = useState([
+    { rank: 1, slot: 'Slot 1', clan: 'GodLike Esports', kills: 14, positionPts: 15, totalPts: 29, wwcd: true },
+    { rank: 2, slot: 'Slot 4', clan: 'Team Soul', kills: 10, positionPts: 12, totalPts: 22, wwcd: false },
+    { rank: 3, slot: 'Slot 7', clan: 'Blind Esports', kills: 8, positionPts: 10, totalPts: 18, wwcd: false },
+    { rank: 4, slot: 'Slot 2', clan: 'Orangutan Gaming', kills: 7, positionPts: 8, totalPts: 15, wwcd: false },
+    { rank: 5, slot: 'Slot 5', clan: 'Team Entity', kills: 6, positionPts: 6, totalPts: 12, wwcd: false },
+    { rank: 6, slot: 'Slot 9', clan: 'Gladiator Esports', kills: 5, positionPts: 4, totalPts: 9, wwcd: false },
+    { rank: 7, slot: 'Slot 3', clan: 'Reckoning Esports', kills: 4, positionPts: 2, totalPts: 6, wwcd: false },
+    { rank: 8, slot: 'Slot 8', clan: 'Medal Esports', kills: 3, positionPts: 1, totalPts: 4, wwcd: false },
+    { rank: 9, slot: 'Slot 6', clan: 'Big Brother Esports', kills: 3, positionPts: 1, totalPts: 4, wwcd: false },
+    { rank: 10, slot: 'Slot 10', clan: 'Autobotz Esports', kills: 2, positionPts: 1, totalPts: 3, wwcd: false },
+    { rank: 11, slot: 'Slot 11', clan: 'Team Forever', kills: 2, positionPts: 0, totalPts: 2, wwcd: false },
+    { rank: 12, slot: 'Slot 12', clan: 'Hydra Official', kills: 2, positionPts: 0, totalPts: 2, wwcd: false },
+    { rank: 13, slot: 'Slot 13', clan: 'Enigma Gaming', kills: 1, positionPts: 0, totalPts: 1, wwcd: false },
+    { rank: 14, slot: 'Slot 14', clan: 'Global Esports', kills: 1, positionPts: 0, totalPts: 1, wwcd: false },
+    { rank: 15, slot: 'Slot 15', clan: 'Team Insane', kills: 0, positionPts: 0, totalPts: 0, wwcd: false },
+    { rank: 16, slot: 'Slot 16', clan: 'Gujarat Tigers', kills: 0, positionPts: 0, totalPts: 0, wwcd: false }
+  ]);
+
+  const handleSlotChange = (index, field, value) => {
+    setResultSlotPoints(prev => {
+      const updated = [...prev];
+      const item = { ...updated[index], [field]: value };
+      if (field === 'kills' || field === 'positionPts') {
+        const k = parseInt(field === 'kills' ? value : item.kills, 10) || 0;
+        const p = parseInt(field === 'positionPts' ? value : item.positionPts, 10) || 0;
+        item.totalPts = k + p;
+      }
+      if (field === 'wwcd') {
+        item.wwcd = Boolean(value);
+      }
+      updated[index] = item;
+      if (field === 'clan') {
+        if (index === 0) setResultWinnerClan(value);
+        if (index === 1) setResultRunnerUpClan(value);
+        if (index === 2) setResultThirdClan(value);
+      }
+      return updated;
+    });
+  };
+
+  const handleAddSlot = () => {
+    setResultSlotPoints(prev => [
+      ...prev,
+      {
+        rank: prev.length + 1,
+        slot: `Slot ${prev.length + 1}`,
+        clan: `Squad ${prev.length + 1}`,
+        kills: 0,
+        positionPts: 0,
+        totalPts: 0,
+        wwcd: false
+      }
+    ]);
+  };
+
+  const handleRemoveSlot = (index) => {
+    setResultSlotPoints(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      return filtered.map((item, idx) => ({ ...item, rank: idx + 1 }));
+    });
+  };
+
+  const handleResetSlots = () => {
+    setResultSlotPoints([
+      { rank: 1, slot: 'Slot 1', clan: resultWinnerClan || 'Winner Clan', kills: 14, positionPts: 15, totalPts: 29, wwcd: true },
+      { rank: 2, slot: 'Slot 4', clan: resultRunnerUpClan || 'Runner-Up Clan', kills: 10, positionPts: 12, totalPts: 22, wwcd: false },
+      { rank: 3, slot: 'Slot 7', clan: resultThirdClan || '3rd Place Clan', kills: 8, positionPts: 10, totalPts: 18, wwcd: false },
+      { rank: 4, slot: 'Slot 2', clan: 'Orangutan Gaming', kills: 7, positionPts: 8, totalPts: 15, wwcd: false },
+      { rank: 5, slot: 'Slot 5', clan: 'Team Entity', kills: 6, positionPts: 6, totalPts: 12, wwcd: false },
+      { rank: 6, slot: 'Slot 9', clan: 'Gladiator Esports', kills: 5, positionPts: 4, totalPts: 9, wwcd: false },
+      { rank: 7, slot: 'Slot 3', clan: 'Reckoning Esports', kills: 4, positionPts: 2, totalPts: 6, wwcd: false },
+      { rank: 8, slot: 'Slot 8', clan: 'Medal Esports', kills: 3, positionPts: 1, totalPts: 4, wwcd: false },
+      { rank: 9, slot: 'Slot 6', clan: 'Big Brother Esports', kills: 3, positionPts: 1, totalPts: 4, wwcd: false },
+      { rank: 10, slot: 'Slot 10', clan: 'Autobotz Esports', kills: 2, positionPts: 1, totalPts: 3, wwcd: false },
+      { rank: 11, slot: 'Slot 11', clan: 'Team Forever', kills: 2, positionPts: 0, totalPts: 2, wwcd: false },
+      { rank: 12, slot: 'Slot 12', clan: 'Hydra Official', kills: 2, positionPts: 0, totalPts: 2, wwcd: false },
+      { rank: 13, slot: 'Slot 13', clan: 'Enigma Gaming', kills: 1, positionPts: 0, totalPts: 1, wwcd: false },
+      { rank: 14, slot: 'Slot 14', clan: 'Global Esports', kills: 1, positionPts: 0, totalPts: 1, wwcd: false },
+      { rank: 15, slot: 'Slot 15', clan: 'Team Insane', kills: 0, positionPts: 0, totalPts: 0, wwcd: false },
+      { rank: 16, slot: 'Slot 16', clan: 'Gujarat Tigers', kills: 0, positionPts: 0, totalPts: 0, wwcd: false }
+    ]);
+  };
 
   const displayName = currentUser?.name || currentUser?.username || 'Competitor';
   const displayEmail = currentUser?.email || 'player@livetournaments.in';
@@ -348,6 +432,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         const newRoom = {
           id: 'host_' + Date.now(),
           title: conductTitle,
+          tournament: conductTitle,
           game: conductGame,
           type: 'TOURNAMENT',
           format: conductFormat,
@@ -363,11 +448,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           paymentRef: paymentId,
           roomCode: conductRoomCode,
           roomPass: conductRoomPass,
-          status: 'PENDING_APPROVAL', // Requires Super Admin access clearance
+          status: 'PENDING',
           whatsApp: conductWhatsApp || '9876543210',
           createdAt: new Date().toISOString(),
           hostUser: displayName,
+          organizer: displayName,
           email: displayEmail,
+          isUserSubmitted: true
         };
 
         const updatedRooms = [newRoom, ...hostedTournaments];
@@ -390,6 +477,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         try {
           const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
           localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newRoom, ...adminHostings]));
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('lt_room_requested'));
+          window.dispatchEvent(new Event('lt_hosting_requested'));
         } catch (err) {}
 
         // Record in User Payment History
@@ -461,8 +551,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       description: `Daily Scrims Conduct: ${scrimTitle} (₹50 Base)`,
       onSuccess: async (paymentId) => {
         const newScrim = {
-          id: 'scrim_' + Date.now(),
+          id: 'user_scrim_' + Date.now(),
           title: scrimTitle,
+          tournament: scrimTitle,
           game: scrimGame,
           type: 'SCRIM',
           format: 'Squad Battle Practice',
@@ -471,6 +562,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           slotCap: 25,
           prize: 'Tier-1 Practice Lobby',
           timing: scrimTiming,
+          schedule: scrimTiming,
           thumbnail: scrimThumbnail,
           tier: 'standard',
           channelLink: scrimLiveUrl || 'https://www.youtube.com/@livetournament_in',
@@ -478,11 +570,15 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           paymentRef: paymentId,
           roomCode: scrimRoomCode,
           roomPass: scrimRoomPass,
-          status: 'PENDING_APPROVAL',
+          status: 'PENDING',
           whatsApp: scrimWhatsApp || '9876543210',
+          contact: scrimWhatsApp || displayEmail,
+          clan: currentUser?.clan || displayName,
+          organizer: displayName,
           createdAt: new Date().toISOString(),
           hostUser: displayName,
           email: displayEmail,
+          isUserSubmitted: true
         };
 
         const updatedRooms = [newScrim, ...hostedTournaments];
@@ -502,8 +598,12 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         } catch (e) {}
 
         try {
+          const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+          localStorage.setItem('lt_admin_scrims_requests', JSON.stringify([newScrim, ...adminScrims]));
           const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
           localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newScrim, ...adminHostings]));
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('lt_scrim_requested'));
         } catch (err) {}
 
         const newTx = {
@@ -561,13 +661,28 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       description: `Featured Tournament Top-Line Boost: ${targetTitle}`,
       onSuccess: async (paymentId) => {
         const featEntry = {
-          id: 'FEAT_' + Date.now(),
+          id: 'user_feat_' + Date.now(),
           title: targetTitle,
+          tournament: targetTitle,
+          organizer: displayName,
+          organizerName: displayName,
+          game: 'BGMI',
+          placement: 'Homepage Top Carousel Banner Boost',
+          budget: '₹ 49.00 INR (Boost Pass)',
           amountPaid: 49,
           paymentRef: paymentId,
-          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+          status: 'PENDING',
+          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          isUserSubmitted: true
         };
         setFeaturedSuccess(featEntry);
+
+        try {
+          const adminFeats = JSON.parse(localStorage.getItem('lt_admin_featured_requests') || '[]');
+          localStorage.setItem('lt_admin_featured_requests', JSON.stringify([featEntry, ...adminFeats]));
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('lt_featured_requested'));
+        } catch (e) {}
 
         const newTx = {
           id: 'tx_' + Date.now(),
@@ -681,18 +796,27 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
     // Queue in pending broadcast stream requests for Super Admin approval
     try {
-      const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+      const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
       const newReq = {
-        id: 'stream_' + Date.now(),
+        id: 'bcast_' + Date.now(),
         title: `${displayName}'s Competitive Live Broadcast`,
+        tournament: 'Competitive Series Live Stream',
         streamUrl: val.normalizedUrl,
         organizerName: displayName,
+        creator: displayName,
         organizerClan: currentUser?.clan || 'CLAN',
+        clan: currentUser?.clan || 'CLAN',
+        game: 'BGMI',
         email: displayEmail,
-        status: 'PENDING_APPROVAL',
-        submittedAt: new Date().toISOString()
+        status: 'PENDING',
+        submittedAt: new Date().toISOString(),
+        isUserSubmitted: true
       };
-      localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify([newReq, ...pendingBroadcasts]));
+      const updatedBcasts = [newReq, ...pendingBroadcasts];
+      localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
+      localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_broadcast_requested'));
     } catch (err) {}
 
     // Dispatch update event so Home Arena live stream reflects change immediately
@@ -712,11 +836,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       game: resultMatch.game,
       hostUser: displayName,
       hostEmail: displayEmail,
+      submissionType: resultSubmissionType,
+      slotPointsTable: (resultSubmissionType === 'SLOT_POINTS' || resultSubmissionType === 'BOTH') ? resultSlotPoints : [],
       winnerClan: resultWinnerClan,
       runnerUpClan: resultRunnerUpClan,
       thirdClan: resultThirdClan,
       mvp: resultMvp,
-      posterUrl: resultPosterUrl,
+      posterUrl: (resultSubmissionType === 'SINGLE_IMAGE' || resultSubmissionType === 'BOTH') ? resultPosterUrl : (resultPosterUrl || '/assets/tournament_bgmi_showdown_4k.jpg'),
       videoUrl: resultVideoUrl,
       animationTheme: resultAnimationTheme,
       notes: resultNotes,
@@ -726,11 +852,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
     try {
       const existing = JSON.parse(localStorage.getItem('lt_admin_result_verifications') || '[]');
-      localStorage.setItem('lt_admin_result_verifications', JSON.stringify([newSubmission, ...existing]));
+      const filtered = existing.filter(x => x.matchId !== resultMatch.id);
+      localStorage.setItem('lt_admin_result_verifications', JSON.stringify([newSubmission, ...filtered]));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_results_submitted'));
     } catch (err) {}
 
     setShowResultSubmitModal(false);
-    showToast('🏆 Match results & points table proof submitted for Super Admin verification!');
+    showToast('🏆 Match results & certified points table submitted for Super Admin verification!');
   };
 
   // Summary Metrics for Payments History
@@ -1282,6 +1411,66 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                             </span>
                           )}
                         </div>
+
+                        {/* Super Admin Result Certification Status */}
+                        {(() => {
+                          try {
+                            const verList = JSON.parse(localStorage.getItem('lt_admin_result_verifications') || '[]');
+                            const ver = verList.find(v => v.matchId === h.id || v.tournamentTitle === h.title);
+                            if (!ver) return null;
+                            if (ver.status === 'NEEDS_REVISION') {
+                              return (
+                                <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                                  <div className="flex items-start gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-amber-700 shrink-0 mt-0.5">warning</span>
+                                    <div>
+                                      <span className="font-bold text-[12px] block text-amber-950">Super Admin Requested Re-Request / Revision:</span>
+                                      <p className="italic text-amber-800 mt-0.5">"{ver.adminFeedback || 'Please verify slot-by-slot scores or re-upload clearer scoreboard proof.'}"</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      setResultMatch(h);
+                                      if (ver.submissionType) setResultSubmissionType(ver.submissionType);
+                                      if (ver.slotPointsTable?.length > 0) setResultSlotPoints(ver.slotPointsTable);
+                                      if (ver.winnerClan) setResultWinnerClan(ver.winnerClan);
+                                      if (ver.runnerUpClan) setResultRunnerUpClan(ver.runnerUpClan);
+                                      if (ver.thirdClan) setResultThirdClan(ver.thirdClan);
+                                      if (ver.mvp) setResultMvp(ver.mvp);
+                                      if (ver.posterUrl) setResultPosterUrl(ver.posterUrl);
+                                      if (ver.videoUrl) setResultVideoUrl(ver.videoUrl);
+                                      if (ver.notes) setResultNotes(ver.notes);
+                                      setShowResultSubmitModal(true);
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 flex items-center gap-1 shadow-xs cursor-pointer animate-pulse"
+                                  >
+                                    <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                                    <span>Revise &amp; Resubmit</span>
+                                  </button>
+                                </div>
+                              );
+                            }
+                            if (ver.status === 'VERIFIED') {
+                              return (
+                                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-center justify-between gap-3 text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
+                                    <span className="font-bold">✓ Official Scoreboard &amp; Points Certified &bull; Published Live to Home Arena</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono text-emerald-700 font-bold">Live for all users</span>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 flex items-center gap-2 text-xs">
+                                <span className="material-symbols-outlined text-[16px] text-purple-600">hourglass_top</span>
+                                <span className="font-semibold">Results Submitted &bull; Awaiting Super Admin Certification Review</span>
+                              </div>
+                            );
+                          } catch (e) {
+                            return null;
+                          }
+                        })()}
 
                         {/* Room Credentials Management & Automated Email Triggers */}
                         <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -2226,113 +2415,276 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
       {/* Result Submission Modal for Super Admin Result Verifier */}
       {showResultSubmitModal && resultMatch && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-gray-200 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <span className="p-2 rounded-lg bg-purple-100 text-purple-700">
                   <span className="material-symbols-outlined text-lg">fact_check</span>
                 </span>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base">Submit Match Results & Standings</h3>
-                  <p className="text-[11px] text-gray-500 font-mono">{resultMatch.title} ({resultMatch.game})</p>
+                  <h3 className="font-bold text-gray-900 text-base">Submit Match Results &amp; Scoreboard Certification</h3>
+                  <p className="text-[11px] text-gray-500 font-mono">{resultMatch.title} ({resultMatch.game}) &bull; Conductor: {displayName}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowResultSubmitModal(false)}
-                className="text-gray-400 hover:text-gray-700 text-lg p-1"
+                className="text-gray-400 hover:text-gray-700 text-lg p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmitResultsForVerification} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                  1st Place Winner Clan / Squad
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={resultWinnerClan}
-                  onChange={(e) => setResultWinnerClan(e.target.value)}
-                  placeholder="Winner Clan / Squad Name"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:border-purple-600 outline-hidden"
-                />
-              </div>
+            {/* Submission Mode Selector (Two Options: Slot-by-Slot Table or Single Image Proof) */}
+            <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setResultSubmissionType('SLOT_POINTS')}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  resultSubmissionType === 'SLOT_POINTS' ? 'bg-purple-700 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[16px]">table_chart</span>
+                <span>Option 1: Slot-by-Slot Points Table</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setResultSubmissionType('SINGLE_IMAGE')}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  resultSubmissionType === 'SINGLE_IMAGE' ? 'bg-purple-700 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[16px]">image</span>
+                <span>Option 2: Single Image Proof</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setResultSubmissionType('BOTH')}
+                className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                  resultSubmissionType === 'BOTH' ? 'bg-purple-700 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Provide both table and screenshot proof"
+              >
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+                <span>Both</span>
+              </button>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSubmitResultsForVerification} className="space-y-4 text-xs">
+              
+              {/* OPTION 1: Interactive Slot-by-Slot Points Table */}
+              {(resultSubmissionType === 'SLOT_POINTS' || resultSubmissionType === 'BOTH') && (
+                <div className="space-y-2 border border-purple-200 bg-purple-50/30 rounded-xl p-3">
+                  <div className="flex items-center justify-between pb-1 border-b border-purple-100">
+                    <span className="text-[11px] font-bold text-purple-900 uppercase flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[15px] text-purple-700">format_list_numbered</span>
+                      <span>Slot-by-Slot Match Points Table ({resultSlotPoints.length} Slots)</span>
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleAddSlot}
+                        className="px-2 py-1 rounded bg-purple-700 hover:bg-purple-800 text-white text-[10px] font-bold flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">add</span>
+                        <span>Add Slot</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResetSlots}
+                        className="px-2 py-1 rounded bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 text-[10px] font-semibold cursor-pointer"
+                      >
+                        Reset 16 Slots
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="max-h-56 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead className="bg-gray-100 text-gray-700 uppercase text-[9.5px] sticky top-0 z-10">
+                        <tr>
+                          <th className="py-2 px-2 text-center w-8">#</th>
+                          <th className="py-2 px-2 w-20">Slot</th>
+                          <th className="py-2 px-2">Clan / Team Name</th>
+                          <th className="py-2 px-2 text-center w-16">Kills</th>
+                          <th className="py-2 px-2 text-center w-16">Pos Pts</th>
+                          <th className="py-2 px-2 text-center w-16">Total</th>
+                          <th className="py-2 px-2 text-center w-12" title="Winner Winner Chicken Dinner">WWCD</th>
+                          <th className="py-2 px-1 text-center w-8"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {resultSlotPoints.map((slotItem, idx) => (
+                          <tr key={idx} className={slotItem.wwcd ? 'bg-amber-50/60 font-semibold' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                            <td className="py-1.5 px-2 text-center font-bold text-gray-500">{slotItem.rank || idx + 1}</td>
+                            <td className="py-1.5 px-2">
+                              <input
+                                type="text"
+                                value={slotItem.slot}
+                                onChange={(e) => handleSlotChange(idx, 'slot', e.target.value)}
+                                className="w-full px-1.5 py-0.5 rounded border border-gray-200 text-[11px] font-mono outline-hidden"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2">
+                              <input
+                                type="text"
+                                value={slotItem.clan}
+                                onChange={(e) => handleSlotChange(idx, 'clan', e.target.value)}
+                                placeholder="Clan Name"
+                                className="w-full px-1.5 py-0.5 rounded border border-gray-200 text-[11px] font-sans font-semibold outline-hidden focus:border-purple-600"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-center">
+                              <input
+                                type="number"
+                                min={0}
+                                value={slotItem.kills}
+                                onChange={(e) => handleSlotChange(idx, 'kills', e.target.value)}
+                                className="w-12 text-center px-1 py-0.5 rounded border border-gray-200 text-[11px] font-mono outline-hidden"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-center">
+                              <input
+                                type="number"
+                                min={0}
+                                value={slotItem.positionPts}
+                                onChange={(e) => handleSlotChange(idx, 'positionPts', e.target.value)}
+                                className="w-12 text-center px-1 py-0.5 rounded border border-gray-200 text-[11px] font-mono outline-hidden"
+                              />
+                            </td>
+                            <td className="py-1.5 px-2 text-center font-bold text-purple-700">
+                              {slotItem.totalPts ?? (Number(slotItem.kills || 0) + Number(slotItem.positionPts || 0))}
+                            </td>
+                            <td className="py-1.5 px-2 text-center">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(slotItem.wwcd)}
+                                onChange={(e) => handleSlotChange(idx, 'wwcd', e.target.checked)}
+                                className="cursor-pointer size-3.5 accent-amber-600"
+                                title="Winner Winner Chicken Dinner"
+                              />
+                            </td>
+                            <td className="py-1.5 px-1 text-center">
+                              {resultSlotPoints.length > 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSlot(idx)}
+                                  className="text-gray-400 hover:text-rose-600 cursor-pointer text-xs"
+                                  title="Remove slot"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[10px] text-gray-500 italic">
+                    Top 3 squads and WWCD indicator will automatically synchronize to official live certifications.
+                  </p>
+                </div>
+              )}
+
+              {/* OPTION 2: Single Image Proof / Screenshot */}
+              {(resultSubmissionType === 'SINGLE_IMAGE' || resultSubmissionType === 'BOTH') && (
+                <div className="space-y-2 border border-gray-200 bg-gray-50/50 rounded-xl p-3">
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase">
+                    Scoreboard / Points Table Single Image Proof
+                  </label>
+                  <input
+                    type="text"
+                    required={resultSubmissionType === 'SINGLE_IMAGE'}
+                    value={resultPosterUrl}
+                    onChange={(e) => setResultPosterUrl(e.target.value)}
+                    placeholder="Image URL or choose preset below"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden bg-white"
+                  />
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {presetThumbnails.slice(0, 4).map((p) => (
+                      <button
+                        type="button"
+                        key={p.name}
+                        onClick={() => setResultPosterUrl(p.url)}
+                        className={`px-2 py-1 rounded text-[10px] border cursor-pointer ${
+                          resultPosterUrl === p.url ? 'bg-purple-50 text-purple-700 border-purple-500 font-bold' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                  {resultPosterUrl && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-gray-300 max-h-36 bg-black flex items-center justify-center">
+                      <img src={resultPosterUrl} alt="Scoreboard Proof Preview" className="max-h-36 object-contain" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Top 3 Standings & MVP */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold text-gray-700 uppercase block">Certified Top 3 Standings &amp; MVP</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-amber-700 uppercase mb-0.5">
+                      🥇 1st Place (Winner Clan)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={resultWinnerClan}
+                      onChange={(e) => setResultWinnerClan(e.target.value)}
+                      placeholder="1st Place Clan"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold focus:border-purple-600 outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">
+                      🥈 2nd Place (Runner-Up)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={resultRunnerUpClan}
+                      onChange={(e) => setResultRunnerUpClan(e.target.value)}
+                      placeholder="2nd Place Clan"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-amber-900 uppercase mb-0.5">
+                      🥉 3rd Place Clan
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={resultThirdClan}
+                      onChange={(e) => setResultThirdClan(e.target.value)}
+                      placeholder="3rd Place Clan"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                    2nd Place Clan
+                  <label className="block text-[10px] font-bold text-purple-700 uppercase mb-0.5">
+                    🎖️ Tournament MVP / Top Fragger
                   </label>
                   <input
                     type="text"
                     required
-                    value={resultRunnerUpClan}
-                    onChange={(e) => setResultRunnerUpClan(e.target.value)}
-                    placeholder="Runner-Up Clan Name"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                    3rd Place Clan
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={resultThirdClan}
-                    onChange={(e) => setResultThirdClan(e.target.value)}
-                    placeholder="3rd Place Clan Name"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                    value={resultMvp}
+                    onChange={(e) => setResultMvp(e.target.value)}
+                    placeholder="Player IGN (e.g. JONATHAN - 14 Kills)"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                  Tournament MVP / Top Fragger
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={resultMvp}
-                  onChange={(e) => setResultMvp(e.target.value)}
-                  placeholder="Player IGN (Kills)"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                  Scoreboard / Points Table Image Proof
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={resultPosterUrl}
-                  onChange={(e) => setResultPosterUrl(e.target.value)}
-                  placeholder="Image URL or choose preset below"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden"
-                />
-                <div className="flex gap-2 mt-2">
-                  {presetThumbnails.slice(0, 3).map((p) => (
-                    <button
-                      type="button"
-                      key={p.name}
-                      onClick={() => setResultPosterUrl(p.url)}
-                      className={`px-2 py-1 rounded text-[10px] border ${
-                        resultPosterUrl === p.url ? 'bg-purple-50 text-purple-700 border-purple-500 font-bold' : 'border-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {p.name.slice(0, 15)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Video URL & Animation Theme */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
                     Result Video URL (YouTube Match VOD)
@@ -2342,9 +2694,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     value={resultVideoUrl}
                     onChange={(e) => setResultVideoUrl(e.target.value)}
                     placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden"
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden"
                   />
-                  <span className="text-[9.5px] text-gray-400 block mt-0.5 font-mono">Requires www. & youtube</span>
+                  <span className="text-[9.5px] text-gray-400 block mt-0.5 font-mono">Requires www. &amp; youtube</span>
                 </div>
 
                 <div>
@@ -2354,7 +2706,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   <select
                     value={resultAnimationTheme}
                     onChange={(e) => setResultAnimationTheme(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden cursor-pointer"
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden cursor-pointer"
                   >
                     <option value="gold-championship">Championship Gold Particle Burst</option>
                     <option value="cyberpunk-neon">Cyberpunk Neon Laser Glow</option>
@@ -2364,30 +2716,32 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 </div>
               </div>
 
+              {/* Remarks */}
               <div>
                 <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
-                  Organizer Remarks & Verification Notes
+                  Organizer Remarks &amp; Verification Notes
                 </label>
                 <textarea
                   rows={2}
                   value={resultNotes}
                   onChange={(e) => setResultNotes(e.target.value)}
                   placeholder="Notes for Super Admin result verification (e.g. All matches completed, slot scores verified)"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                  className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowResultSubmitModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 font-bold text-gray-700"
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 font-bold text-gray-700 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 shadow-md"
+                  className="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">verified</span>
                   <span>Submit to Super Admin</span>

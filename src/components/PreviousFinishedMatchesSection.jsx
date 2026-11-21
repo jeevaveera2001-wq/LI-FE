@@ -533,7 +533,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
               )}
 
               {/* If Host Uploaded an Image Scoreboard */}
-              {selectedMatch.resultType === 'image' && selectedMatch.scoreboardImage && (
+              {selectedMatch.scoreboardImage && (
                 <div className="space-y-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-gray-600 block">
                     Host Verified Final Trophy &amp; Scoreboard Graphic:

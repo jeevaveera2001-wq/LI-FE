@@ -216,45 +216,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   // Comprehensive validator to detect and purge legacy mock data entries
   const isMockEntry = (item) => {
     if (!item || typeof item !== 'object') return true;
+    // Any entry submitted by a real user must never be purged
+    if (item.isUserSubmitted || item.paymentRef || item.amountPaid) return false;
     const idStr = String(item.id || '');
-    if (
-      idStr.startsWith('req_') ||
-      idStr.startsWith('scrim_') ||
-      idStr.startsWith('part_') ||
-      idStr.startsWith('feat_') ||
-      idStr.startsWith('ad_') ||
-      idStr.startsWith('mock_') ||
-      idStr.startsWith('demo_') ||
-      ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2', 'bgmi-sd-reg-01', 'scrim-tier1-01'].includes(idStr)
-    ) {
-      // Allow real user submissions that use timestamp IDs like host_17... or user_scrim_17...
-      if (idStr.match(/^(host_|user_|real_|sub_)\d{10,}/)) {
-        return false;
-      }
-      return true;
-    }
-    const organizer = String(item.organizer || item.brand || item.company || item.sponsor || item.clan || '');
-    const mockOrganizers = [
-      'Aditya Sharma', 'Karan Patel', 'Rohan Mehra', 'Sameer Khan', 'Vikram Sethi', 'Pooja Verma',
-      'Monster Energy', 'Logitech G', 'Rooter Esports', 'OnePlus Nord',
-      'Red Bull', 'KRAFTON', 'Skyesports', 'Razer', 'HyperX',
-      'Clan Hydra', 'Team Venom', 'Deadly 5', 'Delta Force', 'Apex Gladiators', 'Shadow Strikers',
-      'Team Soul', 'GodLike', '7Sea Esports', 'Entity Gaming', 'Reckoning', 'Orangutan'
-    ];
-    if (mockOrganizers.some(mo => organizer.toLowerCase().includes(mo.toLowerCase()))) return true;
-    const title = String(item.title || item.tournament || item.clan || item.name || '');
-    const mockTitles = [
-      'BGMI Underdog Showdown S4', 'Free Fire MAX Clutch Masters Cup', 'Valorant Mumbai Spike League',
-      'COD Mobile Battle Royale War', 'Apex Legends Predators Rumble', 'BGMI Weekend Midnight Custom',
-      'Villager Pro Invitational - Winter 2026', 'Diwali Battleground Wars 2026', 'All-India College Esports Cup',
-      'Red Bull Valorant Championship 2026', 'Battlegrounds All-Stars Grand Finale', 'Skyesports CS2 Winter Invitational',
-      'BGMI Pro Invitational 2026', 'Free Fire MAX Grand Finals', 'Valorant India Championship',
-      'Call of Duty: Mobile Masters', 'Apex Legends Global Series Cup',
-      'Team Soul Tier-1 Pro Scrims', 'GodLike Practice Cup', '7Sea Esports Community Daily',
-      'Entity Gaming Weekly Clash', 'Reckoning Monthly Qualifier', 'Orangutan Daily Scrims Pool',
-      'Monster Energy BGMI Cup', 'Red Bull Gaming Arena', 'HyperX Peripheral Partner'
-    ];
-    if (mockTitles.some(mt => title.toLowerCase().includes(mt.toLowerCase()))) return true;
+    // Allow any timestamp-based IDs (generated via Date.now())
+    if (idStr.match(/\d{10,}/)) return false;
+    // Only purge known legacy static seed IDs
+    const mockIds = ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2', 'bgmi-sd-reg-01', 'scrim-tier1-01', 'mock_1', 'demo_1'];
+    if (mockIds.includes(idStr)) return true;
     return false;
   };
 
@@ -396,29 +365,65 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setActiveMatchRooms(prev => prev.filter(r => !isMockEntry(r)));
   }, []);
 
-  // Sync real user submissions from competitor portal in real time
+  // Sync real user submissions from competitor portal in real time across all request queues
   useEffect(() => {
-    const syncRealUserHostings = () => {
+    const syncAllUserSubmissions = () => {
       try {
-        const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
-        if (userHostingsRaw) {
-          const userHostings = JSON.parse(userHostingsRaw);
-          if (Array.isArray(userHostings) && userHostings.length > 0) {
-            setHostingRequests(prev => {
-              const prevIds = new Set(prev.map(p => p.id));
-              const toAdd = userHostings.filter(h => !prevIds.has(h.id) && !isMockEntry(h));
-              if (toAdd.length > 0) {
-                return [...toAdd, ...prev];
-              }
-              return prev;
-            });
+        // 1. Hosting / Room Requests
+        const hostingsRaw = localStorage.getItem('lt_admin_hosting_requests') || localStorage.getItem('lt_user_hosted_tourneys');
+        if (hostingsRaw) {
+          const hostings = JSON.parse(hostingsRaw);
+          if (Array.isArray(hostings)) {
+            setHostingRequests(hostings.filter(h => !isMockEntry(h)));
+          }
+        }
+        // 2. Scrims Requests
+        const scrimsRaw = localStorage.getItem('lt_admin_scrims_requests');
+        if (scrimsRaw) {
+          const scrims = JSON.parse(scrimsRaw);
+          if (Array.isArray(scrims)) {
+            setScrimsRequests(scrims.filter(s => !isMockEntry(s)));
+          }
+        }
+        // 3. Featured Requests
+        const featsRaw = localStorage.getItem('lt_admin_featured_requests');
+        if (featsRaw) {
+          const feats = JSON.parse(featsRaw);
+          if (Array.isArray(feats)) {
+            setFeaturedRequests(feats.filter(f => !isMockEntry(f)));
+          }
+        }
+        // 4. Broadcast Requests
+        const bcastRaw = localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests');
+        if (bcastRaw) {
+          const bcasts = JSON.parse(bcastRaw);
+          if (Array.isArray(bcasts)) {
+            setBroadcastRequests(bcasts.filter(b => !isMockEntry(b)));
+          }
+        }
+        // 5. Result Verifications
+        const resRaw = localStorage.getItem('lt_admin_result_verifications');
+        if (resRaw) {
+          const results = JSON.parse(resRaw);
+          if (Array.isArray(results)) {
+            setResultVerifications(results);
           }
         }
       } catch (e) {}
     };
-    syncRealUserHostings();
-    window.addEventListener('storage', syncRealUserHostings);
-    return () => window.removeEventListener('storage', syncRealUserHostings);
+
+    syncAllUserSubmissions();
+    const eventNames = [
+      'storage',
+      'lt_room_requested',
+      'lt_hosting_requested',
+      'lt_scrim_requested',
+      'lt_featured_requested',
+      'lt_broadcast_requested',
+      'lt_results_submitted'
+    ];
+    eventNames.forEach(evt => window.addEventListener(evt, syncAllUserSubmissions));
+    return () => eventNames.forEach(evt => window.removeEventListener(evt, syncAllUserSubmissions));
   }, []);
 
   // Modal State
@@ -607,17 +612,18 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   }, [activeBroadcasts]);
 
   const [broadcastRequests, setBroadcastRequests] = useState(() => {
-    const saved = localStorage.getItem('lt_broadcast_requests');
+    const saved = localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.filter(b => !isMockEntry(b));
       } catch (e) {}
     }
     return [];
   });
   useEffect(() => {
     localStorage.setItem('lt_broadcast_requests', JSON.stringify(broadcastRequests));
+    localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(broadcastRequests));
   }, [broadcastRequests]);
 
   const handleApproveBroadcastRequest = (id) => {
@@ -1099,6 +1105,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         thirdPlace: res.thirdClan,
         mvp: res.mvp,
         thumbnail: res.posterUrl || '/assets/tournament_bgmi_showdown_4k.jpg',
+        scoreboardImage: res.posterUrl || '',
+        slotsData: res.slotPointsTable || [],
+        submissionType: res.submissionType || (res.slotPointsTable?.length > 0 ? 'SLOT_POINTS' : 'SINGLE_IMAGE'),
+        resultType: res.slotPointsTable?.length > 0 ? 'table' : 'image',
         videoUrl: res.videoUrl || '',
         animationTheme: res.animationTheme || 'gold-championship',
         notes: res.notes || '',
@@ -1126,8 +1136,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleRejectResult = (resultId) => {
-    setResultVerifications(prev => prev.map(r => r.id === resultId ? { ...r, status: 'NEEDS_REVISION' } : r));
-    showToast(`⚠️ Result rejected: Revision requested from host clan.`);
+    const feedback = window.prompt(
+      'Enter Revision Feedback / Reasons for Conductor (Ask User to Re-Request):',
+      'Please verify slot-by-slot scores, kill points, or re-upload clear scoreboard proof.'
+    ) || 'Please verify slot-by-slot scores, kill points, or re-upload clear scoreboard proof.';
+    const updated = resultVerifications.map(r => r.id === resultId ? { ...r, status: 'NEEDS_REVISION', adminFeedback: feedback } : r);
+    setResultVerifications(updated);
+    localStorage.setItem('lt_admin_result_verifications', JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('lt_results_submitted'));
+    showToast(`⚠️ Re-request sent: Conductor notified to revise & resubmit results.`);
     if (selectedResultForInspection?.id === resultId) {
       setSelectedResultForInspection(null);
     }
@@ -3797,14 +3815,25 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   <div key={item.id} className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-4.5 space-y-3.5 hover:border-purple-300 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E7EB] pb-3">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h4 className="font-bold text-[14px] text-gray-900">{item.tournamentTitle}</h4>
                           <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-mono text-[10px] font-bold border border-blue-200">
                             {item.game}
                           </span>
+                          {item.submissionType === 'SLOT_POINTS' || item.slotPointsTable?.length > 0 ? (
+                            <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-bold border border-purple-200 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">table_chart</span>
+                              <span>Option 1: Slot Points Table ({item.slotPointsTable?.length || 16} Slots)</span>
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[10px] font-bold border border-indigo-200 flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">image</span>
+                              <span>Option 2: Single Image Proof</span>
+                            </span>
+                          )}
                         </div>
                         <p className="text-[11px] text-gray-500 mt-0.5">
-                          Host Organizer: <strong className="text-gray-800">{item.hostUser}</strong> ({item.hostEmail}) • Match ID: <span className="font-mono">{item.matchId}</span>
+                          Host Organizer: <strong className="text-gray-800">{item.hostUser}</strong> ({item.hostEmail}) &bull; Match ID: <span className="font-mono">{item.matchId}</span>
                         </p>
                       </div>
 
@@ -3965,12 +3994,65 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                   </div>
                 </div>
 
-                {/* 2. High-Resolution Scoreboard Screenshot Proof Inspector */}
+                {/* 2. OPTION 1: Slot-by-Slot Match Points Table Inspection */}
+                {selectedResultForInspection.slotPointsTable && selectedResultForInspection.slotPointsTable.length > 0 && (
+                  <div className="bg-purple-50/40 rounded-xl border border-purple-200 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-purple-700">table_chart</span>
+                        <span>Option 1: Official Slot-by-Slot Points Table ({selectedResultForInspection.slotPointsTable.length} Slots)</span>
+                      </h4>
+                      <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-bold font-mono">
+                        Conductor Verified Table
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-2xs max-h-60">
+                      <table className="w-full text-left text-xs font-mono">
+                        <thead className="bg-[#1F2937] text-white uppercase text-[9.5px] sticky top-0 z-10 font-bold">
+                          <tr>
+                            <th className="py-2.5 px-3 text-center w-10">Rank</th>
+                            <th className="py-2.5 px-3 w-20">Slot</th>
+                            <th className="py-2.5 px-3">Clan / Team Name</th>
+                            <th className="py-2.5 px-3 text-center w-16">Kills</th>
+                            <th className="py-2.5 px-3 text-center w-16">Pos Pts</th>
+                            <th className="py-2.5 px-3 text-center w-16">Total Pts</th>
+                            <th className="py-2.5 px-3 text-center w-16">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {selectedResultForInspection.slotPointsTable.map((slot, idx) => (
+                            <tr key={idx} className={slot.wwcd ? 'bg-amber-50/80 font-bold' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
+                              <td className="py-2 px-3 text-center font-bold text-gray-700">#{slot.rank || idx + 1}</td>
+                              <td className="py-2 px-3 font-semibold text-gray-500">{slot.slot || `Slot ${idx + 1}`}</td>
+                              <td className="py-2 px-3 font-sans font-bold text-gray-900 flex items-center gap-1.5">
+                                {slot.wwcd && <span className="text-[14px]" title="Winner Winner Chicken Dinner">🍗</span>}
+                                <span>{slot.clan}</span>
+                              </td>
+                              <td className="py-2 px-3 text-center font-mono text-gray-700">{slot.kills ?? 0}</td>
+                              <td className="py-2 px-3 text-center font-mono text-gray-700">{slot.positionPts ?? 0}</td>
+                              <td className="py-2 px-3 text-center font-mono font-bold text-purple-700">{slot.totalPts ?? (Number(slot.kills || 0) + Number(slot.positionPts || 0))}</td>
+                              <td className="py-2 px-3 text-center">
+                                {slot.wwcd ? (
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 text-[9px] font-bold">WWCD</span>
+                                ) : (
+                                  <span className="text-[10px] text-gray-400 font-mono">Rank {slot.rank || idx + 1}</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. OPTION 2: High-Resolution Scoreboard Screenshot Proof Inspector */}
                 <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[16px] text-purple-600">image</span>
-                      Scoreboard &amp; Points Table Proof Image Inspection
+                      <span>Scoreboard Proof Image Inspection</span>
                     </h4>
                     <div className="flex items-center gap-2">
                       <button
@@ -4085,9 +4167,10 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleRejectResult(selectedResultForInspection.id)}
-                    className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-rose-100 text-gray-700 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-rose-100 text-gray-700 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
                   >
-                    Request Revision
+                    <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                    <span>Ask User to Re-Request / Revision</span>
                   </button>
                   <button
                     onClick={() => handleVerifyResult(selectedResultForInspection.id)}
