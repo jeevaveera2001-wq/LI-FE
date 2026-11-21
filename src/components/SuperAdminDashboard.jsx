@@ -227,6 +227,40 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     return false;
   };
 
+  // Helper to load and merge broadcast requests from all storage channels without data loss
+  const loadBroadcastRequestsFromStorage = () => {
+    try {
+      const b1Raw = localStorage.getItem('lt_broadcast_requests');
+      const b2Raw = localStorage.getItem('lt_admin_broadcast_requests');
+      let list1 = [];
+      let list2 = [];
+      if (b1Raw) {
+        try {
+          const parsed = JSON.parse(b1Raw);
+          if (Array.isArray(parsed)) list1 = parsed;
+        } catch (e) {}
+      }
+      if (b2Raw) {
+        try {
+          const parsed = JSON.parse(b2Raw);
+          if (Array.isArray(parsed)) list2 = parsed;
+        } catch (e) {}
+      }
+
+      // Merge and deduplicate by item ID or streamUrl
+      const map = new Map();
+      [...list1, ...list2].forEach(item => {
+        if (item && (item.id || item.streamUrl) && !isMockEntry(item)) {
+          const key = item.id || item.streamUrl;
+          map.set(key, item);
+        }
+      });
+      return Array.from(map.values());
+    } catch (e) {
+      return [];
+    }
+  };
+
   // 1. TOURNAMENT HOSTING REQUESTS BY USERS (Realtime submissions only)
   const [hostingRequests, setHostingRequests] = useState(() => {
     const saved = localStorage.getItem('lt_admin_hosting_requests');
@@ -394,13 +428,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           }
         }
         // 4. Broadcast Requests
-        const bcastRaw = localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests');
-        if (bcastRaw) {
-          const bcasts = JSON.parse(bcastRaw);
-          if (Array.isArray(bcasts)) {
-            setBroadcastRequests(bcasts.filter(b => !isMockEntry(b)));
-          }
-        }
+        const bcasts = loadBroadcastRequestsFromStorage();
+        setBroadcastRequests(bcasts);
         // 5. Result Verifications
         const resRaw = localStorage.getItem('lt_admin_result_verifications');
         if (resRaw) {
@@ -596,7 +625,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)
-  const [broadcastActiveTab, setBroadcastActiveTab] = useState('live');
+  const [broadcastActiveTab, setBroadcastActiveTab] = useState(() => {
+    return loadBroadcastRequestsFromStorage().length > 0 ? 'requests' : 'live';
+  });
   const [activeBroadcasts, setActiveBroadcasts] = useState(() => {
     const saved = localStorage.getItem('lt_broadcasts');
     if (saved) {
@@ -612,14 +643,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   }, [activeBroadcasts]);
 
   const [broadcastRequests, setBroadcastRequests] = useState(() => {
-    const saved = localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(b => !isMockEntry(b));
-      } catch (e) {}
-    }
-    return [];
+    return loadBroadcastRequestsFromStorage();
   });
   useEffect(() => {
     localStorage.setItem('lt_broadcast_requests', JSON.stringify(broadcastRequests));
@@ -646,7 +670,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       viewers: 16840
     };
     localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
+    localStorage.setItem('lt_user_live_stream_url', validUrl);
     window.dispatchEvent(new Event('lt_stream_updated'));
+    window.dispatchEvent(new Event('storage'));
 
     setActiveBroadcasts(prev => [
       {
@@ -1300,6 +1326,25 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             )}
           </button>
 
+          {/* Broadcast & Live Streams Dedicated Navigation */}
+          <button
+            onClick={() => {
+              setActiveTab('matches-approvals');
+              setMatchesApprovalTab('broadcast');
+              setBroadcastActiveTab('requests');
+              setSidebarOpen(false);
+            }}
+            className={`nagulan-sidebar-btn ${activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast' ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px] text-red-500">live_tv</span>
+            <span className="flex-1 text-left">Broadcast &amp; Live Streams</span>
+            {broadcastRequests.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[9px] font-black animate-pulse">
+                {broadcastRequests.length}
+              </span>
+            )}
+          </button>
+
           {/* 3. Result Verifier */}
           <button
             onClick={() => { setActiveTab('result-verifier'); setSidebarOpen(false); }}
@@ -1469,6 +1514,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <button
+          onClick={() => {
+            setActiveTab('matches-approvals');
+            setMatchesApprovalTab('broadcast');
+            setBroadcastActiveTab('requests');
+          }}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px] text-red-500">live_tv</span>
+          <span>Broadcast</span>
+          {broadcastRequests.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">
+              {broadcastRequests.length}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('result-verifier')}
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'result-verifier' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
@@ -1555,6 +1617,52 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           MAIN SCROLLABLE BODY
           ======================================================== */}
       <main className="flex-1 p-5 lg:p-7 space-y-5 max-w-[1520px] w-full mx-auto">
+        {/* INCOMING STREAMER BROADCAST REQUESTS ALERT BANNER */}
+        {broadcastRequests.length > 0 && (
+          <div className="bg-gradient-to-r from-red-950/90 via-black to-neutral-900 border-2 border-red-500 rounded-2xl p-4 sm:p-5 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in mb-3">
+            <div className="flex items-center gap-3.5">
+              <div className="size-11 rounded-xl bg-red-600/30 border border-red-500 flex items-center justify-center text-red-400 shrink-0 shadow-lg">
+                <span className="material-symbols-outlined text-[26px] animate-pulse">sensors</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-600 text-white animate-pulse">
+                    STREAM ACTION REQUIRED
+                  </span>
+                  <span className="text-xs font-mono text-red-300 font-bold">
+                    {broadcastRequests.length} Pending Live Stream Request{broadcastRequests.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white mt-1">
+                  Incoming Live Stream from Competitor: {broadcastRequests[0]?.creator || 'Streamer'}
+                </h3>
+                <p className="text-xs text-gray-300 mt-0.5 truncate max-w-xl">
+                  {broadcastRequests[0]?.tournament || 'Competitive Match'} &bull; URL: <span className="text-red-400 font-mono font-bold">{broadcastRequests[0]?.streamUrl}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                onClick={() => handleApproveBroadcastRequest(broadcastRequests[0].id)}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg cursor-pointer transition-all active:scale-95"
+              >
+                <span>Authorize &amp; Go Live</span>
+                <span className="material-symbols-outlined text-[16px]">sensors</span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('matches-approvals');
+                  setMatchesApprovalTab('broadcast');
+                  setBroadcastActiveTab('requests');
+                }}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all cursor-pointer"
+              >
+                View Queue ({broadcastRequests.length}) &rarr;
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ========================================================
             VIEW: MAIN DASHBOARD (EXACT media_1795010667791_992d00b3.jpg REPLICA)
             ======================================================== */}
@@ -2206,12 +2314,46 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <p><strong>Schedule:</strong> {req.timing}</p>
                         <p className="truncate text-[#6B7280]"><strong>Contact:</strong> {req.email} &bull; WhatsApp: <strong>{req.whatsApp || req.mobile || 'Provided'}</strong></p>
                         {req.channelLink && (
-                          <p className="flex items-center gap-1.5 pt-0.5">
-                            <span className="material-symbols-outlined text-[13px] text-red-600">live_tv</span>
-                            <a href={req.channelLink} target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline truncate">
-                              Live Stream Channel ↗
+                          <div className="flex items-center justify-between p-2 rounded bg-red-50 border border-red-200 mt-1">
+                            <a href={req.channelLink} target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline truncate flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[13px] text-red-600">live_tv</span>
+                              Live Stream ↗
                             </a>
-                          </p>
+                            <button
+                              onClick={() => {
+                                const streamReq = {
+                                  id: req.id || ('bcast_' + Date.now()),
+                                  title: `${req.title} - Tournament Stream`,
+                                  tournament: req.title,
+                                  streamUrl: req.channelLink,
+                                  creator: req.organizer || req.hostUser || 'Host',
+                                  organizerName: req.organizer || req.hostUser || 'Host',
+                                  channel: `${req.organizer || 'Host'} Official Live`,
+                                  clan: req.clan || 'OFFICIAL'
+                                };
+                                const rawUrl = req.channelLink;
+                                const val = validateLiveStreamUrl(rawUrl);
+                                const validUrl = val.isValid ? val.normalizedUrl : rawUrl;
+                                const approvedStreamObj = {
+                                  url: validUrl,
+                                  title: streamReq.title,
+                                  organizer: streamReq.organizerName,
+                                  clan: streamReq.clan,
+                                  game: req.game || 'BGMI',
+                                  isApproved: true,
+                                  viewers: 16840
+                                };
+                                localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
+                                localStorage.setItem('lt_user_live_stream_url', validUrl);
+                                window.dispatchEvent(new Event('lt_stream_updated'));
+                                window.dispatchEvent(new Event('storage'));
+                                showToast(`✓ Broadcast for ${req.title} authorized & streaming live!`);
+                              }}
+                              className="px-2 py-0.5 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] cursor-pointer shadow-xs shrink-0"
+                            >
+                              Authorize Stream Live
+                            </button>
+                          </div>
                         )}
                         {req.paymentRef && (
                           <p className="text-[9px] text-gray-400 font-mono">Ref: {req.paymentRef}</p>
@@ -3234,6 +3376,61 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <span className="material-symbols-outlined text-emerald-500 text-[22px]">hd</span>
               </div>
             </div>
+
+            {/* PROMINENT PENDING STREAMER REQUESTS BANNER/GRID (SHOWN ALWAYS IF ANY REQUESTS EXIST) */}
+            {broadcastRequests.length > 0 && (
+              <div className="p-4 rounded-xl bg-amber-50/80 border-2 border-amber-300 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="size-2 rounded-full bg-red-600 animate-ping"></span>
+                    <h4 className="text-sm font-bold text-amber-950 uppercase tracking-wide">
+                      ⚡ Action Required: Incoming Streamer Requests ({broadcastRequests.length} Pending)
+                    </h4>
+                  </div>
+                  <span className="text-[11px] font-mono text-amber-800">
+                    Real-time sync from Competitor Dashboard
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {broadcastRequests.map(br => (
+                    <div key={br.id} className="rounded-xl border border-amber-200 bg-white p-3.5 shadow-xs flex flex-col justify-between gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase">
+                            {br.status}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            {new Date(br.submittedAt || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <h4 className="text-[13px] font-bold text-gray-900">{br.creator || br.organizerName}</h4>
+                        <p className="text-[11px] text-gray-500 font-semibold">{br.channel || 'Live Stream'}</p>
+                        <div className="p-2 rounded bg-gray-50 border border-gray-100 text-[10px] space-y-0.5 text-gray-600">
+                          <p><strong>Tournament:</strong> {br.tournament}</p>
+                          <p className="truncate"><strong>Stream URL:</strong> <a href={br.streamUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline">{br.streamUrl} ↗</a></p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
+                        <button
+                          onClick={() => handleApproveBroadcastRequest(br.id)}
+                          className="flex-1 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer shadow-xs"
+                        >
+                          ✓ Authorize &amp; Stream Live
+                        </button>
+                        <button
+                          onClick={() => handleDeclineBroadcastRequest(br.id)}
+                          className="py-1.5 px-3 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* TAB 1: CURRENT LIVE BROADCASTS (ACCEPTED & LIVE) */}
             {broadcastActiveTab === 'live' && (

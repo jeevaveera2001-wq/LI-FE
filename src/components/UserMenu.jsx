@@ -135,6 +135,31 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
               </button>
 
               <button
+                onClick={() => {
+                  const compUser = {
+                    id: 'LT-USR-1001',
+                    name: 'Competitive Player',
+                    username: 'player_official',
+                    email: 'player@lt.in',
+                    role: 'user',
+                    clan: 'Team Soul'
+                  };
+                  try {
+                    localStorage.setItem('lt_user', JSON.stringify(compUser));
+                  } catch (e) {}
+                  setIsOpen(false);
+                  window.location.href = '/dashboard';
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 transition-colors font-bold text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <span>👤</span>
+                  <span>Switch to Competitor View</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200">1-Click</span>
+              </button>
+
+              <button
                 onClick={() => handleNav('home')}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer"
               >
@@ -159,6 +184,31 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
               >
                 <span>📊</span>
                 <span>My Dashboard</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const superAdminUser = {
+                    id: 'LT-ADM-001',
+                    name: 'Super Admin',
+                    username: 'superadmin',
+                    email: 'superadmin@lt.in',
+                    role: 'superadmin',
+                    clan: 'ADMIN HQ'
+                  };
+                  try {
+                    localStorage.setItem('lt_user', JSON.stringify(superAdminUser));
+                  } catch (e) {}
+                  setIsOpen(false);
+                  window.location.href = '/admin';
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-colors font-bold text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <span>⚡</span>
+                  <span>Switch to Super Admin</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200">1-Click</span>
               </button>
 
               <button

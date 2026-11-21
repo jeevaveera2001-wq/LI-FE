@@ -17,30 +17,20 @@ export function validateLiveStreamUrl(url) {
 
   const trimmed = url.trim();
 
-  // Reject raw tags like #tag, @tag, or plain word
-  if (trimmed.startsWith('#') || trimmed.startsWith('@')) {
+  // Reject raw tags like #tag, @tag alone (without youtube domain)
+  if (trimmed.startsWith('#') || (trimmed.startsWith('@') && !trimmed.includes('youtube'))) {
     return {
       isValid: false,
-      error: 'Invalid URL. Tags or handles starting with # or @ are not permitted.',
+      error: 'Invalid URL. Tags starting with # or standalone handles are not permitted.',
       embedUrl: null
     };
   }
 
-  // Must start with www. or http://www. or https://www.
-  const startsWithWwwPattern = /^(https?:\/\/)?www\./i;
-  if (!startsWithWwwPattern.test(trimmed)) {
+  // Must contain "youtube" or "youtu.be"
+  if (!/youtube|youtu\.be/i.test(trimmed)) {
     return {
       isValid: false,
-      error: 'Invalid link. The stream URL must start with "www." (e.g. www.youtube.com/watch?v=... or https://www.youtube.com/...)',
-      embedUrl: null
-    };
-  }
-
-  // Must contain "youtube"
-  if (!/youtube/i.test(trimmed)) {
-    return {
-      isValid: false,
-      error: 'Invalid domain. The link must be a valid YouTube URL containing "youtube".',
+      error: 'Invalid domain. The link must be a valid YouTube URL (e.g. youtube.com or youtu.be).',
       embedUrl: null
     };
   }
@@ -63,6 +53,12 @@ export function getYouTubeEmbedUrl(url) {
   if (!url) return 'https://www.youtube.com/embed/jfKfPfyJRdk';
   
   const cleanUrl = url.trim();
+
+  // Match youtu.be/ID
+  const shortMatch = cleanUrl.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch && shortMatch[1]) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1&mute=1&rel=0`;
+  }
 
   // Match /watch?v=ID or /v/ID
   const watchMatch = cleanUrl.match(/[?&]v=([a-zA-Z0-9_-]{11})/);

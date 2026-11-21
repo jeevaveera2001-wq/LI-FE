@@ -79,10 +79,8 @@ export default function HostTournamentsSection({ onNavigate, currentUser }) {
             </div>
           </div>
 
-          {/* 3 Pillars / Media Showcase Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 pb-6">
-            
-            {/* Card 1: User Requested Tournament or Default Hosting Tier Card */}
+          {/* Single Card Layout per User Specification */}
+          <div className="pt-2 pb-6">
             {userHostedTourneys.length > 0 ? (
               <div
                 onClick={() => {
@@ -90,160 +88,155 @@ export default function HostTournamentsSection({ onNavigate, currentUser }) {
                     onNavigate('tournaments');
                   }
                 }}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-gold-primary/40 flex flex-col justify-between transform-gpu will-change-transform"
+                className="group relative overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1 transition-all duration-300 ease-out border border-gold-primary/50 flex flex-col md:flex-row justify-between transform-gpu will-change-transform"
               >
-                <div>
-                  <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
-                    <img
-                      alt={userHostedTourneys[0].title || 'Community Hosted Tournament'}
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
-                      src={userHostedTourneys[0].thumbnail || userHostedTourneys[0].poster || '/assets/host_directly_4k.jpg'}
-                    />
-                    <div className="absolute top-3 left-3 bg-[#DFBD78] text-black px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider shadow-sm">
-                      Community Hosted Match
-                    </div>
-                    <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-bold text-white">
-                      {userHostedTourneys[0].game || 'BGMI'}
-                    </div>
+                <div className="relative w-full md:w-5/12 aspect-[16/9] md:aspect-auto overflow-hidden bg-dark-default min-h-[220px]">
+                  <img
+                    alt={userHostedTourneys[0].title || 'Community Hosted Tournament'}
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 group-hover:brightness-105 w-full h-full"
+                    src={userHostedTourneys[0].thumbnail || userHostedTourneys[0].poster || '/assets/host_directly_4k.jpg'}
+                  />
+                  <div className="absolute top-3 left-3 bg-[#DFBD78] text-black px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider shadow-sm">
+                    Community Hosted Match
                   </div>
-
-                  <div className="flex flex-col gap-2 p-5">
-                    <h3 className="text-dark-default primary-bold-s18-lh120 group-hover:text-gold-primary transition-colors duration-200">
-                      {userHostedTourneys[0].title}
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      Entry Fee: <strong className="text-black">{userHostedTourneys[0].entryFee || '₹50'}</strong> &bull; Prize Pool: <strong className="text-emerald-600">{userHostedTourneys[0].prizePool || '₹50,000'}</strong>
-                    </p>
-                    <span className="text-[11px] text-gray-500 font-mono">
-                      Host: {userHostedTourneys[0].organizer || userHostedTourneys[0].host || 'Community Host'}
-                    </span>
+                  <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-mono font-bold text-white">
+                    {userHostedTourneys[0].game || 'BGMI'}
                   </div>
                 </div>
 
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Registration Open
-                  </span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Join Match &rarr;
-                  </span>
+                <div className="p-6 md:p-8 flex-1 flex flex-col justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                        {userHostedTourneys[0].type || 'TOURNAMENT'}
+                      </span>
+                      <span className="text-xs font-mono text-gray-500">
+                        {userHostedTourneys[0].timing || 'Upcoming Today'}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl md:text-2xl font-black text-gray-900 group-hover:text-gold-primary transition-colors">
+                      {userHostedTourneys[0].title}
+                    </h3>
+
+                    <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
+                      Entry Fee: <strong className="text-black">{userHostedTourneys[0].entryFee || '₹10 - ₹50'}</strong> &bull; Prize Pool: <strong className="text-emerald-600">{userHostedTourneys[0].prizePool || userHostedTourneys[0].prize || '₹50,000 INR'}</strong>
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 pt-1">
+                      <span>Host: <strong className="text-gray-800">{userHostedTourneys[0].organizer || userHostedTourneys[0].hostUser || 'Verified Host'}</strong></span>
+                      <span>&bull;</span>
+                      <span>Slots: <strong className="text-gray-800">{userHostedTourneys[0].slots || '25 Squads (100 Players)'}</strong></span>
+                      {userHostedTourneys[0].whatsApp && (
+                        <>
+                          <span>&bull;</span>
+                          <span>WhatsApp: <strong className="text-emerald-700">{userHostedTourneys[0].whatsApp}</strong></span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Registration Open
+                      </span>
+                      {userHostedTourneys[0].channelLink && (
+                        <a
+                          href={userHostedTourneys[0].channelLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2.5 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs"
+                        >
+                          <span className="material-symbols-outlined text-[13px]">live_tv</span>
+                          <span>Stream Live ↗</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleHostRedirect();
+                        }}
+                        className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        + Host Another Match
+                      </button>
+                      <span className="px-5 py-2 rounded-xl bg-black group-hover:bg-gold-primary text-white group-hover:text-black text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md">
+                        <span>Join Match</span>
+                        <span>&rarr;</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
               <div
                 onClick={handleHostRedirect}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
+                className="group relative overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1 transition-all duration-300 ease-out border border-gold-primary/30 flex flex-col md:flex-row justify-between transform-gpu will-change-transform"
               >
-                <div>
-                  <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
-                    <img
-                      alt="Host Your Live Tournaments Directly With Us"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
-                      src="/assets/host_directly_4k.jpg"
-                    />
-                    <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
-                      Paid Hosting Tier
+                <div className="relative w-full md:w-5/12 aspect-[16/9] md:aspect-auto overflow-hidden bg-dark-default min-h-[220px]">
+                  <img
+                    alt="Host Your Live Tournaments Directly With Us"
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 group-hover:brightness-105 w-full h-full"
+                    src="/assets/host_directly_4k.jpg"
+                  />
+                  <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
+                    Host Everyday • 1st Free of Cost
+                  </div>
+                </div>
+
+                <div className="p-6 md:p-8 flex-1 flex flex-col justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                        OFFICIAL ESPORTS HOSTING
+                      </span>
+                      <span className="text-xs font-mono text-gray-500">LiveTournaments.in Production</span>
+                    </div>
+
+                    <h3 className="text-xl md:text-2xl font-black text-gray-900 group-hover:text-gold-primary transition-colors">
+                      Host Your Live Tournaments Directly With Us
+                    </h3>
+
+                    <p className="text-xs md:text-sm text-gray-600 leading-relaxed max-w-2xl">
+                      Set entry fees, define custom prize distributions, and let our engine handle player registrations, room code distribution, automated referee pilots, and YouTube live broadcast streaming.
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-1 font-mono">
+                      <span>✓ Automated Room Credentials</span>
+                      <span>✓ Official Referee Supervision</span>
+                      <span>✓ Live YouTube Broadcast Integration</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 p-5">
-                    <h3 className="text-dark-default primary-bold-s18-lh120 group-hover:text-gold-primary transition-colors duration-200">
-                      Host Your Live Tournaments Directly With Us
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      Set entry fees, define custom prize distributions, and let our engine handle player registrations and room code distribution.
-                    </p>
-                  </div>
-                </div>
+                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                      Single Match: ₹10 &bull; Daily Scrims: ₹50
+                    </span>
 
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">LiveTournaments.in</span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Start Now &rarr;
-                  </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleHostRedirect();
+                      }}
+                      className="px-6 py-2.5 rounded-xl bg-black group-hover:bg-gold-primary text-white group-hover:text-black text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md cursor-pointer"
+                    >
+                      <span>Open Hosting Studio</span>
+                      <span>&rarr;</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
-
-            {/* Card 2 */}
-            <div
-              onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
-            >
-              <div>
-                <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
-                  <img
-                    alt="Launch with Our Expert Pilots and Production Teams"
-                    loading="lazy"
-                    decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
-                    src="/assets/experienced_pilot_4k.jpg"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-blue-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
-                    Official Referees
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2 p-5">
-                  <h3 className="text-dark-default primary-bold-s18-lh120 group-hover:text-gold-primary transition-colors duration-200">
-                    Launch with Our Expert Pilots &amp; Referees
-                  </h3>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Certified tournament pilots supervise your matches in real time, preventing illegal teaming and managing drop timings.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">LiveTournaments.in</span>
-                <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                  Book Referees &rarr;
-                </span>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div
-              onClick={handleHostRedirect}
-              className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-20 hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/50 transition-all duration-300 ease-out border border-black/10 flex flex-col justify-between transform-gpu will-change-transform"
-            >
-              <div>
-                <div className="relative w-full aspect-[441/225] overflow-hidden bg-dark-default">
-                  <img
-                    alt="Give Your Event a Professional Broadcaster Polish"
-                    loading="lazy"
-                    decoding="async"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 rounded-t-2xl w-full h-full transform-gpu"
-                    src="/assets/professional_quality_4k.jpg"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-purple-400 uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
-                    Broadcaster Stream
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2 p-5">
-                  <h3 className="text-dark-default primary-bold-s18-lh120 group-hover:text-gold-primary transition-colors duration-200">
-                    Give Your Event a Professional Broadcaster Polish
-                  </h3>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Full HD multi-camera production overlays, live tournament leaderboard graphics, and direct RTMP YouTube broadcast integration.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">LiveTournaments.in</span>
-                <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                  Media Feeds &rarr;
-                </span>
-              </div>
-            </div>
-
           </div>
 
           {/* Paid Hosting Workflow CTA Banner */}

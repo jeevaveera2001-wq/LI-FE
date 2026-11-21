@@ -480,6 +480,36 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_room_requested'));
           window.dispatchEvent(new Event('lt_hosting_requested'));
+
+          // If a broadcast stream URL was provided during hosting, register it in broadcast requests
+          if (conductLiveUrl && conductLiveUrl.trim()) {
+            const bVal = validateLiveStreamUrl(conductLiveUrl);
+            if (bVal.isValid) {
+              const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+              const streamReq = {
+                id: 'bcast_' + Date.now(),
+                title: `${conductTitle} - Tournament Live Broadcast`,
+                tournament: conductTitle,
+                streamUrl: bVal.normalizedUrl,
+                organizerName: displayName,
+                creator: displayName,
+                channel: `${displayName} Official Live`,
+                requestedSlot: 'Tournament Match Broadcast',
+                language: 'Hindi / English',
+                organizerClan: currentUser?.clan || 'CLAN',
+                clan: currentUser?.clan || 'CLAN',
+                game: conductGame,
+                email: displayEmail,
+                status: 'PENDING',
+                submittedAt: new Date().toISOString(),
+                isUserSubmitted: true
+              };
+              const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
+              localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
+              localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+              window.dispatchEvent(new Event('lt_broadcast_requested'));
+            }
+          }
         } catch (err) {}
 
         // Record in User Payment History
@@ -604,6 +634,36 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newScrim, ...adminHostings]));
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_scrim_requested'));
+
+          // If a broadcast stream URL was provided during scrim hosting, register it in broadcast requests
+          if (scrimLiveUrl && scrimLiveUrl.trim()) {
+            const bVal = validateLiveStreamUrl(scrimLiveUrl);
+            if (bVal.isValid) {
+              const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+              const streamReq = {
+                id: 'bcast_' + Date.now(),
+                title: `${scrimTitle} - Daily Scrim Live Broadcast`,
+                tournament: scrimTitle,
+                streamUrl: bVal.normalizedUrl,
+                organizerName: displayName,
+                creator: displayName,
+                channel: `${displayName} Official Live`,
+                requestedSlot: 'Daily Scrim Stream',
+                language: 'Hindi / English',
+                organizerClan: currentUser?.clan || 'CLAN',
+                clan: currentUser?.clan || 'CLAN',
+                game: scrimGame,
+                email: displayEmail,
+                status: 'PENDING',
+                submittedAt: new Date().toISOString(),
+                isUserSubmitted: true
+              };
+              const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
+              localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
+              localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+              window.dispatchEvent(new Event('lt_broadcast_requested'));
+            }
+          }
         } catch (err) {}
 
         const newTx = {
@@ -804,6 +864,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         streamUrl: val.normalizedUrl,
         organizerName: displayName,
         creator: displayName,
+        channel: `${displayName} Official Live`,
+        requestedSlot: 'Prime Live Stream Feed',
+        language: 'Hindi / English',
+        viewers: '16,840',
         organizerClan: currentUser?.clan || 'CLAN',
         clan: currentUser?.clan || 'CLAN',
         game: 'BGMI',
@@ -812,7 +876,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         submittedAt: new Date().toISOString(),
         isUserSubmitted: true
       };
-      const updatedBcasts = [newReq, ...pendingBroadcasts];
+      const updatedBcasts = [newReq, ...pendingBroadcasts.filter(b => b.id !== newReq.id)];
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
       window.dispatchEvent(new Event('storage'));
