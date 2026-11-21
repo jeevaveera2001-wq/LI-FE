@@ -17,7 +17,6 @@ import AboutPage from './components/AboutPage';
 import TournamentsPage from './components/TournamentsPage';
 import TournamentRegistrationPage from './components/TournamentRegistrationPage';
 import PreviousFinishedMatchesSection from './components/PreviousFinishedMatchesSection';
-import HomeLiveBroadcastSection from './components/HomeLiveBroadcastSection';
 import PartnershipPage from './components/PartnershipPage';
 import ChampionshipRegistrationPage from './components/ChampionshipRegistrationPage';
 import ContactUsSection from './components/ContactUsSection';
@@ -314,7 +313,6 @@ export default function App() {
                   <HeroSection onNavigate={navigateTo} />
                   <NewsletterSection />
                   <GamesSection />
-                  <HomeLiveBroadcastSection onNavigate={navigateTo} currentUser={currentUser} />
                   <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />

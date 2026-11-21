@@ -90,6 +90,50 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     localStorage.setItem('lt_admin_result_verifications', JSON.stringify(resultVerifications));
   }, [resultVerifications]);
 
+  // Inspection Drawer State for Result Verifier
+  const [selectedResultForInspection, setSelectedResultForInspection] = useState(null);
+  const [imageZoomLevel, setImageZoomLevel] = useState(1);
+
+  // Contact Us Messages State (Direct Live Page Submissions)
+  const [contactMessages, setContactMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_admin_contact_messages');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        id: 'ticket_sample_1',
+        name: 'EliteClan_Leader',
+        email: 'leader@eliteclan.gg',
+        phone: '+91 98765 43210',
+        category: 'Partnership & Sponsorship',
+        message: 'Requesting clan partner hosting clearance and custom scoreboard banner for our upcoming weekend cup.',
+        status: 'NEW',
+        submittedAt: new Date(Date.now() - 3600000).toISOString(),
+        dateStr: 'Today, 10:45 AM'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    const handleContactUpdate = () => {
+      try {
+        const saved = localStorage.getItem('lt_admin_contact_messages');
+        if (saved) setContactMessages(JSON.parse(saved));
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleContactUpdate);
+    window.addEventListener('lt_contact_updated', handleContactUpdate);
+    return () => {
+      window.removeEventListener('storage', handleContactUpdate);
+      window.removeEventListener('lt_contact_updated', handleContactUpdate);
+    };
+  }, []);
+
+  const pendingContactCount = useMemo(() => {
+    return contactMessages.filter(m => m.status !== 'RESOLVED').length;
+  }, [contactMessages]);
+
   // Platform Settings State (Real-time CMS for Home Arena)
   const [platformSettings, setPlatformSettings] = useState(() => {
     try {
@@ -1038,7 +1082,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setResultVerifications(updated);
     localStorage.setItem('lt_admin_result_verifications', JSON.stringify(updated));
 
-    // Save to finished matches on Home Arena
+    // Save to finished matches on Home Arena with videoUrl and animationTheme
     try {
       const finishedMatches = JSON.parse(localStorage.getItem('lt_finished_matches') || '[]');
       const newFinished = {
@@ -1051,9 +1095,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         thirdPlace: res.thirdClan,
         mvp: res.mvp,
         thumbnail: res.posterUrl || '/assets/tournament_bgmi_showdown_4k.jpg',
+        videoUrl: res.videoUrl || '',
+        animationTheme: res.animationTheme || 'gold-championship',
+        notes: res.notes || '',
         status: 'COMPLETED & VERIFIED'
       };
       localStorage.setItem('lt_finished_matches', JSON.stringify([newFinished, ...finishedMatches]));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_results_published'));
     } catch (e) {}
 
     // Send automated results & points table email
@@ -1065,12 +1114,33 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       posterUrl: res.posterUrl
     });
 
-    showToast(`✓ Result verified! Points table published to Home Arena and emailed to participants.`);
+    if (selectedResultForInspection?.id === resultId) {
+      setSelectedResultForInspection(null);
+    }
+
+    showToast(`✓ Result verified! Points table, video & animation published to all live users.`);
   };
 
   const handleRejectResult = (resultId) => {
     setResultVerifications(prev => prev.map(r => r.id === resultId ? { ...r, status: 'NEEDS_REVISION' } : r));
     showToast(`⚠️ Result rejected: Revision requested from host clan.`);
+    if (selectedResultForInspection?.id === resultId) {
+      setSelectedResultForInspection(null);
+    }
+  };
+
+  const handleResolveContactTicket = (id) => {
+    const updated = contactMessages.map(m => m.id === id ? { ...m, status: 'RESOLVED' } : m);
+    setContactMessages(updated);
+    localStorage.setItem('lt_admin_contact_messages', JSON.stringify(updated));
+    showToast('✓ Contact inquiry marked as resolved.');
+  };
+
+  const handleDeleteContactTicket = (id) => {
+    const updated = contactMessages.filter(m => m.id !== id);
+    setContactMessages(updated);
+    localStorage.setItem('lt_admin_contact_messages', JSON.stringify(updated));
+    showToast('🗑️ Ticket removed from contact inquiries.');
   };
 
   // Save Platform Settings & Broadcast to Home Arena
@@ -1222,7 +1292,21 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             )}
           </button>
 
-          {/* 4. User Data */}
+          {/* 4. Contact Us Inquiries */}
+          <button
+            onClick={() => { setActiveTab('contact-requests'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'contact-requests' ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">mail</span>
+            <span className="flex-1 text-left">Contact Us</span>
+            {pendingContactCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
+                {pendingContactCount}
+              </span>
+            )}
+          </button>
+
+          {/* 5. User Data */}
           <button
             onClick={() => { setActiveTab('user-data'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'user-data' || activeTab === 'user-database' ? 'active' : ''}`}
@@ -1231,22 +1315,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="flex-1 text-left">User Data</span>
           </button>
 
-          {/* 5. Reports */}
+          {/* 6. Reports & Analytics (Consolidated) */}
           <button
-            onClick={() => { setActiveTab('reports'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'reports' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">summarize</span>
-            <span className="flex-1 text-left">Reports</span>
-          </button>
-
-          {/* 6. Analytics */}
-          <button
-            onClick={() => { setActiveTab('analytics'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('reports-analytics'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'reports' || activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">monitoring</span>
-            <span className="flex-1 text-left">Analytics</span>
+            <span className="flex-1 text-left">Reports &amp; Analytics</span>
           </button>
 
           {/* 7. Activity Logs */}
@@ -1385,6 +1460,19 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <button
+          onClick={() => setActiveTab('contact-requests')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'contact-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px]">mail</span>
+          <span>Contact Us</span>
+          {pendingContactCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold">
+              {pendingContactCount}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('user-data')}
           className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'user-data' || activeTab === 'user-database' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
@@ -1393,19 +1481,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <button
-          onClick={() => setActiveTab('reports')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'reports' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
-        >
-          <span className="material-symbols-outlined text-[14px]">summarize</span>
-          <span>Reports</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('reports-analytics')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'reports' || activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span className="material-symbols-outlined text-[14px]">monitoring</span>
-          <span>Analytics</span>
+          <span>Reports &amp; Analytics</span>
         </button>
 
         <button
@@ -3788,6 +3868,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
                       {/* Actions */}
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <button
+                          onClick={() => { setSelectedResultForInspection(item); setImageZoomLevel(1); }}
+                          className="px-3.5 py-1.5 rounded-[8px] bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">zoom_in</span>
+                          <span>Inspect Details &amp; Video</span>
+                        </button>
                         {item.status !== 'VERIFIED' ? (
                           <>
                             <button
@@ -3814,6 +3901,317 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                           </button>
                         )}
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ========================================================
+            FULL RESULT & SCOREBOARD INSPECTION MODAL (SUPER ADMIN VERIFIER)
+            ======================================================== */}
+        {selectedResultForInspection && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-xs animate-fade-in">
+            <div className="bg-white rounded-2xl border border-gray-300 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-scale-up">
+              {/* Modal Header */}
+              <div className="px-6 py-4 bg-[#1F2937] text-white flex items-center justify-between border-b border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                    <span className="material-symbols-outlined text-[22px]">fact_check</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-white">Inspect Match Results &amp; Scoreboard Certification</h3>
+                    <p className="text-xs text-gray-400 font-mono">
+                      {selectedResultForInspection.tournamentTitle} ({selectedResultForInspection.game}) &bull; Conductor: {selectedResultForInspection.hostUser}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedResultForInspection(null)}
+                  className="text-gray-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Body - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
+                {/* 1. Standings Grid */}
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Verified Standings &amp; MVP</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 shadow-2xs">
+                      <span className="text-[10px] font-bold text-amber-800 uppercase block">🥇 1st Place (Winner)</span>
+                      <span className="font-black text-gray-900 text-sm block mt-1">{selectedResultForInspection.winnerClan}</span>
+                    </div>
+                    <div className="bg-gray-100 border border-gray-300 rounded-xl p-3 shadow-2xs">
+                      <span className="text-[10px] font-bold text-gray-700 uppercase block">🥈 2nd Place (Runner-up)</span>
+                      <span className="font-black text-gray-900 text-sm block mt-1">{selectedResultForInspection.runnerUpClan}</span>
+                    </div>
+                    <div className="bg-amber-900/10 border border-amber-800/20 rounded-xl p-3 shadow-2xs">
+                      <span className="text-[10px] font-bold text-amber-900 uppercase block">🥉 3rd Place</span>
+                      <span className="font-black text-gray-900 text-sm block mt-1">{selectedResultForInspection.thirdClan}</span>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-300 rounded-xl p-3 shadow-2xs">
+                      <span className="text-[10px] font-bold text-purple-800 uppercase block">🎖️ Match MVP</span>
+                      <span className="font-black text-gray-900 text-sm block mt-1">{selectedResultForInspection.mvp}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. High-Resolution Scoreboard Screenshot Proof Inspector */}
+                <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px] text-purple-600">image</span>
+                      Scoreboard &amp; Points Table Proof Image Inspection
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setImageZoomLevel(prev => Math.max(0.7, prev - 0.2))}
+                        className="p-1 rounded bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        title="Zoom Out"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">zoom_out</span>
+                      </button>
+                      <span className="font-mono text-[10px] text-gray-600 font-bold">{Math.round(imageZoomLevel * 100)}%</span>
+                      <button
+                        onClick={() => setImageZoomLevel(prev => Math.min(2.5, prev + 0.2))}
+                        className="p-1 rounded bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        title="Zoom In"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">zoom_in</span>
+                      </button>
+                      <button
+                        onClick={() => window.open(selectedResultForInspection.posterUrl, '_blank')}
+                        className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                        <span>Full Size</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="w-full max-h-80 overflow-auto bg-black rounded-lg p-2 flex items-center justify-center border border-gray-300">
+                    <img
+                      src={selectedResultForInspection.posterUrl || '/assets/tournament_bgmi_showdown_4k.jpg'}
+                      alt="Scoreboard Proof"
+                      style={{ transform: `scale(${imageZoomLevel})`, transformOrigin: 'top center' }}
+                      className="max-h-72 object-contain transition-transform duration-200"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-500 italic">
+                    Verify that kill counts, placement points, and clan tags accurately match the rankings entered above.
+                  </p>
+                </div>
+
+                {/* 3. Result Video Inspection & Scoreboard Animation Theme */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Result Video Review */}
+                  <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px] text-rose-600">videocam</span>
+                      Submitted Result Video / Replay VOD
+                    </h4>
+                    {selectedResultForInspection.videoUrl ? (
+                      <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-300 bg-black">
+                        <iframe
+                          src={getYouTubeEmbedUrl(selectedResultForInspection.videoUrl)}
+                          title="Submitted Result Video"
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-500 font-mono text-xs">
+                        No result video URL provided
+                      </div>
+                    )}
+                    <span className="text-[10px] text-gray-500 font-mono truncate block">
+                      URL: {selectedResultForInspection.videoUrl || 'None'}
+                    </span>
+                  </div>
+
+                  {/* Scoreboard Animation Theme */}
+                  <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-3">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px] text-indigo-600">animation</span>
+                      Requested Scoreboard Animation Effect
+                    </h4>
+                    <div className="p-4 rounded-xl bg-[#0A0C10] text-white border border-[#DFBD78]/40 space-y-2 relative overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded bg-[#DFBD78]/20 text-[#DFBD78] font-bold text-[10px] uppercase font-mono">
+                          {selectedResultForInspection.animationTheme || 'gold-championship'}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                          Animation Ready
+                        </span>
+                      </div>
+                      <div className="py-2 text-center">
+                        <span className="text-sm font-black text-white uppercase tracking-wider block">
+                          🏆 {selectedResultForInspection.winnerClan}
+                        </span>
+                        <span className="text-[10px] text-[#DFBD78] font-mono">CHAMPION CERTIFIED</span>
+                      </div>
+                      <p className="text-[10.5px] text-gray-400 text-center">
+                        This animated banner with glowing particle overlays will be rendered on the Home Arena Finished Matches card.
+                      </p>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-600 uppercase block mb-1">Conductor Remarks</span>
+                      <p className="text-xs text-gray-800 bg-white p-2.5 rounded-lg border border-gray-200 italic">
+                        "{selectedResultForInspection.notes || 'All matches completed. Scores verified.'}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span className="text-[11px] text-gray-500 font-mono">
+                  Submitted: {new Date(selectedResultForInspection.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleRejectResult(selectedResultForInspection.id)}
+                    className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-rose-100 text-gray-700 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Request Revision
+                  </button>
+                  <button
+                    onClick={() => handleVerifyResult(selectedResultForInspection.id)}
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">verified</span>
+                    <span>Approve &amp; Publish to All Live Users</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================
+            VIEW: CONTACT US & SUPPORT INQUIRIES QUEUE
+            ======================================================== */}
+        {(activeTab === 'contact-requests' || activeTab === 'all-in-one') && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 text-[20px]">mail</span>
+                  Contact Us Inquiries &amp; Live Support Messages
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Review direct inquiries, partnership proposals, and support requests submitted by users from the live homepage Contact Us section.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
+                  {pendingContactCount} Pending Inquiries
+                </span>
+              </div>
+            </div>
+
+            {/* List of Contact Messages */}
+            {contactMessages.length === 0 ? (
+              <div className="py-12 text-center text-gray-400">
+                <span className="material-symbols-outlined text-[36px] text-gray-300 block mb-1">mark_email_read</span>
+                <span className="font-bold text-gray-700 block text-xs">No Contact Inquiries Recorded</span>
+                <span className="text-[11px] text-gray-400">When users submit messages via the homepage Contact Us form, they will appear here.</span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contactMessages.map((ticket) => (
+                  <div key={ticket.id} className="bg-[#F9FAFB] rounded-xl border border-gray-200 p-4 space-y-2 hover:border-emerald-300 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-[13px]">{ticket.name}</span>
+                        <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-mono text-[10px] font-bold">
+                          {ticket.category}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">{ticket.dateStr || 'Recent'}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {ticket.status === 'RESOLVED' ? (
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">check</span>
+                            Resolved
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">pending</span>
+                            Action Required
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Email</span>
+                        <a href={`mailto:${ticket.email}`} className="text-blue-600 hover:underline font-mono">{ticket.email}</a>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Phone / WhatsApp</span>
+                        <span className="text-gray-800 font-mono">{ticket.phone}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Ticket ID</span>
+                        <span className="text-gray-500 font-mono">{ticket.id}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase block">User Message</span>
+                      <p className="text-xs text-gray-800 bg-white p-3 rounded-lg border border-gray-200 mt-1">
+                        {ticket.message}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                      {ticket.phone && ticket.phone !== 'Not Provided' && (
+                        <a
+                          href={`https://wa.me/${ticket.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">chat</span>
+                          <span>WhatsApp</span>
+                        </a>
+                      )}
+                      <a
+                        href={`mailto:${ticket.email}?subject=Regarding your LiveTournaments.in Inquiry (${ticket.category})`}
+                        className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-black text-white text-[11px] font-bold flex items-center gap-1 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">mail</span>
+                        <span>Reply Email</span>
+                      </a>
+                      {ticket.status !== 'RESOLVED' && (
+                        <button
+                          onClick={() => handleResolveContactTicket(ticket.id)}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Mark as Resolved
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteContactTicket(ticket.id)}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
+                        title="Delete Ticket"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
                     </div>
                   </div>
                 ))}

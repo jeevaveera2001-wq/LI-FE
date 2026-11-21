@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getYouTubeEmbedUrl } from '../utils/urlValidator';
 
 const DEFAULT_FINISHED_MATCHES = [
   {
@@ -150,6 +151,26 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
     }
     return DEFAULT_FINISHED_MATCHES;
   });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try {
+        const saved = localStorage.getItem('lt_finished_matches');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFinishedMatches(parsed);
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('lt_results_published', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('lt_results_published', handleUpdate);
+    };
+  }, []);
 
   // Selected match for 25-slot Leaderboard modal
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -473,6 +494,43 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                   <span className="text-lg font-black text-dark-default font-mono">{selectedMatch.prizePool}</span>
                 </div>
               </div>
+
+              {/* Standings if Verified by Super Admin */}
+              {selectedMatch.runnerUp && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">🥈 Runner-Up</span>
+                    <span className="font-black text-gray-900 text-sm block mt-1">{selectedMatch.runnerUp}</span>
+                  </div>
+                  <div className="bg-amber-900/5 border border-amber-800/20 rounded-xl p-3">
+                    <span className="text-[10px] font-bold text-amber-900 uppercase block">🥉 3rd Place</span>
+                    <span className="font-black text-gray-900 text-sm block mt-1">{selectedMatch.thirdPlace || 'Finalist Clan'}</span>
+                  </div>
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                    <span className="text-[10px] font-bold text-purple-700 uppercase block">🎖️ Match MVP</span>
+                    <span className="font-black text-gray-900 text-sm block mt-1">{selectedMatch.mvp || 'Tournament Top Fragger'}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Verified Result Video Replay if available */}
+              {selectedMatch.videoUrl && (
+                <div className="space-y-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-rose-600">videocam</span>
+                    Official Match Replay &amp; Result Video
+                  </span>
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden border border-gray-300 bg-black shadow-md">
+                    <iframe
+                      src={getYouTubeEmbedUrl(selectedMatch.videoUrl)}
+                      title="Match Replay Video"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* If Host Uploaded an Image Scoreboard */}
               {selectedMatch.resultType === 'image' && selectedMatch.scoreboardImage && (

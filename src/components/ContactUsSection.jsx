@@ -4,7 +4,7 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
   const [name, setName] = useState(currentUser?.name || currentUser?.username || '');
   const [email, setEmail] = useState(currentUser?.email || '');
   const [phone, setPhone] = useState('');
-  const [category, setCategory] = useState('Partnership & Sponsorship Proposal');
+  const [category, setCategory] = useState('General Inquiry');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
@@ -12,7 +12,7 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
-      alert('Please fill in your name, email, and message.');
+      alert('Please fill in your username, email, and message.');
       return;
     }
 
@@ -38,12 +38,10 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
     };
 
     try {
-      // 1. Save to Super Admin Contact & Support Messages
       const existing = JSON.parse(localStorage.getItem('lt_admin_contact_messages') || '[]');
       localStorage.setItem('lt_admin_contact_messages', JSON.stringify([ticket, ...existing]));
 
-      // 2. If Partnership request, also sync to Partner Hostings queue for Super Admin review
-      if (category.includes('Partnership') || category.includes('Sponsorship')) {
+      if (category.toLowerCase().includes('partner') || category.toLowerCase().includes('sponsor')) {
         const partnerReqs = JSON.parse(localStorage.getItem('lt_admin_partner_hostings') || '[]');
         const partnerEntry = {
           id: 'partner_' + Date.now(),
@@ -58,6 +56,7 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
         };
         localStorage.setItem('lt_admin_partner_hostings', JSON.stringify([partnerEntry, ...partnerReqs]));
       }
+      window.dispatchEvent(new Event('lt_contact_updated'));
     } catch (err) {
       console.error('Error saving contact ticket:', err);
     }
@@ -66,147 +65,148 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
       setIsSubmitting(false);
       setSubmittedSuccess(true);
       setMessage('');
-    }, 600);
+    }, 500);
   };
 
   return (
-    <section id="contact-us" className="relative w-full bg-[#0E1118] text-white py-16 px-4 sm:px-6 lg:px-12 border-t border-[#1F2937]">
-      {/* Background radial accent */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#DFBD78]/5 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#DFBD78]/10 border border-[#DFBD78]/30 text-[#DFBD78] text-xs font-bold uppercase tracking-wider mb-3">
-            <span className="material-symbols-outlined text-sm">support_agent</span>
-            <span>DIRECT SUPER ADMIN SUPPORT &amp; PARTNERSHIP</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-white">
-            Contact Official Command
-          </h2>
-          <p className="text-sm text-gray-400 mt-2">
-            Submit partnership proposals, hosting queries, payment resolution, or clan verification directly to the Super Admin team.
-          </p>
-        </div>
-
-        <div className="bg-[#141822] rounded-2xl border border-white/10 p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-          {submittedSuccess ? (
-            <div className="py-12 text-center space-y-4 animate-fade-in">
-              <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
-                <span className="material-symbols-outlined text-3xl">verified</span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Message Dispatched Directly to Super Admin!</h3>
-              <p className="text-xs text-gray-300 max-w-md mx-auto">
-                Your partnership inquiry has been routed to the Super Admin Command portal. Our team will contact you via email/WhatsApp shortly.
-              </p>
-              <button
-                onClick={() => setSubmittedSuccess(false)}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider transition-all"
-              >
-                Send Another Message
-              </button>
+    <section id="contact-us" className="relative block-default-horizontal-spacing block-default-vertical-spacing scroll-mt-20 border-t border-black/5">
+      <div className="block-default-content-width mx-auto">
+        <div className="relative flex flex-col gap-6 md:gap-8">
+          
+          {/* Header Title & Subtitle */}
+          <div className="text-dark-default section-title flex w-full flex-col gap-2 normal-case text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 border border-black/10 text-dark-default text-xs font-bold uppercase tracking-wider w-fit">
+              <span className="material-symbols-outlined text-sm text-[#C5A059]">mail</span>
+              <span>GET IN TOUCH</span>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">
-                    Your Full Name / Clan Leader *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Naman Mathur / GodLike Gaming"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B0E14] border border-white/10 text-white placeholder-gray-500 focus:border-[#DFBD78] outline-hidden text-xs"
-                  />
+            <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
+              Contact Us
+            </h2>
+            <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B6B6B] max-w-3xl">
+              Have questions, tournament queries, or partnership proposals? Reach out to our team.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-[#EBEBEB] p-6 sm:p-8 shadow-sm">
+            {submittedSuccess ? (
+              <div className="py-12 text-center space-y-4 animate-fade-in">
+                <div className="size-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto">
+                  <span className="material-symbols-outlined text-3xl">check_circle</span>
                 </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. contact@clan.com"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B0E14] border border-white/10 text-white placeholder-gray-500 focus:border-[#DFBD78] outline-hidden text-xs font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">
-                    WhatsApp Contact Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. +91 9876543210"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B0E14] border border-white/10 text-white placeholder-gray-500 focus:border-[#DFBD78] outline-hidden text-xs font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">
-                    Inquiry / Request Category *
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B0E14] border border-white/10 text-white focus:border-[#DFBD78] outline-hidden text-xs"
-                  >
-                    <option>Partnership &amp; Sponsorship Proposal</option>
-                    <option>Tournament Hosting Support</option>
-                    <option>Daily Scrims &amp; Match Room Inquiries</option>
-                    <option>Broadcast Pass &amp; Stream Production</option>
-                    <option>Payment Verification / Refund Status</option>
-                    <option>Clan Verification &amp; Other Issues</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-300 mb-1">
-                  Describe Your Issue or Partnership Proposal *
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Detail your requirements, tournament dates, brand proposal, or the specific issue you are experiencing..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#0B0E14] border border-white/10 text-white placeholder-gray-500 focus:border-[#DFBD78] outline-hidden text-xs"
-                />
-              </div>
-
-              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-[11px] text-gray-400 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm text-[#DFBD78]">security</span>
-                  <span>Direct encryption to Super Admin ticket queue</span>
-                </span>
-
+                <h3 className="text-xl font-bold text-gray-900">Message Sent Successfully!</h3>
+                <p className="text-xs text-gray-600 max-w-md mx-auto">
+                  Thank you for contacting us. Your message has been received and our team will get back to you shortly.
+                </p>
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#DFBD78] hover:from-[#DFBD78] hover:to-[#C5A059] text-black font-black text-xs uppercase tracking-wider shadow-lg shadow-[#C5A059]/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  onClick={() => setSubmittedSuccess(false)}
+                  className="mt-4 px-6 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  {isSubmitting ? (
-                    <span>Routing to Super Admin...</span>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-base">send</span>
-                      <span>Dispatch to Super Admin</span>
-                    </>
-                  )}
+                  Send Another Message
                 </button>
               </div>
-            </form>
-          )}
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Username *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Username"
+                      className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                      className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs font-mono transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      WhatsApp / Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="WhatsApp / Phone"
+                      className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs font-mono transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs cursor-pointer transition-colors"
+                    >
+                      <option value="General Inquiry">General Inquiry</option>
+                      <option value="Partnership & Sponsorship">Partnership &amp; Sponsorship</option>
+                      <option value="Tournament Queries">Tournament Queries</option>
+                      <option value="Prize Pool & Payouts">Prize Pool &amp; Payouts</option>
+                      <option value="Account & Verification">Account &amp; Clan Verification</option>
+                      <option value="Technical Support">Technical Support</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Message *
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Enter your message here..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs transition-colors"
+                  />
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-[#C5A059]">lock</span>
+                    <span>Secure Communication</span>
+                  </span>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-8 py-3 rounded-xl bg-black hover:bg-neutral-800 text-white font-extrabold text-xs uppercase tracking-wider shadow-md hover:bg-gold-primary hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <span>Sending...</span>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-base">send</span>
+                        <span>Send Message</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </section>

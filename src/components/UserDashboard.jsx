@@ -248,6 +248,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [resultThirdClan, setResultThirdClan] = useState('Blind Esports');
   const [resultMvp, setResultMvp] = useState('JONATHAN (14 Kills)');
   const [resultPosterUrl, setResultPosterUrl] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
+  const [resultVideoUrl, setResultVideoUrl] = useState('https://www.youtube.com/watch?v=jfKfPfyJRdk');
+  const [resultAnimationTheme, setResultAnimationTheme] = useState('gold-championship');
   const [resultNotes, setResultNotes] = useState('Grand Finals Match concluded with official clan points recorded.');
 
   const displayName = currentUser?.name || currentUser?.username || 'Competitor';
@@ -715,8 +717,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       thirdClan: resultThirdClan,
       mvp: resultMvp,
       posterUrl: resultPosterUrl,
+      videoUrl: resultVideoUrl,
+      animationTheme: resultAnimationTheme,
       notes: resultNotes,
-      status: 'PENDING_VERIFICATION',
+      status: 'PENDING_APPROVAL',
       submittedAt: new Date().toISOString()
     };
 
@@ -2325,6 +2329,38 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       {p.name.slice(0, 15)}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Result Video URL (YouTube Match VOD)
+                  </label>
+                  <input
+                    type="url"
+                    value={resultVideoUrl}
+                    onChange={(e) => setResultVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden"
+                  />
+                  <span className="text-[9.5px] text-gray-400 block mt-0.5 font-mono">Requires www. & youtube</span>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    Scoreboard Animation Theme
+                  </label>
+                  <select
+                    value={resultAnimationTheme}
+                    onChange={(e) => setResultAnimationTheme(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden cursor-pointer"
+                  >
+                    <option value="gold-championship">Championship Gold Particle Burst</option>
+                    <option value="cyberpunk-neon">Cyberpunk Neon Laser Glow</option>
+                    <option value="crimson-fire">Inferno Crimson Flame</option>
+                    <option value="holographic-arena">Holographic Esports Trophy Pulse</option>
+                  </select>
                 </div>
               </div>
 
