@@ -658,7 +658,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                   <input
                     type="text"
                     required
-                    placeholder="e.g. BGMI BATTLE SHOWDOWN S2"
+                    placeholder="Tournament Title"
                     value={tourneyTitle}
                     onChange={(e) => setTourneyTitle(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
@@ -688,7 +688,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Team Soul, GodLike"
+                    placeholder="Champion Clan Name"
                     value={winnerClanName}
                     onChange={(e) => setWinnerClanName(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"

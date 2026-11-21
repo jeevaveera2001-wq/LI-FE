@@ -864,7 +864,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       <input
                         type="text"
                         required
-                        placeholder="e.g. GodLike Esports, Soul Clan"
+                        placeholder="Squad / Clan Name"
                         value={squadName}
                         onChange={(e) => setSquadName(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
@@ -879,7 +879,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                         <input
                           type="text"
                           required
-                          placeholder="e.g. JonathanGaming"
+                          placeholder="Username"
                           value={leaderIgn}
                           onChange={(e) => setLeaderIgn(e.target.value)}
                           className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
@@ -893,7 +893,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                         <input
                           type="text"
                           required
-                          placeholder="e.g. 5123456789"
+                          placeholder="Character ID"
                           value={characterId}
                           onChange={(e) => setCharacterId(e.target.value)}
                           className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden font-mono"
@@ -907,7 +907,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       </label>
                       <input
                         type="tel"
-                        placeholder="e.g. 9876543210"
+                        placeholder="WhatsApp / Phone"
                         value={whatsappNumber}
                         onChange={(e) => setWhatsappNumber(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden font-mono"

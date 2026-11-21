@@ -1142,7 +1142,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
                 type="text"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
-                placeholder="e.g. Phoenix_Ace"
+                placeholder="Username"
                 className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
                 required
               />
@@ -1156,7 +1156,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
                 type="email"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
-                placeholder="champion@gmail.com"
+                placeholder="Email"
                 className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
                 required
               />
@@ -1170,7 +1170,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
                 type="tel"
                 value={regMobile}
                 onChange={(e) => setRegMobile(e.target.value)}
-                placeholder="e.g. +91 98765 43210"
+                placeholder="WhatsApp / Phone"
                 className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
                 required
               />

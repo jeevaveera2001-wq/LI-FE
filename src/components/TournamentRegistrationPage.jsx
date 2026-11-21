@@ -498,7 +498,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                         <input
                           type="tel"
                           required
-                          placeholder="e.g. +91 98765 43210"
+                          placeholder="WhatsApp / Phone"
                           value={whatsapp}
                           onChange={(e) => setWhatsapp(e.target.value)}
                           className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden font-medium text-gray-900"
@@ -532,7 +532,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                           <input
                             type="text"
                             required
-                            placeholder="e.g. Mortal_007"
+                            placeholder="Username"
                             value={p1Ign}
                             onChange={(e) => setP1Ign(e.target.value)}
                             className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium"
@@ -543,7 +543,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                           <input
                             type="text"
                             required
-                            placeholder="e.g. 5123984102"
+                            placeholder="Character UID"
                             value={p1Uid}
                             onChange={(e) => setP1Uid(e.target.value)}
                             className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium font-mono"
@@ -567,7 +567,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                             <input
                               type="text"
                               required
-                              placeholder="e.g. Viper_OP"
+                              placeholder="Username"
                               value={p2Ign}
                               onChange={(e) => setP2Ign(e.target.value)}
                               className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium"
@@ -578,7 +578,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                             <input
                               type="text"
                               required
-                              placeholder="e.g. 5241890211"
+                              placeholder="Character UID"
                               value={p2Uid}
                               onChange={(e) => setP2Uid(e.target.value)}
                               className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium font-mono"
@@ -605,7 +605,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <input
                                 type="text"
                                 required
-                                placeholder="e.g. Regaltos_07"
+                                placeholder="Username"
                                 value={p3Ign}
                                 onChange={(e) => setP3Ign(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium"
@@ -616,7 +616,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <input
                                 type="text"
                                 required
-                                placeholder="e.g. 5312098451"
+                                placeholder="Character UID"
                                 value={p3Uid}
                                 onChange={(e) => setP3Uid(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium font-mono"
@@ -639,7 +639,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <input
                                 type="text"
                                 required
-                                placeholder="e.g. Scout_OP"
+                                placeholder="Username"
                                 value={p4Ign}
                                 onChange={(e) => setP4Ign(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium"
@@ -650,7 +650,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <input
                                 type="text"
                                 required
-                                placeholder="e.g. 5498120391"
+                                placeholder="Character UID"
                                 value={p4Uid}
                                 onChange={(e) => setP4Uid(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium font-mono"
@@ -676,7 +676,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <label className="block text-[11px] font-semibold text-gray-600 mb-1">Substitute IGN</label>
                               <input
                                 type="text"
-                                placeholder="e.g. Sub_Sniper (Optional)"
+                                placeholder="Substitute Username (Optional)"
                                 value={p5Ign}
                                 onChange={(e) => setP5Ign(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium"
@@ -686,7 +686,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
                               <label className="block text-[11px] font-semibold text-gray-600 mb-1">Substitute Character UID</label>
                               <input
                                 type="text"
-                                placeholder="e.g. 5981249012 (Optional)"
+                                placeholder="Character UID (Optional)"
                                 value={p5Uid}
                                 onChange={(e) => setP5Uid(e.target.value)}
                                 className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden bg-white text-gray-900 font-medium font-mono"

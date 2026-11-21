@@ -916,7 +916,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Phoenix Esports, Team Delta"
+                      placeholder="Squad / Clan Name"
                       value={squadName}
                       onChange={(e) => setSquadName(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
@@ -932,7 +932,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Mortal_007"
+                        placeholder="Username"
                         value={leaderIgn}
                         onChange={(e) => setLeaderIgn(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
@@ -945,7 +945,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. 5123984102"
+                        placeholder="Character UID"
                         value={characterId}
                         onChange={(e) => setCharacterId(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
@@ -960,7 +960,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     </label>
                     <input
                       type="tel"
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="WhatsApp / Phone"
                       value={whatsappNumber}
                       onChange={(e) => setWhatsappNumber(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"
@@ -974,7 +974,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Player2_IGN, Player3_IGN, Player4_IGN"
+                      placeholder="Player IGNs"
                       value={teammates}
                       onChange={(e) => setTeammates(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden text-gray-900 font-medium"

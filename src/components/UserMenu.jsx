@@ -141,6 +141,14 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
                 <span>🌐</span>
                 <span>Home Arena View</span>
               </button>
+
+              <button
+                onClick={() => { setIsOpen(false); if (onNavigate) onNavigate('home', 'contact-us'); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer"
+              >
+                <span>✉️</span>
+                <span>Contact Us</span>
+              </button>
             </div>
           ) : (
             /* Menu Options for NORMAL USER */
@@ -175,6 +183,14 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
               >
                 <span>👤</span>
                 <span>My Profile & Squad</span>
+              </button>
+
+              <button
+                onClick={() => { setIsOpen(false); if (onNavigate) onNavigate('home', 'contact-us'); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer"
+              >
+                <span>✉️</span>
+                <span>Contact Us</span>
               </button>
             </div>
           )}

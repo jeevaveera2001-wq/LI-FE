@@ -346,7 +346,7 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                     type="text"
                     value={clanName}
                     onChange={(e) => setClanName(e.target.value)}
-                    placeholder="e.g. Soul Esports / GodLike / S8UL"
+                    placeholder="Clan / Team Name"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden"
                     required
                   />
@@ -355,13 +355,13 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                 {/* Email Address for Championship Details */}
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Email Address (For Championship Details &amp; Match Schedule) *
+                    Email *
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. leader@clan.com"
+                    placeholder="Email"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden font-mono"
                     required
                   />
@@ -371,13 +371,13 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      Team Leader IGN *
+                      Username / Team Leader IGN *
                     </label>
                     <input
                       type="text"
                       value={leaderIgn}
                       onChange={(e) => setLeaderIgn(e.target.value)}
-                      placeholder="e.g. Mortal_OP"
+                      placeholder="Username"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden"
                       required
                     />
@@ -385,13 +385,13 @@ export default function ChampionshipTrophySection({ onNavigate }) {
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      WhatsApp Dispatch Number *
+                      WhatsApp / Phone *
                     </label>
                     <input
                       type="tel"
                       value={whatsapp}
                       onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="e.g. 9876543210"
+                      placeholder="WhatsApp / Phone"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden font-mono"
                       required
                     />

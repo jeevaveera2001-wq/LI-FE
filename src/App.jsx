@@ -200,6 +200,8 @@ export default function App() {
         setCurrentPage('tournaments');
       } else if (path.includes('partners') || hash.includes('partners')) {
         setCurrentPage('partners');
+      } else if (path.includes('contact') || hash.includes('contact')) {
+        setCurrentPage('contact');
       } else if (path.includes('championship-register') || hash.includes('championship-register')) {
         setCurrentPage('championship-register');
       } else {
@@ -303,6 +305,24 @@ export default function App() {
                   currentUser={currentUser}
                   onNavigate={navigateTo}
                 />
+              ) : currentPage === 'contact' ? (
+                <div className="relative block-default-horizontal-spacing block-default-vertical-spacing w-full min-h-screen">
+                  <div className="block-default-content-width mx-auto flex flex-col gap-6 md:gap-8">
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        onClick={() => navigateTo('home')}
+                        className="flex items-center gap-1.5 text-dark-default hover:text-gold-primary primary-bold-s12-lh120 uppercase transition-colors cursor-pointer"
+                      >
+                        <span>&larr; Home Arena</span>
+                      </button>
+                      <span className="text-[#858585]">&bull;</span>
+                      <span className="primary-bold-s12-lh120 uppercase tracking-wider text-gold-primary">
+                        Contact Us
+                      </span>
+                    </div>
+                    <ContactUsSection onNavigate={navigateTo} currentUser={currentUser} />
+                  </div>
+                </div>
               ) : currentPage === 'championship-register' ? (
                 <ChampionshipRegistrationPage
                   currentUser={currentUser}

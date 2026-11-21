@@ -119,6 +119,23 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
                   </a>
                 </div>
               </div>
+
+              {/* Contact Us */}
+              <div>
+                <div className="relative">
+                  <a
+                    href="#contact-us"
+                    onClick={handleSectionNav('contact-us')}
+                    className="cursor-pointer"
+                    title="Contact Us"
+                  >
+                    <div className={`lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3 transition-colors ${currentPage === 'contact' ? 'lg:bg-white-dirty' : ''}`}>
+                      <span className={`material-symbols-outlined text-dark-default group-hover:text-gold-primary text-[24px] lg:text-[26px] transition-colors ${currentPage === 'contact' ? 'text-gold-primary' : ''}`}>mail</span>
+                      <span className={`text-dark-default primary-regular-s10-lh130 lg:primary-bold-s10-lh130 capitalize ${currentPage === 'contact' ? 'font-bold text-gold-primary' : ''}`}>Contact</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* User / Login Action in Sidebar */}
@@ -187,6 +204,15 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
           >
             <span className="material-symbols-outlined text-[22px]">gallery_thumbnail</span>
             <span className="text-[10px] uppercase font-bold tracking-tight">Media</span>
+          </button>
+
+          {/* Contact Us */}
+          <button
+            onClick={handleSectionNav('contact-us')}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1 text-gray-600 hover:text-gold-primary transition-colors ${currentPage === 'contact' ? 'text-gold-primary font-bold' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[22px]">mail</span>
+            <span className="text-[10px] uppercase font-bold tracking-tight">Contact</span>
           </button>
 
           {/* Dashboard / User */}

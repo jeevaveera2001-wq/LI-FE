@@ -2256,7 +2256,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   required
                   value={resultWinnerClan}
                   onChange={(e) => setResultWinnerClan(e.target.value)}
-                  placeholder="e.g. GodLike Esports / Team Soul"
+                  placeholder="Winner Clan / Squad Name"
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:border-purple-600 outline-hidden"
                 />
               </div>
@@ -2271,7 +2271,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     required
                     value={resultRunnerUpClan}
                     onChange={(e) => setResultRunnerUpClan(e.target.value)}
-                    placeholder="e.g. Blind Esports"
+                    placeholder="Runner-Up Clan Name"
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                   />
                 </div>
@@ -2284,7 +2284,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     required
                     value={resultThirdClan}
                     onChange={(e) => setResultThirdClan(e.target.value)}
-                    placeholder="e.g. Orangutan Gaming"
+                    placeholder="3rd Place Clan Name"
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                   />
                 </div>
@@ -2299,7 +2299,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   required
                   value={resultMvp}
                   onChange={(e) => setResultMvp(e.target.value)}
-                  placeholder="e.g. JONATHAN (14 Kills)"
+                  placeholder="Player IGN (Kills)"
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                 />
               </div>
