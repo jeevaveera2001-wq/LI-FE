@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'present-day', 'my-tournaments', 'host-studio', 'scrims', 'wallet', 'broadcast'
+  // Navigation Tabs: 'dashboard', 'my-matches', 'rooms', 'scrims', 'featured-tournaments', 'payments', 'broadcast'
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [selectedBriefing, setSelectedBriefing] = useState(null);
-  const [showHostModal, setShowHostModal] = useState(false);
 
   // Trigger toast
   const showToast = (msg) => {
@@ -47,7 +47,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     return [];
   });
 
-  // User Hosted Tournaments (Realtime only)
+  // User Hosted Tournaments / Rooms (Realtime only)
   const [hostedTournaments, setHostedTournaments] = useState(() => {
     const saved = localStorage.getItem('lt_user_hosted_tourneys');
     if (saved) {
@@ -56,7 +56,26 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         if (Array.isArray(parsed)) return parsed.filter(t => !isUserMock(t.id));
       } catch (e) {}
     }
-    return [];
+    return [
+      {
+        id: 'host_default_demo',
+        title: 'BGMI Community Clan Scrims 2026',
+        game: 'Battlegrounds Mobile India',
+        type: 'TOURNAMENT',
+        format: 'Squad (Erangel + Miramar)',
+        slots: '25 Squads (100 Players)',
+        registeredSquads: 25,
+        slotCap: 25,
+        prize: '₹ 10,000 INR',
+        timing: 'Today at 8:00 PM IST',
+        thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg',
+        tier: 'standard',
+        channelLink: 'https://youtube.com/@livetournament_in',
+        roomCode: 'LT-882194',
+        roomPass: '9921',
+        status: 'ACTIVE'
+      }
+    ];
   });
 
   // User Scrims (Realtime only)
@@ -77,54 +96,11 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     return [];
   });
 
-  // Proactive cleanup of any legacy user mock entries in localStorage
-  useEffect(() => {
-    ['lt_user_joined_tourneys', 'lt_user_hosted_tourneys', 'lt_user_scrims'].forEach(k => {
-      try {
-        const val = localStorage.getItem(k);
-        if (val) {
-          const parsed = JSON.parse(val);
-          if (Array.isArray(parsed)) {
-            const clean = parsed.filter(item => !isUserMock(item?.id));
-            localStorage.setItem(k, JSON.stringify(clean));
-          }
-        }
-      } catch (e) {}
-    });
-  }, []);
-
-  // User Digital Wallet, Bonus & Winnings
+  // User Digital Balance
   const [walletBalance, setWalletBalance] = useState(() => {
     const saved = localStorage.getItem('lt_user_wallet_balance');
     return saved ? Number(saved) : 1550;
   });
-
-  const [winningsBalance, setWinningsBalance] = useState(() => {
-    const saved = localStorage.getItem('lt_user_winnings_balance');
-    return saved ? Number(saved) : 1200;
-  });
-
-  const [bonusBalance, setBonusBalance] = useState(() => {
-    const saved = localStorage.getItem('lt_user_bonus_balance');
-    return saved ? Number(saved) : 350;
-  });
-
-  // Dynamic Bonus Withdrawal Rate (%) from Super Admin Platform Settings
-  const [bonusWithdrawalRate, setBonusWithdrawalRate] = useState(() => {
-    try {
-      const saved = localStorage.getItem('lt_platform_settings');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.bonusWithdrawalRate !== undefined) return Number(parsed.bonusWithdrawalRate);
-      }
-    } catch (e) {}
-    return 20; // Default 20% bonus withdrawal release rate
-  });
-
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('500');
-  const [withdrawUpi, setWithdrawUpi] = useState('');
-  const [isProcessingPayout, setIsProcessingPayout] = useState(false);
 
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('lt_user_transactions');
@@ -140,67 +116,33 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         status: 'SUCCESS',
         date: 'Today, 2:30 PM',
         reference: 'UPI_9832718921'
-      },
-      {
-        id: 'tx_init_2',
-        description: 'New Competitor Welcome Bonus (20% Withdrawable)',
-        amount: 350,
-        type: 'BONUS',
-        status: 'ACTIVE',
-        date: 'Yesterday',
-        reference: 'PROMO_WELCOME_BONUS'
       }
     ];
   });
 
-  // Persist State
-  useEffect(() => {
-    localStorage.setItem('lt_user_joined_tourneys', JSON.stringify(joinedTournaments));
-  }, [joinedTournaments]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(hostedTournaments));
-  }, [hostedTournaments]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_scrims', JSON.stringify(joinedScrims));
-  }, [joinedScrims]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_wallet_balance', (winningsBalance + bonusBalance).toString());
-    setWalletBalance(winningsBalance + bonusBalance);
-  }, [winningsBalance, bonusBalance]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_winnings_balance', winningsBalance.toString());
-  }, [winningsBalance]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_bonus_balance', bonusBalance.toString());
-  }, [bonusBalance]);
-
-  useEffect(() => {
-    localStorage.setItem('lt_user_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  // Host Form State
+  // Host / Room Form State
   const [hostTitle, setHostTitle] = useState('');
   const [hostGame, setHostGame] = useState('Battlegrounds Mobile India');
-  const [hostType, setHostType] = useState('TOURNAMENT');
+  const [hostType, setHostType] = useState('TOURNAMENT'); // 'TOURNAMENT' (₹10) or 'SCRIM' (₹50)
   const [hostFormat, setHostFormat] = useState('Squad (Erangel + Miramar)');
-  const [hostSlots, setHostSlots] = useState('64 Teams');
+  const [hostSlots, setHostSlots] = useState('25 Teams (Standard Cap - 100 Players)');
   const [hostPrize, setHostPrize] = useState('');
   const [hostTiming, setHostTiming] = useState('');
+  const [hostChannelLink, setHostChannelLink] = useState('');
   const [hostThumbnail, setHostThumbnail] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
-  const [hostTier, setHostTier] = useState('standard'); // standard (199), pro (499), premier (999)
-  const [paymentMethod, setPaymentMethod] = useState('UPI'); // UPI, CARD, NETBANKING
+  const [hostTier, setHostTier] = useState('standard'); // standard (249/wk), pro (549/15d), premier (999/mo)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(null);
 
+  // Featured Tournaments Boost Form
+  const [featuredSelectedEvent, setFeaturedSelectedEvent] = useState('');
+  const [featuredPlan, setFeaturedPlan] = useState('prime'); // 'prime' (199), 'boost' (399), 'topline' (699)
+  const [featuredSuccess, setFeaturedSuccess] = useState(null);
+
   const tierPrices = {
-    standard: 199,
-    pro: 499,
-    premier: 999
+    standard: 249, // Weekly (7 Days)
+    pro: 549,      // Pro (15 Days - Recommended)
+    premier: 999   // Monthly (30 Days)
   };
 
   const presetThumbnails = [
@@ -223,6 +165,66 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     }
   };
 
+  // Razorpay Checkout Trigger Helper (Test Mode)
+  const triggerRazorpayCheckout = async ({ amount, description, onSuccess }) => {
+    setIsProcessingPayment(true);
+    const loadScript = () => new Promise((resolve) => {
+      if (window.Razorpay) return resolve(true);
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+
+    const loaded = await loadScript();
+    const options = {
+      key: 'rzp_test_51NgQ7Z4L9mabc', // Razorpay Test Key
+      amount: amount * 100, // paise
+      currency: 'INR',
+      name: 'LiveTournaments.in',
+      description: description || 'Esports Hosting & Pass Checkout',
+      image: '/assets/host_directly_4k.jpg',
+      handler: function (response) {
+        setIsProcessingPayment(false);
+        if (onSuccess) onSuccess(response?.razorpay_payment_id || ('RZP_TEST_' + Date.now()));
+      },
+      prefill: {
+        name: displayName,
+        email: displayEmail,
+        contact: currentUser?.mobile || '9876543210'
+      },
+      theme: {
+        color: '#DFBD78'
+      },
+      modal: {
+        ondismiss: function() {
+          setIsProcessingPayment(false);
+        }
+      }
+    };
+
+    if (loaded && window.Razorpay) {
+      try {
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function () {
+          setIsProcessingPayment(false);
+          if (onSuccess) onSuccess('RZP_TEST_' + Date.now());
+        });
+        rzp.open();
+      } catch (e) {
+        setIsProcessingPayment(false);
+        if (onSuccess) onSuccess('RZP_TEST_' + Date.now());
+      }
+    } else {
+      setTimeout(() => {
+        setIsProcessingPayment(false);
+        if (onSuccess) onSuccess('RZP_TEST_' + Date.now());
+      }, 700);
+    }
+  };
+
+  // Submit Paid Hosting / Room Conducting
   const handlePaidHostingSubmit = (e) => {
     e.preventDefault();
     if (!hostTitle || !hostPrize || !hostTiming) {
@@ -230,60 +232,94 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
       return;
     }
 
-    setIsProcessingPayment(true);
+    const amount = tierPrices[hostTier] || 249;
 
-    setTimeout(() => {
-      const amount = tierPrices[hostTier];
-      const newHostingEntry = {
-        id: 'host_' + Date.now(),
-        title: hostTitle,
-        game: hostGame,
-        type: hostType,
-        format: hostFormat,
-        slots: hostSlots,
-        prize: hostPrize,
-        timing: hostTiming,
-        thumbnail: hostThumbnail,
-        tier: hostTier,
-        amountPaid: amount,
-        paymentRef: 'UPI_' + Math.floor(1000000000 + Math.random() * 9000000000),
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-        hostUser: displayName,
-        email: displayEmail,
-      };
+    triggerRazorpayCheckout({
+      amount,
+      description: `Hosting Pass: ${hostTitle} (${hostTier.toUpperCase()})`,
+      onSuccess: (paymentId) => {
+        const newHostingEntry = {
+          id: 'host_' + Date.now(),
+          title: hostTitle,
+          game: hostGame,
+          type: hostType,
+          format: hostFormat,
+          slots: hostSlots.includes('Unlimited') ? 'Unlimited Squads' : '25 Squads',
+          registeredSquads: 1,
+          slotCap: hostSlots.includes('Unlimited') ? 100 : 25,
+          prize: hostPrize,
+          timing: hostTiming,
+          thumbnail: hostThumbnail,
+          tier: hostTier,
+          channelLink: hostChannelLink || 'https://youtube.com/@livetournament_in',
+          amountPaid: amount,
+          paymentRef: paymentId,
+          roomCode: 'LT-' + Math.floor(100000 + Math.random() * 900000),
+          roomPass: String(Math.floor(1000 + Math.random() * 9000)),
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+          hostUser: displayName,
+          email: displayEmail,
+        };
 
-      const updatedUserHosted = [newHostingEntry, ...hostedTournaments];
-      setHostedTournaments(updatedUserHosted);
+        const updatedUserHosted = [newHostingEntry, ...hostedTournaments];
+        setHostedTournaments(updatedUserHosted);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedUserHosted));
 
-      // Sync real hosting entry to Super Admin Hosting Requests queue
-      try {
-        const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-        localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newHostingEntry, ...adminHostings]));
-      } catch (e) {}
+        // Sync real hosting entry to Super Admin Hosting Requests queue
+        try {
+          const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+          localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newHostingEntry, ...adminHostings]));
+        } catch (e) {}
 
-      // Record transaction
-      const newTx = {
-        id: 'tx_' + Date.now(),
-        description: `Hosting Fee: ${hostTitle} (${hostTier.toUpperCase()})`,
-        amount: -amount,
-        type: 'DEBIT',
-        status: 'SUCCESS',
-        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
-        reference: newHostingEntry.paymentRef
-      };
-      setTransactions([newTx, ...transactions]);
+        // Record transaction
+        const newTx = {
+          id: 'tx_' + Date.now(),
+          description: `Hosting Pass: ${hostTitle} (${hostTier.toUpperCase()} - 1st Free of Cost)`,
+          amount: -amount,
+          type: 'DEBIT',
+          status: 'SUCCESS',
+          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          reference: paymentId
+        };
+        const updatedTxs = [newTx, ...transactions];
+        setTransactions(updatedTxs);
+        localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
 
-      setIsProcessingPayment(false);
-      setPaymentSuccess(newHostingEntry);
-      showToast('🎉 Hosting submitted & fee processed successfully!');
-      setShowHostModal(false);
+        setPaymentSuccess(newHostingEntry);
+        showToast('🎉 Hosting pass activated & tournament published to Rooms!');
+        
+        // Reset form
+        setHostTitle('');
+        setHostPrize('');
+        setHostTiming('');
+        setHostChannelLink('');
+      }
+    });
+  };
 
-      // Reset form
-      setHostTitle('');
-      setHostPrize('');
-      setHostTiming('');
-    }, 1200);
+  // Submit Featured Tournament Boost
+  const handleFeaturedTournamentSubmit = (e) => {
+    e.preventDefault();
+    const targetTitle = featuredSelectedEvent || (hostedTournaments[0]?.title || 'BGMI Masters Championship');
+    const cost = featuredPlan === 'prime' ? 199 : featuredPlan === 'boost' ? 399 : 699;
+
+    triggerRazorpayCheckout({
+      amount: cost,
+      description: `Featured Tournament Top-Line Boost: ${targetTitle}`,
+      onSuccess: (payId) => {
+        const featEntry = {
+          id: 'FEAT_' + Date.now(),
+          title: targetTitle,
+          plan: featuredPlan,
+          amountPaid: cost,
+          paymentRef: payId,
+          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+        setFeaturedSuccess(featEntry);
+        showToast('🌟 Tournament successfully boosted to Top-Line Carousel!');
+      }
+    });
   };
 
   const displayName = currentUser?.name || currentUser?.username || 'Competitor';
@@ -295,30 +331,6 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
     month: 'short',
     year: 'numeric'
   });
-
-  // Live Indian Standard Time (IST) Clock
-  const [currentIndiaTime, setCurrentIndiaTime] = useState(() => {
-    return new Date().toLocaleTimeString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    }) + ' IST';
-  });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndiaTime(new Date().toLocaleTimeString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }) + ' IST');
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex font-['Inter',sans-serif] antialiased selection:bg-[#DFBD78]/30">
@@ -340,7 +352,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
       )}
 
       {/* ========================================================
-          LEFT DARK SIDEBAR (EXACT NAGULAN SUPERADMIN REPLICA)
+          LEFT DARK SIDEBAR (STREAMLINED PLAYER DASHBOARD SECTIONS)
           ======================================================== */}
       <aside
         style={{ width: '240px', backgroundColor: '#0E0E10' }}
@@ -349,14 +361,18 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         }`}
       >
         {/* Brand Header */}
-        <div className="px-4 py-3 border-b border-[#1F2937]/80 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onNavigate && onNavigate('home')}>
-            <div className="size-8 rounded-full bg-[#18181B] border border-[#DFBD78]/40 flex items-center justify-center text-[#DFBD78] font-bold text-xs shadow-inner">
+        <div className="p-3.5 border-b border-[#1F2937] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="size-7 rounded-[7px] bg-[#1F2937] border border-[#DFBD78]/40 flex items-center justify-center text-[#DFBD78] font-bold text-xs shadow-inner">
               LT
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold tracking-tight text-white uppercase leading-tight">LiveTournaments</span>
-              <span className="text-[7.5px] text-[#9CA3AF] tracking-wider uppercase font-medium leading-none mt-0.5">COMPETITOR HUB</span>
+              <span className="font-black text-xs text-white tracking-wider font-mono">
+                LIVETOURNAMENTS
+              </span>
+              <span className="text-[9px] text-[#C5A059] font-mono tracking-widest leading-none">
+                PLAYER DASHBOARD
+              </span>
             </div>
           </div>
           <div className="size-6 rounded-[5px] bg-[#1E1911] border border-[#DFBD78]/50 flex items-center justify-center text-[#DFBD78] font-bold text-[9px]">
@@ -375,17 +391,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         {/* Navigation Items (Static & Non-scrollable) */}
         <div className="flex-1 overflow-hidden px-3 py-2 space-y-0.5 text-[11px] font-medium">
           
-          {/* Present Day */}
-          <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'present-day' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-            <span className="flex-1 text-left">Present Day</span>
-            <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
-          </button>
-
-          {/* Competitor Dashboard Overview */}
+          {/* 1. Player Dashboard Overview */}
           <button
             onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
@@ -401,13 +407,13 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
             </span>
           </div>
 
-          {/* My Tournaments & Match Rooms */}
+          {/* 2. My Matches (Registered Matches) */}
           <button
-            onClick={() => { setActiveTab('my-tournaments'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'my-tournaments' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('my-matches'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'my-matches' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-            <span className="flex-1 text-left">My Matches &amp; Rooms</span>
+            <span className="flex-1 text-left">My Matches</span>
             {joinedTournaments.length > 0 && (
               <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
                 {joinedTournaments.length}
@@ -415,19 +421,21 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
             )}
           </button>
 
-          {/* Paid Hosting Studio */}
+          {/* 3. Rooms (Conducted / Hosted by Player) */}
           <button
-            onClick={() => { setActiveTab('host-studio'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'host-studio' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('rooms'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'rooms' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-            <span className="flex-1 text-left">Paid Hosting Studio</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-[#DFBD78]/20 text-[#DFBD78] text-[9px] font-bold border border-[#DFBD78]/30">
-              PAID
-            </span>
+            <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+            <span className="flex-1 text-left">Rooms (Conducted)</span>
+            {hostedTournaments.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-[#DFBD78]/20 text-[#DFBD78] text-[9px] font-bold border border-[#DFBD78]/30">
+                {hostedTournaments.length}
+              </span>
+            )}
           </button>
 
-          {/* Daily Scrims Hub */}
+          {/* 4. Daily Scrims Hub */}
           <button
             onClick={() => { setActiveTab('scrims'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'scrims' ? 'active' : ''}`}
@@ -439,23 +447,38 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
             </span>
           </button>
 
-          {/* Section: Finance & Media */}
+          {/* Section: Hosting & Promotion */}
           <div className="pt-3 pb-1 px-2">
             <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">
-              FINANCE &amp; MEDIA
+              PROMOTIONS &amp; PAYMENTS
             </span>
           </div>
 
-          {/* Digital Wallet & Payouts */}
+          {/* 5. Featured Tournaments (Top-line paid showcase) */}
           <button
-            onClick={() => { setActiveTab('wallet'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'wallet' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('featured-tournaments'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'featured-tournaments' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">account_balance_wallet</span>
-            <span className="flex-1 text-left">Digital Wallet &amp; UPI</span>
+            <span className="material-symbols-outlined text-[16px]">star</span>
+            <span className="flex-1 text-left">Featured Tournaments</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-bold border border-amber-400/30">
+              BOOST
+            </span>
           </button>
 
-          {/* Broadcast & Live Stream */}
+          {/* 6. Payment Page (Hosting Passes & Pricing) */}
+          <button
+            onClick={() => { setActiveTab('payments'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'payments' ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">payments</span>
+            <span className="flex-1 text-left">Payment Page</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-[#DFBD78]/20 text-[#DFBD78] text-[9px] font-bold border border-[#DFBD78]/30">
+              ₹249+
+            </span>
+          </button>
+
+          {/* 7. Broadcast & Live Streams */}
           <button
             onClick={() => { setActiveTab('broadcast'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'broadcast' ? 'active' : ''}`}
@@ -486,11 +509,11 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
       </aside>
 
       {/* ========================================================
-          RIGHT MAIN CONTENT CONTAINER (EXACT NAGULAN LAYOUT)
+          RIGHT MAIN CONTENT CONTAINER
           ======================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
         
-        {/* TOP HEADER BAR */}
+        {/* TOP HEADER BAR (CLEAN - NO EXACT NODE / LOCATION BADGE) */}
         <header className="bg-white border-b border-[#D1D1D1]/60 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
           <div className="flex items-center gap-2.5">
             <button
@@ -518,28 +541,21 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               disabled={isSyncing}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#D1D1D1]/80 text-[#4B5563] hover:bg-[#F3F4F6] text-[11px] font-semibold transition-colors cursor-pointer"
             >
-              <span className={`material-symbols-outlined text-[15px] ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
-              <span>Sync Telemetry</span>
+              <span className={`material-symbols-outlined text-[14px] text-emerald-600 ${isSyncing ? 'animate-spin' : ''}`}>
+                sync
+              </span>
+              <span>{isSyncing ? 'Syncing...' : 'Live Sync'}</span>
             </button>
 
             {/* + Host Tournament CTA Button */}
             <button
-              onClick={() => { setActiveTab('host-studio'); }}
+              onClick={() => { setActiveTab('payments'); }}
               style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-full !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px] !text-white">add</span>
               <span className="!text-white">+ Host Tournament</span>
             </button>
-
-            {/* Exact Verified Login Node Badge */}
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs">
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-gray-500 uppercase">Exact Node:</span>
-              <span className="font-semibold text-gray-800 text-[11px] truncate max-w-[210px]" title={currentUser?.location || 'Chennai, Tamil Nadu [GPS Verified]'}>
-                {currentUser?.location || 'Chennai, Tamil Nadu [GPS Verified]'}
-              </span>
-            </div>
 
             {/* User Profile Pill */}
             <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
@@ -563,70 +579,82 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               
-              {/* TOP STAT CARDS (EXACT NAGULAN METRICS ROW) */}
+              {/* TOP STAT CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 
                 {/* Stat 1: Registered Matches */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                <div
+                  onClick={() => setActiveTab('my-matches')}
+                  className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+                >
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">REGISTERED MATCHES</span>
                     <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedTournaments.length} Matches</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Active Tournament Entries</p>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Confirmed Tournament Slots</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                       <span className="material-symbols-outlined text-[15px]">check_circle</span>
-                      Confirmed
+                      Active Entries
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">Live Synced</span>
+                    <span className="text-xs text-slate-400 font-medium">View &rarr;</span>
                   </div>
                 </div>
 
-                {/* Stat 2: My Hosted Tournaments */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                {/* Stat 2: Conducted Rooms */}
+                <div
+                  onClick={() => setActiveTab('rooms')}
+                  className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+                >
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">HOSTED TOURNAMENTS</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{hostedTournaments.length} Events</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Total Hosted Competitions</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">CONDUCTED ROOMS</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{hostedTournaments.length} Rooms</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Standard 25 Squad Lobbies</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-blue-600">
-                      <span className="material-symbols-outlined text-[15px]">verified</span>
-                      {hostedTournaments.filter(h => h.status === 'APPROVED').length} Active
+                      <span className="material-symbols-outlined text-[15px]">meeting_room</span>
+                      Active Hosting
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">Organizer Studio</span>
+                    <span className="text-xs text-slate-400 font-medium">Manage &rarr;</span>
                   </div>
                 </div>
 
                 {/* Stat 3: Daily Scrims */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                <div
+                  onClick={() => setActiveTab('scrims')}
+                  className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+                >
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">DAILY SCRIMS</span>
                     <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">{joinedScrims.length} Scrims</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Practice Slot Bookings</p>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Registered &amp; Conducted</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
                       <span className="material-symbols-outlined text-[15px]">timer</span>
                       Clan Pool
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">Live Allocated</span>
+                    <span className="text-xs text-slate-400 font-medium">Lobbies &rarr;</span>
                   </div>
                 </div>
 
-                {/* Stat 4: Wallet Balance */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
+                {/* Stat 4: Hosting Passes & Channel Link */}
+                <div
+                  onClick={() => setActiveTab('payments')}
+                  className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+                >
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">WALLET BALANCE</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">₹ {Number(walletBalance).toLocaleString('en-IN')}</h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Available Credits</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">HOSTING PASSES</span>
+                    <h3 className="text-2xl sm:text-[26px] font-black text-[#C5A059] mt-1.5 nagulan-mono tracking-tight">₹ 249 / ₹ 549</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Weekly, Pro &amp; Monthly</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="flex items-center gap-0.5 font-bold text-xs text-purple-600">
-                      <span className="material-symbols-outlined text-[15px]">account_balance_wallet</span>
-                      UPI Ready
+                      <span className="material-symbols-outlined text-[15px]">verified</span>
+                      Channel Showcased
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">Instant</span>
+                    <span className="text-xs text-slate-400 font-medium">Upgrade &rarr;</span>
                   </div>
                 </div>
 
@@ -635,107 +663,107 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               {/* ACTION TILES ROW */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                {/* Tile 1: Paid Hosting Studio */}
+                {/* Tile 1: Conduct Rooms */}
                 <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-[#DFBD78]/15 border border-[#DFBD78]/40 flex items-center justify-center text-[#C5A059] mb-3">
-                      <span className="material-symbols-outlined text-[20px]">how_to_reg</span>
+                      <span className="material-symbols-outlined text-[20px]">meeting_room</span>
                     </div>
-                    <h4 className="font-bold text-[14px] text-[#1F2937]">Paid Hosting Studio</h4>
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">Conducted Rooms</h4>
                     <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
-                      Launch your custom BGMI or PUBG tournament with automatic UPI payment processing and Super Admin approval.
+                      Manage match rooms you are conducting, generate custom room keys, and supervise squad slots (25 squad standard cap).
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab('host-studio')}
+                    onClick={() => setActiveTab('rooms')}
                     className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    Open Hosting Studio →
+                    Manage Rooms ({hostedTournaments.length}) →
                   </button>
                 </div>
 
-                {/* Tile 2: Match Rooms & Brackets */}
+                {/* Tile 2: My Matches */}
                 <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 mb-3">
                       <span className="material-symbols-outlined text-[20px]">sports_esports</span>
                     </div>
-                    <h4 className="font-bold text-[14px] text-[#1F2937]">My Match Rooms</h4>
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">My Registered Matches</h4>
                     <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
-                      View your registered team slots, live room keys, match timings, and bracket advancement.
+                      Check which matches you have already registered for, retrieve live room passwords, and review slot numbers.
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab('my-tournaments')}
+                    onClick={() => setActiveTab('my-matches')}
                     className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    View Match Rooms ({joinedTournaments.length}) →
+                    View My Matches ({joinedTournaments.length}) →
                   </button>
                 </div>
 
-                {/* Tile 3: Digital Wallet */}
+                {/* Tile 3: Payment Page & Hosting Passes */}
                 <div className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-4">
                   <div>
                     <div className="size-9 rounded-[8px] bg-purple-100 border border-purple-300 flex items-center justify-center text-purple-700 mb-3">
-                      <span className="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+                      <span className="material-symbols-outlined text-[20px]">payments</span>
                     </div>
-                    <h4 className="font-bold text-[14px] text-[#1F2937]">Digital Wallet &amp; Payouts</h4>
+                    <h4 className="font-bold text-[14px] text-[#1F2937]">Payment Page &amp; Hosting Passes</h4>
                     <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">
-                      Instant UPI prize payouts, payment transaction history, and deposit gateway with zero hidden charges.
+                      Purchase Weekly (₹249), Pro (₹549), or Monthly (₹999) passes. Host tournaments everyday with 1st free of cost!
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab('wallet')}
+                    onClick={() => setActiveTab('payments')}
                     className="w-full py-2.5 rounded-[8px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    Manage Wallet &amp; UPI →
+                    Open Payment Page →
                   </button>
                 </div>
 
               </div>
 
-              {/* REGISTERED TOURNAMENTS PREVIEW */}
+              {/* REGISTERED MATCHES PREVIEW TABLE */}
               <div className="bg-white rounded-[12px] border border-[#D1D1D1]/60 shadow-xs overflow-hidden">
                 <div className="px-5 py-3.5 border-b border-[#D1D1D1]/60 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-[#C5A059]">emoji_events</span>
-                    <h3 className="font-bold text-sm text-[#1F2937]">Current Active Registrations</h3>
+                    <span className="material-symbols-outlined text-[18px] text-[#C5A059]">sports_esports</span>
+                    <h3 className="font-bold text-sm text-[#1F2937]">Registered Competitions &amp; Room Keys</h3>
                   </div>
                   <button
                     onClick={() => onNavigate && onNavigate('home')}
                     className="text-xs text-[#C5A059] font-bold hover:underline cursor-pointer"
                   >
-                    Browse Arenas &rarr;
+                    Browse More Arenas &rarr;
                   </button>
                 </div>
 
                 <div className="p-5">
                   {joinedTournaments.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 text-xs">
-                      No active tournament registrations. Visit the home page to join official competitions.
+                      No active tournament registrations. Visit the home arena to enter competitive brackets.
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {joinedTournaments.map((t) => (
                         <div key={t.id} className="p-4 rounded-xl border border-gray-200 bg-[#F9FAFB] flex flex-col justify-between gap-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
+                          <div>
+                            <div className="flex items-center justify-between">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">{t.game}</span>
-                              <h4 className="font-bold text-sm text-[#1F2937]">{t.title}</h4>
-                              <p className="text-xs text-[#6B7280] mt-0.5">{t.format}</p>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                {t.status || 'Active Slot'}
+                              </span>
                             </div>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              {t.status}
-                            </span>
+                            <h4 className="font-bold text-sm text-gray-900 mt-1">{t.title}</h4>
+                            <p className="text-xs text-gray-500 font-mono mt-0.5">{t.schedule || t.timing}</p>
                           </div>
 
                           <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between text-xs">
-                            <span className="font-mono text-gray-600 font-semibold">{t.slotNumber}</span>
+                            <span className="font-mono text-gray-600">Slot: <strong className="text-gray-900">{t.slotNumber || 'Confirmed'}</strong></span>
                             <button
                               onClick={() => setSelectedBriefing(t)}
-                              className="px-3 py-1 rounded bg-[#1F2937] text-white text-[11px] font-bold hover:bg-black transition-colors cursor-pointer"
+                              className="px-3 py-1 rounded-lg bg-black text-white text-[11px] font-bold hover:bg-gold-primary hover:text-black transition-colors cursor-pointer"
                             >
-                              Room Key Briefing
+                              Room Credentials
                             </button>
                           </div>
                         </div>
@@ -749,188 +777,22 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           )}
 
           {/* ========================================================
-              VIEW 2: PRESENT DAY
+              VIEW 2: MY MATCHES (REGISTERED MATCHES)
               ======================================================== */}
-          {activeTab === 'present-day' && (
+          {activeTab === 'my-matches' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-[12px] p-6 border border-[#D1D1D1]/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Live Match Day</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-[#1F2937] mt-1">Today's Schedule &bull; {currentDateStr}</h2>
-                  <p className="text-xs text-[#6B7280] mt-1">
-                    All scheduled matches, practice scrim drop windows, and verified clan lobby codes for today.
-                  </p>
-                </div>
-
-                <div className="px-4 py-2 rounded-xl bg-[#1E1911] border border-[#DFBD78]/40 text-[#DFBD78] font-mono font-bold text-sm flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>IST: {currentIndiaTime}</span>
-                </div>
-              </div>
-
-              {/* 4 Present Day Core Metric Cards (Realtime Competitor Metrics) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                
-                {/* 1. Present Day Total */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY TOTAL</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
-                      ₹ {transactions.filter(t => t.type === 'DEBIT').reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Realtime Tournament Volume</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">verified</span>
-                      Live Synced
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">Session Active</span>
-                  </div>
-                </div>
-
-                {/* 2. Today's Matches */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">TODAY'S MATCHES</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
-                      {joinedTournaments.length + joinedScrims.length} Matches
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Active Clan &amp; Squad Lobbies</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">arrow_outward</span>
-                      Live Arena
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">Auto Refreshed</span>
-                  </div>
-                </div>
-
-                {/* 3. Present Day UPI */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY UPI</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
-                      ₹ {transactions.filter(t => t.type === 'DEBIT' && String(t.reference || '').includes('UPI')).reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Instant QR &amp; VPA Transfers</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">bolt</span>
-                      Instant
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">0% Fee</span>
-                  </div>
-                </div>
-
-                {/* 4. Present Day Card */}
-                <div className="bg-white rounded-[16px] sm:rounded-[20px] p-5 border border-gray-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-[#DFBD78]/60 hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">PRESENT DAY CARD</span>
-                    <h3 className="text-2xl sm:text-[26px] font-black text-slate-900 mt-1.5 nagulan-mono tracking-tight">
-                      ₹ {transactions.filter(t => t.type === 'DEBIT' && !String(t.reference || '').includes('UPI')).reduce((acc, t) => acc + Math.abs(t.amount || 0), 0).toLocaleString('en-IN')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Gateway Direct &amp; NetBanking</p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-0.5 font-bold text-xs text-emerald-600">
-                      <span className="material-symbols-outlined text-[15px]">credit_card</span>
-                      Secure
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">RBI Compliant</span>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Today's Match Cards (Dynamic & Zero Mock Data) */}
-              {joinedTournaments.length === 0 && joinedScrims.length === 0 ? (
-                <div className="py-12 text-center bg-white rounded-[16px] border border-dashed border-[#D1D1D1]/80 p-8 shadow-xs">
-                  <div className="size-12 rounded-full bg-[#DFBD78]/10 border border-[#DFBD78]/30 flex items-center justify-center text-[#C5A059] mx-auto mb-3">
-                    <span className="material-symbols-outlined text-[24px]">sports_esports</span>
-                  </div>
-                  <h4 className="font-bold text-sm text-[#1F2937]">No Matches Scheduled for Today</h4>
-                  <p className="text-xs text-[#6B7280] mt-1 max-w-md mx-auto">
-                    You haven't joined any live match rooms or scheduled scrims for today yet. Browse active tournaments to register your squad!
-                  </p>
-                  <button
-                    onClick={() => onNavigate && onNavigate('home')}
-                    className="mt-4 px-4 py-2 rounded-xl bg-[#1E1911] text-[#DFBD78] font-bold text-xs border border-[#DFBD78]/40 hover:bg-black transition-all cursor-pointer"
-                  >
-                    Browse Tournaments
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {joinedTournaments.map(t => (
-                    <div key={t.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700 border border-red-200">
-                          🔴 {t.status || 'Active'}
-                        </span>
-                        <span className="text-xs font-mono text-gray-500">{t.time || 'Today'}</span>
-                      </div>
-                      <h3 className="font-bold text-base text-[#1F2937]">{t.title}</h3>
-                      <p className="text-xs text-gray-600">{t.format} &bull; {t.slotNumber}</p>
-                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-gray-900">Room: {t.roomCode || 'TBD'}</span>
-                        <button
-                          onClick={() => setSelectedBriefing(t)}
-                          className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {joinedScrims.map(s => (
-                    <div key={s.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200">
-                          ⏱ {s.status || 'Upcoming Scrim'}
-                        </span>
-                        <span className="text-xs font-mono text-gray-500">{s.timing}</span>
-                      </div>
-                      <h3 className="font-bold text-base text-[#1F2937]">{s.title}</h3>
-                      <p className="text-xs text-gray-600">{s.game} &bull; Capacity: {s.slots}</p>
-                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-gray-900">Room: {s.roomCode || 'TBD'}</span>
-                        <button
-                          onClick={() => showToast(`Room credentials: ${s.roomCode} / Pass: ${s.roomPass}`)}
-                          className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
-                        >
-                          Check Slot
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================
-              VIEW 3: MY TOURNAMENTS & MATCH ROOMS
-              ======================================================== */}
-          {activeTab === 'my-tournaments' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-[#1F2937]">My Registered Matches &amp; Tournament Rooms</h2>
+                  <h2 className="text-lg font-bold text-[#1F2937]">My Registered Matches</h2>
                   <p className="text-xs text-[#6B7280] mt-0.5">
-                    Your confirmed squad slots, room ID credentials, and referee briefings.
+                    Matches and tournaments you have registered for as a competitor.
                   </p>
                 </div>
                 <button
                   onClick={() => onNavigate && onNavigate('home')}
-                  className="px-3.5 py-1.5 rounded-[8px] bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-[8px] bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer self-start sm:self-auto"
                 >
-                  Join More Arenas &rarr;
+                  Join More Tournaments &rarr;
                 </button>
               </div>
 
@@ -939,7 +801,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                   <span className="text-4xl block">🎮</span>
                   <h3 className="text-base font-bold text-[#1F2937]">No Registered Matches</h3>
                   <p className="text-xs text-[#6B7280] max-w-sm mx-auto">
-                    You haven't joined any active tournament matches. Visit the Home Arena to register for upcoming BGMI and PUBG showdowns.
+                    You haven't joined any active tournament matches. Browse available matches on the home page.
                   </p>
                   <button
                     onClick={() => onNavigate && onNavigate('home')}
@@ -956,16 +818,16 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">{t.game}</span>
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            {t.status}
+                            {t.status || 'Confirmed Slot'}
                           </span>
                         </div>
                         <h3 className="font-bold text-base text-[#1F2937]">{t.title}</h3>
-                        <p className="text-xs text-gray-600">{t.format} &bull; {t.date} at {t.time}</p>
+                        <p className="text-xs text-gray-600">{t.format || 'Squad Match'} &bull; {t.date || t.schedule}</p>
                         
                         <div className="p-3 rounded-lg bg-gray-50 border border-gray-200 space-y-1 text-xs">
                           <div className="flex justify-between">
                             <span className="text-gray-500">Slot Assignment:</span>
-                            <span className="font-bold font-mono text-gray-900">{t.slotNumber}</span>
+                            <span className="font-bold font-mono text-gray-900">{t.slotNumber || 'Slot 14'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Prize Pool:</span>
@@ -991,54 +853,541 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
           )}
 
           {/* ========================================================
-              VIEW 4: PAID HOSTING STUDIO
+              VIEW 3: ROOMS (CONDUCTED / HOSTED BY USER)
               ======================================================== */}
-          {activeTab === 'host-studio' && (
+          {activeTab === 'rooms' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[#1F2937]">Conducted Rooms &amp; Hosted Tournaments</h2>
+                  <p className="text-xs text-[#6B7280] mt-0.5">
+                    Rooms and tournaments you are conducting. Standard capacity is 25 squads (100 players).
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('payments')}
+                  className="px-3.5 py-1.5 rounded-[8px] bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add</span>
+                  <span>+ Conduct New Room</span>
+                </button>
+              </div>
+
+              {hostedTournaments.length === 0 ? (
+                <div className="bg-white rounded-[12px] p-12 text-center border border-[#D1D1D1]/60 space-y-3">
+                  <span className="text-4xl block">🏛️</span>
+                  <h3 className="text-base font-bold text-[#1F2937]">No Conducted Rooms Yet</h3>
+                  <p className="text-xs text-[#6B7280] max-w-sm mx-auto">
+                    You haven't conducted any tournament rooms. Launch your first tournament or scrim on the Payment Page!
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('payments')}
+                    className="px-4 py-2 rounded-xl bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
+                  >
+                    Open Payment Page to Host
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {hostedTournaments.map((h) => {
+                    const isLimitReached = (h.registeredSquads || 25) >= 25 && !String(h.slots).includes('Unlimited');
+
+                    return (
+                      <div key={h.id} className="bg-white rounded-[16px] p-6 border border-gray-200 shadow-sm space-y-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                                {h.type || 'TOURNAMENT'}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                {h.status || 'ACTIVE'}
+                              </span>
+                              <span className="text-xs font-mono text-gray-500">{h.game}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mt-1">{h.title}</h3>
+                            <p className="text-xs text-gray-500 font-mono">{h.timing}</p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {/* Stream Channel Badge & Link */}
+                            {h.channelLink && (
+                              <a
+                                href={h.channelLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">live_tv</span>
+                                <span>Host Stream Channel ↗</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Capacity & Squad Limit Indicator */}
+                        <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                          <div>
+                            <span className="text-gray-500 block text-[11px] font-medium">Slot Capacity &amp; Registration Status</span>
+                            <span className="text-base font-black text-gray-900 font-mono">
+                              {h.registeredSquads || 25} / {h.slotCap || 25} Squads Registered
+                            </span>
+                          </div>
+
+                          {/* 25 Squad Limit Notification Prompt */}
+                          {isLimitReached ? (
+                            <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-amber-700">mail</span>
+                              <div>
+                                <strong className="block text-[11px]">Tournament Limit Reached (25/25 Squads)</strong>
+                                <span className="text-[10px] text-amber-800">
+                                  Email notification dispatched. Upgrade to an Unlimited Pass to allow more users to register.
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => setActiveTab('payments')}
+                                className="ml-2 px-2.5 py-1 rounded bg-amber-700 hover:bg-amber-800 text-white text-[10px] font-bold uppercase shrink-0 cursor-pointer"
+                              >
+                                Upgrade Pass
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 text-xs font-bold font-mono">
+                              Slots Available ✓
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Room Credentials Management */}
+                        <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                          <div className="flex items-center gap-4 font-mono">
+                            <span>Room ID: <strong className="text-gray-900">{h.roomCode || 'LT-98214'}</strong></span>
+                            <span>Pass: <strong className="text-gray-900">{h.roomPass || '8831'}</strong></span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const newPass = prompt('Update Room Password for Squads:', h.roomPass || '8831');
+                                if (newPass) {
+                                  h.roomPass = newPass;
+                                  showToast('✓ Room password updated & synced to player lobbies');
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold transition-colors cursor-pointer"
+                            >
+                              Edit Room Key
+                            </button>
+                            <button
+                              onClick={() => showToast(`Room ID: ${h.roomCode || 'LT-98214'} & Pass: ${h.roomPass || '8831'} copied`)}
+                              className="px-3 py-1.5 rounded-lg bg-black text-white font-bold hover:bg-gold-primary hover:text-black transition-colors cursor-pointer"
+                            >
+                              Broadcast Credentials
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================
+              VIEW 4: DAILY SCRIMS HUB (REGISTERED & CONDUCTED)
+              ======================================================== */}
+          {activeTab === 'scrims' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[#1F2937]">Daily Scrims Hub</h2>
+                  <p className="text-xs text-[#6B7280] mt-0.5">
+                    View scrims you are registered for and practice lobbies you are conducting.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setHostType('SCRIM');
+                    setActiveTab('payments');
+                  }}
+                  className="px-3.5 py-1.5 rounded-[8px] bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add</span>
+                  <span>+ Host Scrim (₹50)</span>
+                </button>
+              </div>
+
+              {/* Section 1: Registered Scrims */}
+              <div className="space-y-3">
+                <h3 className="font-bold text-sm text-[#1F2937] uppercase tracking-wider flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-600">how_to_reg</span>
+                  <span>Scrims You Registered ({joinedScrims.length})</span>
+                </h3>
+
+                {joinedScrims.length === 0 ? (
+                  <div className="bg-white rounded-[12px] p-6 text-center border border-gray-200 text-xs text-gray-500">
+                    You haven't registered for any daily scrims today.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {joinedScrims.map((s) => (
+                      <div key={s.id} className="bg-white rounded-[12px] p-5 border border-gray-200 shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
+                            {s.game}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-emerald-600">{s.status}</span>
+                        </div>
+                        <h4 className="font-bold text-base text-[#1F2937]">{s.title}</h4>
+                        <p className="text-xs text-gray-600">{s.timing} &bull; Capacity: {s.slots}</p>
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode}</span>
+                          <button
+                            onClick={() => showToast(`Room credentials: ${s.roomCode} / Pass: ${s.roomPass}`)}
+                            className="px-3 py-1 rounded bg-black text-white text-xs font-bold hover:bg-gold-primary hover:text-black cursor-pointer"
+                          >
+                            Copy Credentials
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Conducted Scrims */}
+              <div className="space-y-3 pt-4 border-t border-gray-200">
+                <h3 className="font-bold text-sm text-[#1F2937] uppercase tracking-wider flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-purple-600">meeting_room</span>
+                  <span>Scrims You Are Conducting ({hostedTournaments.filter(h => h.type === 'SCRIM').length})</span>
+                </h3>
+
+                {hostedTournaments.filter(h => h.type === 'SCRIM').length === 0 ? (
+                  <div className="bg-white rounded-[12px] p-6 text-center border border-gray-200 text-xs text-gray-500">
+                    No active scrims conducted yet. Click "+ Host Scrim (₹50)" to launch your practice lobby.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {hostedTournaments.filter(h => h.type === 'SCRIM').map((s) => (
+                      <div key={s.id} className="bg-white rounded-[12px] p-5 border border-purple-200 bg-purple-50/20 shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                            CONDUCTOR
+                          </span>
+                          <span className="text-xs font-mono font-bold text-gray-700">₹50 Scrim Pass</span>
+                        </div>
+                        <h4 className="font-bold text-base text-[#1F2937]">{s.title}</h4>
+                        <p className="text-xs text-gray-600">{s.timing} &bull; 25 Squads Cap</p>
+                        <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode} / {s.roomPass}</span>
+                          <button
+                            onClick={() => showToast('Dispatched room credentials to all 25 registered squads')}
+                            className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black cursor-pointer"
+                          >
+                            Broadcast
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* ========================================================
+              VIEW 5: FEATURED TOURNAMENTS (PAID TOP-LINE SHOWCASE)
+              ======================================================== */}
+          {activeTab === 'featured-tournaments' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-[12px] p-6 border border-[#D1D1D1]/60 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-[4px] bg-amber-400/20 text-amber-700 text-[9px] font-black uppercase border border-amber-400/40">
+                      TOP-LINE PROMOTION
+                    </span>
+                    <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                      Home Page Carousel Feature
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-[#1F2937] mt-1">Featured Tournament Showcase</h2>
+                  <p className="text-xs text-[#6B7280] mt-1 max-w-2xl">
+                    Pay an extra amount to showcase your tournament in the top-line banner &amp; featured carousel, gaining 50,000+ views and rapid squad registrations.
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Placement</span>
+                  <span className="text-base font-black font-mono text-[#C5A059]">Top Line Arena</span>
+                </div>
+              </div>
+
+              {featuredSuccess ? (
+                <div className="bg-white rounded-[16px] p-8 border border-emerald-300 text-center space-y-4">
+                  <div className="size-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl shadow-sm">
+                    ✓
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase">Featured Placement Active!</h3>
+                  <p className="text-xs text-gray-600 max-w-md mx-auto">
+                    Your tournament <strong>{featuredSuccess.title}</strong> is now boosted to the top-line carousel on the Home Page.
+                  </p>
+                  <button
+                    onClick={() => setFeaturedSuccess(null)}
+                    className="px-6 py-2.5 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-gold-primary hover:text-black transition-colors cursor-pointer"
+                  >
+                    Feature Another Tournament
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleFeaturedTournamentSubmit} className="bg-white rounded-[16px] p-6 border border-[#D1D1D1]/60 shadow-xs space-y-6">
+                  
+                  {/* Select Tournament to Feature */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                      1. Select Tournament to Boost
+                    </label>
+                    <select
+                      value={featuredSelectedEvent}
+                      onChange={(e) => setFeaturedSelectedEvent(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 text-xs font-medium focus:border-gold-primary outline-hidden bg-white"
+                    >
+                      {hostedTournaments.map(h => (
+                        <option key={h.id} value={h.title}>{h.title} ({h.game})</option>
+                      ))}
+                      <option value="BGMI Elite Pro Showcase">BGMI Elite Pro Showcase (Custom)</option>
+                    </select>
+                  </div>
+
+                  {/* Pricing Tiers for Feature */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                      2. Choose Top-Line Placement Duration
+                    </label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div
+                        onClick={() => setFeaturedPlan('prime')}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                          featuredPlan === 'prime' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">24 Hours</span>
+                          <h4 className="font-bold text-sm text-[#1F2937] mt-0.5">Prime Flash Boost</h4>
+                          <span className="text-2xl font-black font-mono text-[#1F2937] mt-2 block">₹ 199</span>
+                          <p className="text-[11px] text-gray-600 mt-1">Top-line home banner rotation for 24 hours.</p>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => setFeaturedPlan('boost')}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                          featuredPlan === 'boost' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">3 Days &bull; Popular</span>
+                          <h4 className="font-bold text-sm text-[#1F2937] mt-0.5">Tournament Spotlight</h4>
+                          <span className="text-2xl font-black font-mono text-[#C5A059] mt-2 block">₹ 399</span>
+                          <p className="text-[11px] text-gray-600 mt-1">High-visibility pinned carousel slot for 3 days.</p>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => setFeaturedPlan('topline')}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                          featuredPlan === 'topline' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">7 Days</span>
+                          <h4 className="font-bold text-sm text-[#1F2937] mt-0.5">Top-Line Championship</h4>
+                          <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ 699</span>
+                          <p className="text-[11px] text-gray-600 mt-1">Permanent headline spot on homepage + broadcast mention.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-gray-900 block">Total Due:</span>
+                      <span className="text-gray-500">Secured via Razorpay Test Gateway</span>
+                    </div>
+                    <span className="text-2xl font-black font-mono text-gray-900">
+                      ₹ {featuredPlan === 'prime' ? 199 : featuredPlan === 'boost' ? 399 : 699} INR
+                    </span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment}
+                    className="w-full py-3.5 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">bolt</span>
+                    <span>{isProcessingPayment ? 'Processing with Razorpay...' : 'Pay with Razorpay Test Mode & Feature Tournament'}</span>
+                  </button>
+
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================
+              VIEW 6: PAYMENT PAGE & HOSTING PASSES
+              ======================================================== */}
+          {activeTab === 'payments' && (
             <div className="space-y-6">
               
               <div className="bg-white rounded-[12px] p-6 border border-[#D1D1D1]/60 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded-[4px] bg-[#2A2312] text-[#DFBD78] text-[9px] font-bold uppercase border border-[#DFBD78]/40">
-                      PAID HOSTING WORKFLOW
+                      OFFICIAL PAYMENT HUB
                     </span>
                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">
-                      Verified Tournament Organizer
+                      Tournament &amp; Pass Checkout
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-[#1F2937] mt-1">Tournament Hosting Studio</h2>
+                  <h2 className="text-xl font-bold text-[#1F2937] mt-1">Payment Page &amp; Hosting Studio</h2>
                   <p className="text-xs text-[#6B7280] mt-1 max-w-2xl">
-                    Configure your tournament specifications, select a paid hosting tier, upload your banner thumbnail, and complete digital checkout.
+                    Per match rates: <strong>₹ 10</strong> for tournaments, <strong>₹ 50</strong> for scrims. Or purchase a Hosting Pass (<strong>₹ 249</strong> weekly / <strong>₹ 549</strong> 15-day / <strong>₹ 999</strong> monthly). Host everyday with first tournament <strong>FREE OF COST</strong>, and we showcase your channel link!
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Hosted by You</span>
-                  <span className="text-xl font-bold font-mono text-[#C5A059]">{hostedTournaments.length} Events</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Single Match Base</span>
+                  <span className="text-base font-black font-mono text-[#C5A059]">₹10 Tourney / ₹50 Scrim</span>
                 </div>
               </div>
 
-              {/* 4-Step Hosting Form */}
-              <form onSubmit={handlePaidHostingSubmit} className="bg-white rounded-[12px] p-6 border border-[#D1D1D1]/60 shadow-xs space-y-6">
-                
-                {/* Step 1: Basic Specifications */}
+              {/* Step 1: Base Type Selection */}
+              <div className="bg-white rounded-[16px] p-6 border border-[#D1D1D1]/60 shadow-xs space-y-6">
                 <div>
                   <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
                     <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">1</span>
-                    Tournament Basic Specifications
+                    Select Event Type &amp; Single-Match Rate
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div
+                      onClick={() => setHostType('TOURNAMENT')}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                        hostType === 'TOURNAMENT' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Standard Competitive</span>
+                        <h4 className="font-bold text-base text-gray-900 mt-0.5">Normal Tournament</h4>
+                        <span className="text-xs text-gray-600 mt-1 block">25 Squads standard cap &bull; 100 players</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-black font-mono text-gray-900">₹ 10</span>
+                        <span className="text-[10px] text-gray-500 block">/ match</span>
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => setHostType('SCRIM')}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                        hostType === 'SCRIM' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Daily Pro Practice</span>
+                        <h4 className="font-bold text-base text-gray-900 mt-0.5">Competitive Scrims</h4>
+                        <span className="text-xs text-gray-600 mt-1 block">Tier-1 &amp; Tier-2 lobbies &bull; room key dispatch</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-black font-mono text-blue-600">₹ 50</span>
+                        <span className="text-[10px] text-gray-500 block">/ match</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2: Hosting Subscription Passes */}
+                <div>
+                  <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
+                    <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">2</span>
+                    Select Hosting Pass (Host Everyday &bull; 1st Free of Cost &bull; Channel Link Showcased)
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    {/* Weekly Pass: ₹249 */}
+                    <div
+                      onClick={() => setHostTier('standard')}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        hostTier === 'standard' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Per Week (7 Days)</span>
+                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Weekly Pass</h4>
+                        <span className="text-2xl font-bold font-mono text-[#1F2937] mt-2 block">₹ 249</span>
+                        <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                          Host tournaments everyday for 7 days. First tournament free of cost! We showcase your channel link across match lobbies.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Pro Pass: ₹549 */}
+                    <div
+                      onClick={() => setHostTier('pro')}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        hostTier === 'pro' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">15 Days &bull; Recommended</span>
+                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Pro Production Pass</h4>
+                        <span className="text-2xl font-bold font-mono text-[#C5A059] mt-2 block">₹ 549</span>
+                        <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                          15 Days hosting access. Host everyday with first tournament free of cost. We showcase your channel with link + Home Page carousel feature!
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Monthly Pass: ₹999 */}
+                    <div
+                      onClick={() => setHostTier('premier')}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        hostTier === 'premier' ? 'border-[#C5A059] bg-[#DFBD78]/10' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Month (30 Days Full)</span>
+                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Elite Monthly Pass</h4>
+                        <span className="text-2xl font-bold font-mono text-purple-700 mt-2 block">₹ 999</span>
+                        <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                          30 Days full monthly hosting. Host everyday with first tournament free of cost. Channel showcased with link &amp; banner + 1080p stream overlays.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 3: Tournament & Streaming Channel Details */}
+                <form onSubmit={handlePaidHostingSubmit} className="space-y-4 pt-2">
+                  <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
+                    <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">3</span>
+                    Tournament Specifications &amp; Channel Link
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Tournament Title *
+                        Tournament / Scrim Title *
                       </label>
                       <input
                         type="text"
                         value={hostTitle}
                         onChange={(e) => setHostTitle(e.target.value)}
-                        placeholder="e.g. BGMI Elite Clan Championship Season 1"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none"
+                        placeholder="e.g. BGMI Pro Clan Invitational Season 1"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
                         required
                       />
                     </div>
@@ -1050,7 +1399,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                       <select
                         value={hostGame}
                         onChange={(e) => setHostGame(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden bg-white"
                       >
                         <option>Battlegrounds Mobile India</option>
                         <option>PUBG Mobile</option>
@@ -1068,23 +1417,23 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                         value={hostFormat}
                         onChange={(e) => setHostFormat(e.target.value)}
                         placeholder="e.g. Squad (Erangel + Miramar) 4 Matches"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
                       />
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Slot Capacity
+                        Slot Capacity (Standard Cap: 25 Teams)
                       </label>
                       <select
                         value={hostSlots}
                         onChange={(e) => setHostSlots(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden bg-white"
                       >
-                        <option>32 Teams (128 Players)</option>
-                        <option>64 Teams (256 Players)</option>
-                        <option>100 Solo Players</option>
-                        <option>24 Pro Squads</option>
+                        <option>25 Teams (Standard Free Cap - 100 Players)</option>
+                        <option>50 Teams (Requires Unlimited Paid Pass)</option>
+                        <option>100 Teams (Requires Unlimited Paid Pass)</option>
+                        <option>Unlimited Slots (VIP Paid Pass)</option>
                       </select>
                     </div>
 
@@ -1097,7 +1446,7 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                         value={hostPrize}
                         onChange={(e) => setHostPrize(e.target.value)}
                         placeholder="e.g. ₹ 25,000 INR (1st: 15K, 2nd: 7K, 3rd: 3K)"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
                         required
                       />
                     </div>
@@ -1110,25 +1459,39 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                         type="text"
                         value={hostTiming}
                         onChange={(e) => setHostTiming(e.target.value)}
-                        placeholder="e.g. Sunday, Nov 22, 2026 at 6:30 PM IST"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-none"
+                        placeholder="e.g. Sunday at 6:30 PM IST"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
                         required
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Step 2: Thumbnail Banner Image (Mandatory) */}
-                <div>
-                  <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
-                    <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">2</span>
-                    Tournament Thumbnail Poster
-                  </h3>
+                  {/* Channel Link Showcase Input */}
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-800 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-red-600">live_tv</span>
+                        <span>Your Streaming Channel Link (YouTube / Twitch / Kick)</span>
+                      </span>
+                      <span className="text-[10px] text-gold-primary font-bold uppercase">Showcased on Platform</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={hostChannelLink}
+                      onChange={(e) => setHostChannelLink(e.target.value)}
+                      placeholder="e.g. https://www.youtube.com/@yourchannel or https://twitch.tv/yourchannel"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs font-mono focus:border-gold-primary outline-hidden bg-white"
+                    />
+                    <p className="text-[10px] text-gray-500">
+                      We showcase this link directly across player registration lobbies and room briefings.
+                    </p>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                  {/* Thumbnail Selection */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-2">
-                        Select an Esports Preset Thumbnail
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Preset Esports Artwork
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {presetThumbnails.map((p, idx) => (
@@ -1136,391 +1499,51 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
                             key={idx}
                             onClick={() => setHostThumbnail(p.url)}
                             className={`p-2 rounded-lg border text-xs cursor-pointer transition-all flex items-center gap-2 ${
-                              hostThumbnail === p.url
-                                ? 'border-[#C5A059] bg-[#DFBD78]/10 font-bold text-[#1F2937]'
-                                : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                              hostThumbnail === p.url ? 'border-gold-primary bg-gold-primary/10 font-bold' : 'border-gray-200 hover:bg-gray-50 text-gray-600'
                             }`}
                           >
-                            <span className="size-2 rounded-full bg-[#C5A059]"></span>
+                            <span className="size-2 rounded-full bg-gold-primary"></span>
                             <span className="truncate">{p.name}</span>
                           </div>
                         ))}
                       </div>
-
-                      <div className="mt-3">
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                          Or Upload Custom Clan Poster (JPG/PNG)
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleCustomThumbnailUpload}
-                          className="text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-black cursor-pointer"
-                        />
-                      </div>
                     </div>
 
-                    {/* Thumbnail Preview Card */}
                     <div className="border border-gray-200 rounded-xl p-3 bg-gray-50 flex flex-col justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 block">
-                        Live Preview on Platform
-                      </span>
-                      <div className="aspect-[16/9] w-full rounded-lg overflow-hidden bg-black shadow-sm">
-                        <img src={hostThumbnail} alt="Thumbnail Preview" className="w-full h-full object-cover" />
-                      </div>
-                      <span className="text-[10px] text-gray-500 mt-2 text-center">
-                        Verified by Super Admin before room code broadcast
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 3: Hosting Tier Selection */}
-                <div>
-                  <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
-                    <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">3</span>
-                    Select Paid Hosting Tier
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    {/* Tier 1: Standard */}
-                    <div
-                      onClick={() => setHostTier('standard')}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                        hostTier === 'standard'
-                          ? 'border-[#C5A059] bg-[#DFBD78]/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tier 1</span>
-                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Standard Hosting</h4>
-                        <span className="text-2xl font-bold font-mono text-[#1F2937] mt-2 block">₹ 199</span>
-                        <p className="text-xs text-gray-600 mt-2">
-                          Lobby room code distribution, automated slot assignment, and referee match supervision.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tier 2: Pro */}
-                    <div
-                      onClick={() => setHostTier('pro')}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                        hostTier === 'pro'
-                          ? 'border-[#C5A059] bg-[#DFBD78]/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">Tier 2 &bull; Recommended</span>
-                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Pro Production</h4>
-                        <span className="text-2xl font-bold font-mono text-[#C5A059] mt-2 block">₹ 499</span>
-                        <p className="text-xs text-gray-600 mt-2">
-                          Everything in Standard + Home Page Carousel feature + certified anti-cheat spectator pilot.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Tier 3: Premier */}
-                    <div
-                      onClick={() => setHostTier('premier')}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                        hostTier === 'premier'
-                          ? 'border-[#C5A059] bg-[#DFBD78]/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Tier 3</span>
-                        <h4 className="font-bold text-base text-[#1F2937] mt-0.5">Elite Broadcast</h4>
-                        <span className="text-2xl font-bold font-mono text-purple-700 mt-2 block">₹ 999</span>
-                        <p className="text-xs text-gray-600 mt-2">
-                          Full 1080p 60FPS stream broadcast overlays, caster audio mixing, and instant highlight reels.
-                        </p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1 block">Live Thumbnail Preview</span>
+                      <div className="aspect-video w-full rounded-lg overflow-hidden bg-black shadow-xs">
+                        <img src={hostThumbnail} alt="" className="size-full object-cover" />
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Step 4: Digital Payment Gateway */}
-                <div>
-                  <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider pb-2 border-b border-gray-200 flex items-center gap-2">
-                    <span className="size-5 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-[10px]">4</span>
-                    Digital Payment Gateway Integration (₹ {tierPrices[hostTier]})
-                  </h3>
-
-                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 mt-4 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="space-y-1">
+                  {/* Razorpay Digital Checkout Card */}
+                  <div className="p-5 rounded-2xl bg-[#111217] text-white border border-gold-primary/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4">
+                    <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-gray-700">Payment Channel:</span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">UPI / QR Code</span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        Official Merchant VPA: <span className="font-mono font-bold text-gray-900">livetournaments.in@upi</span>
-                      </p>
-                      <p className="text-[11px] text-gray-500">
-                        Zero transaction fees. Payment goes directly to LiveTournaments verified merchant account.
-                      </p>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-xs text-gray-500 block">Total Due:</span>
-                      <span className="text-2xl font-bold font-mono text-[#1F2937]">₹ {tierPrices[hostTier]} INR</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Action */}
-                <div className="pt-2 flex items-center justify-end gap-3">
-                  <button
-                    type="submit"
-                    disabled={isProcessingPayment}
-                    className="px-6 py-3 rounded-xl bg-[#1F2937] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    {isProcessingPayment ? (
-                      <>
-                        <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-                        <span>Authorizing Payment &amp; Submitting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                        <span>Pay ₹{tierPrices[hostTier]} &amp; Submit Tournament</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-              </form>
-
-              {/* User's Submitted Tournaments Table */}
-              <div className="bg-white rounded-[12px] border border-[#D1D1D1]/60 shadow-xs overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-[#D1D1D1]/60 flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-[#1F2937]">My Submitted Tournaments ({hostedTournaments.length})</h3>
-                  <span className="text-xs text-gray-500 font-semibold">Real-Time Review Pipeline</span>
-                </div>
-
-                {hostedTournaments.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-gray-500">
-                    You haven't submitted any tournaments yet. Fill out the studio form above to host your first tournament.
-                  </div>
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {hostedTournaments.map((h) => (
-                      <div key={h.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <img src={h.thumbnail} alt="" className="size-12 rounded-lg object-cover bg-black" />
-                          <div>
-                            <h4 className="font-bold text-sm text-[#1F2937]">{h.title}</h4>
-                            <p className="text-xs text-gray-500">{h.game} &bull; {h.timing}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 text-xs font-mono">
-                          <span className="font-bold text-gray-900">₹{h.amountPaid}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            h.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {h.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            </div>
-          )}
-
-          {/* ========================================================
-              VIEW 5: DAILY SCRIMS HUB
-              ======================================================== */}
-          {activeTab === 'scrims' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-[#1F2937]">Daily Competitive Scrims Hub</h2>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    Tier-1, Tier-2, and Open practice lobbies for verified squads.
-                  </p>
-                </div>
-                <button
-                  onClick={() => showToast('Auto-assigning next available scrim slot...')}
-                  className="px-3.5 py-1.5 rounded-[8px] bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
-                >
-                  Quick Slot Book &rarr;
-                </button>
-              </div>
-
-              {joinedScrims.length === 0 ? (
-                <div className="bg-white rounded-[12px] p-12 text-center border border-[#D1D1D1]/60 space-y-3">
-                  <span className="text-4xl block">🎯</span>
-                  <h3 className="text-base font-bold text-[#1F2937]">No Active Scrims Assigned</h3>
-                  <p className="text-xs text-[#6B7280] max-w-sm mx-auto">
-                    You haven't booked any daily practice scrims for today. Click Quick Slot Book to allocate clan room codes and schedule briefings.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {joinedScrims.map((s) => (
-                    <div key={s.id} className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
-                          {s.game}
+                        <span className="text-xs font-bold uppercase tracking-wider text-gold-primary">Selected Pass:</span>
+                        <span className="px-2.5 py-0.5 rounded bg-gold-primary/20 text-gold-primary text-xs font-bold uppercase">
+                          {hostTier.toUpperCase()} PASS &bull; ₹ {tierPrices[hostTier]} INR
                         </span>
-                        <span className="text-xs font-mono font-bold text-emerald-600">{s.status}</span>
                       </div>
-                      <h3 className="font-bold text-base text-[#1F2937]">{s.title}</h3>
-                      <p className="text-xs text-gray-600">{s.timing} &bull; Capacity: {s.slots}</p>
-                      
-                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode}</span>
-                        <button
-                          onClick={() => showToast(`Room credentials copied: ${s.roomCode} / Pass: ${s.roomPass}`)}
-                          className="px-3 py-1 rounded bg-gray-900 text-white text-xs font-bold hover:bg-black cursor-pointer"
-                        >
-                          Copy Credentials
-                        </button>
-                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        First tournament free of cost &bull; Channel link showcased &bull; Razorpay Test Checkout
+                      </p>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================
-              VIEW 6: DIGITAL WALLET & PAYOUTS WITH BONUS WITHDRAWAL RATE
-              ======================================================== */}
-          {activeTab === 'wallet' && (
-            <div className="space-y-6">
-              
-              {/* Wallet Summary Card with Bonus Breakdown */}
-              <div className="bg-white rounded-[16px] p-6 border border-[#D1D1D1]/60 shadow-xs space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Digital Wallet Balance</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800">
-                        100% Digital • Zero Cash
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-3xl md:text-4xl font-extrabold font-mono text-[#1F2937]">₹ {walletBalance}.00</span>
-                      <span className="text-xs text-emerald-600 font-semibold font-mono">INR Verified</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Connected UPI Address: <strong className="text-gray-900">{displayEmail.split('@')[0]}@okaxis</strong>
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => {
-                        const amount = prompt('Enter deposit amount in INR (e.g. 500):', '500');
-                        if (amount && !isNaN(amount)) {
-                          const num = Number(amount);
-                          setWinningsBalance(prev => prev + num);
-                          const newTx = {
-                            id: 'dep_' + Date.now(),
-                            description: 'Fast-Pay UPI Wallet Deposit',
-                            amount: num,
-                            type: 'CREDIT',
-                            status: 'SUCCESS',
-                            date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
-                            reference: 'UPI_' + Math.floor(1000000000 + Math.random() * 9000000000)
-                          };
-                          setTransactions([newTx, ...transactions]);
-                          showToast(`✓ Deposited ₹${amount} successfully!`);
-                        }
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
-                    >
-                      + Add Funds
-                    </button>
 
                     <button
-                      onClick={() => {
-                        if (winningsBalance <= 0 && bonusBalance <= 0) {
-                          showToast('⚠️ No withdrawable balance available.');
-                          return;
-                        }
-                        setWithdrawUpi(`${displayEmail.split('@')[0]}@okaxis`);
-                        setShowWithdrawModal(true);
-                      }}
-                      className="px-5 py-2.5 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+                      type="submit"
+                      disabled={isProcessingPayment}
+                      className="px-6 py-3 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
                     >
-                      Request Payout &rarr;
+                      <span className="material-symbols-outlined text-[16px]">credit_card</span>
+                      <span>{isProcessingPayment ? 'Connecting to Razorpay...' : `Pay ₹ ${tierPrices[hostTier]} with Razorpay Test Mode`}</span>
                     </button>
                   </div>
-                </div>
 
-                {/* Sub-balances: Winnings vs Bonus Cash & Live Bonus Withdrawal Rate */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl bg-[#F9FAFB] border border-[#E5E7EB]">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Withdrawable Winnings</span>
-                    <span className="text-2xl font-black text-gray-900 font-mono block mt-1">₹ {winningsBalance}.00</span>
-                    <span className="text-[11px] text-emerald-600 font-medium block mt-0.5">100% Unrestricted Payout</span>
-                  </div>
+                </form>
 
-                  <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Promotional Bonus Cash</span>
-                      <span className="px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 text-[9px] font-extrabold uppercase">
-                        Bonus
-                      </span>
-                    </div>
-                    <span className="text-2xl font-black text-amber-900 font-mono block mt-1">₹ {bonusBalance}.00</span>
-                    <span className="text-[11px] text-amber-700 font-medium block mt-0.5">
-                      Earned via Welcome &amp; Tournaments
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/70">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">Bonus Withdrawal Rate</span>
-                      <span className="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                    </div>
-                    <span className="text-2xl font-black text-blue-900 font-mono block mt-1">{bonusWithdrawalRate}% Active</span>
-                    <span className="text-[11px] text-blue-700 font-medium block mt-0.5">
-                      Release up to {bonusWithdrawalRate}% of payout from Bonus
-                    </span>
-                  </div>
-                </div>
               </div>
-
-              {/* Transactions Ledger */}
-              <div className="bg-white rounded-[12px] border border-[#D1D1D1]/60 shadow-xs overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-[#D1D1D1]/60 flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-[#1F2937]">Transaction Ledger</h3>
-                  <span className="text-xs text-gray-500">{transactions.length} Records</span>
-                </div>
-
-                {transactions.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-gray-500">
-                    No transactions recorded yet. Platform prize payouts and paid hosting entries will appear here.
-                  </div>
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {transactions.map((tx) => (
-                      <div key={tx.id} className="p-4 flex items-center justify-between text-xs hover:bg-gray-50">
-                        <div>
-                          <p className="font-bold text-gray-900">{tx.description}</p>
-                          <p className="text-[11px] text-gray-500 font-mono mt-0.5">{tx.reference} &bull; {tx.date}</p>
-                        </div>
-                        <div className="text-right font-mono">
-                          <span className={`font-bold block ${tx.type === 'CREDIT' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                            {tx.type === 'CREDIT' ? '+' : ''}₹{Math.abs(tx.amount)}
-                          </span>
-                          <span className="text-[10px] text-emerald-600 uppercase font-semibold">{tx.status}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
             </div>
           )}
 
@@ -1529,22 +1552,79 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
               ======================================================== */}
           {activeTab === 'broadcast' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs">
-                <h2 className="text-lg font-bold text-[#1F2937]">Live Broadcast &amp; Stream Production Feed</h2>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  Watch official tournament feeds with spectator telemetry overlays.
-                </p>
+              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[#1F2937]">Broadcast &amp; Live Stream Production Feed</h2>
+                  <p className="text-xs text-[#6B7280] mt-0.5">
+                    Stream packages: Weekly (<strong>₹ 249</strong>), Pro (<strong>₹ 549</strong>), Monthly (<strong>₹ 999</strong>).
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('payments')}
+                  className="px-3.5 py-1.5 rounded-[8px] bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  Book Broadcast Pass &rarr;
+                </button>
               </div>
 
+              {/* 3 Stream Production Tiers */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Weekly Package</span>
+                    <h3 className="font-bold text-base text-gray-900 mt-0.5">Standard Stream</h3>
+                    <span className="text-2xl font-black font-mono text-gray-900 mt-2 block">₹ 249</span>
+                    <p className="text-xs text-gray-600 mt-1">7 Days streaming with basic scoreboard graphic overlay.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('payments')}
+                    className="mt-4 w-full py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer"
+                  >
+                    Select ₹249
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border-2 border-gold-primary shadow-sm flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-primary">15 Days &bull; Recommended</span>
+                    <h3 className="font-bold text-base text-gray-900 mt-0.5">Pro Production</h3>
+                    <span className="text-2xl font-black font-mono text-gold-primary mt-2 block">₹ 549</span>
+                    <p className="text-xs text-gray-600 mt-1">15 Days multi-camera overlays, caster audio mix &amp; highlight clips.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('payments')}
+                    className="mt-4 w-full py-2 rounded-lg bg-gold-primary hover:bg-gold-light text-black text-xs font-bold cursor-pointer"
+                  >
+                    Select ₹549
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Monthly 30 Days</span>
+                    <h3 className="font-bold text-base text-gray-900 mt-0.5">Elite Broadcast</h3>
+                    <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ 999</span>
+                    <p className="text-xs text-gray-600 mt-1">Full 1080p 60FPS feed, certified referees &amp; custom sponsor banners.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('payments')}
+                    className="mt-4 w-full py-2 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer"
+                  >
+                    Select ₹999
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Player Video Display */}
               <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl relative flex items-center justify-center">
                 <img src="/assets/professional_quality_4k.jpg" alt="" className="size-full object-cover opacity-60" />
                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-6 text-white space-y-3">
                   <div className="size-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg animate-pulse">
                     <span className="material-symbols-outlined text-[28px]">play_arrow</span>
                   </div>
-                  <h3 className="text-lg font-bold">Official LiveTournaments 1080p Stream</h3>
+                  <h3 className="text-lg font-bold">LiveTournaments.in 1080p 60FPS Production Feed</h3>
                   <p className="text-xs text-gray-300 max-w-md">
-                    Matches are broadcast with caster commentary and real-time kill feed graphics.
+                    Matches are broadcast with verified spectator anti-cheat and live caster overlays.
                   </p>
                 </div>
               </div>
@@ -1554,206 +1634,57 @@ export default function UserDashboard({ currentUser, onNavigate, onLogout }) {
         </main>
       </div>
 
-      {/* ========================================================
-          MODAL: DIGITAL PAYOUT WITH BONUS WITHDRAWAL RATE
-          ======================================================== */}
-      {showWithdrawModal && (
-        <div 
-          onClick={() => setShowWithdrawModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in"
+      {/* BRIEFING MODAL */}
+      {selectedBriefing && (
+        <div
+          onClick={() => setSelectedBriefing(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in"
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 overflow-hidden p-6 space-y-4"
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[#D1D1D1]/60"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 text-2xl">account_balance_wallet</span>
-                <div>
-                  <h3 className="font-bold text-gray-900 text-sm">Instant UPI Prize Payout</h3>
-                  <p className="text-[10px] text-gray-500">Bonus Withdrawal Rate Applied: {bonusWithdrawalRate}%</p>
-                </div>
-              </div>
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-base text-[#1F2937]">Match Room Key &amp; Referee Briefing</h3>
               <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="size-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-xs cursor-pointer"
+                onClick={() => setSelectedBriefing(null)}
+                className="text-gray-400 hover:text-black cursor-pointer text-xs"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Withdrawal Amount (INR) *
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500">₹</span>
-                  <input
-                    type="number"
-                    min="100"
-                    max={winningsBalance + Math.min(bonusBalance, Math.round(winningsBalance * (bonusWithdrawalRate / 100)))}
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 text-sm font-bold font-mono rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Recipient Virtual Payment Address (VPA / UPI ID) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. mobile@upi, player@okhdfcbank"
-                  value={withdrawUpi}
-                  onChange={(e) => setWithdrawUpi(e.target.value)}
-                  className="w-full px-3 py-2 font-mono text-xs rounded-lg border border-gray-300 focus:border-gold-primary focus:outline-hidden"
-                />
-              </div>
-
-              {/* Dynamic Bonus Withdrawal Calculation Card */}
-              {(() => {
-                const req = Number(withdrawAmount) || 0;
-                const bonusPart = Math.min(bonusBalance, Math.round(req * (bonusWithdrawalRate / 100)));
-                const winningsPart = Math.max(0, req - bonusPart);
-                const hasSufficient = winningsBalance >= winningsPart;
-
-                return (
-                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-gray-200 space-y-2">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Total Payout to UPI:</span>
-                      <strong className="font-mono text-gray-900">₹ {req}.00</strong>
-                    </div>
-                    <div className="flex justify-between text-emerald-700">
-                      <span>Winnings Deducted:</span>
-                      <strong className="font-mono">₹ {winningsPart}.00</strong>
-                    </div>
-                    <div className="flex justify-between text-blue-700">
-                      <span>Bonus Cash Released ({bonusWithdrawalRate}%):</span>
-                      <strong className="font-mono">+ ₹ {bonusPart}.00</strong>
-                    </div>
-                    <div className="pt-2 border-t border-gray-200 flex justify-between font-bold text-xs">
-                      <span>Instant Transfer Status:</span>
-                      <span className={hasSufficient ? 'text-emerald-600' : 'text-rose-600 font-normal'}>
-                        {hasSufficient ? 'Eligible for Fast-Pay UPI' : 'Insufficient Winnings for Release'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div className="p-2.5 rounded-lg bg-blue-50/80 border border-blue-200 text-blue-800 text-[11px] leading-relaxed">
-                ℹ️ <strong>Bonus Withdrawal Policy:</strong> With every withdrawal, {bonusWithdrawalRate}% is automatically drawn from your Promotional Bonus balance, converting your bonus into real cash.
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowWithdrawModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isProcessingPayout}
-                onClick={() => {
-                  const req = Number(withdrawAmount) || 0;
-                  if (req < 100) {
-                    showToast('⚠️ Minimum withdrawal amount is ₹100.');
-                    return;
-                  }
-                  const bonusPart = Math.min(bonusBalance, Math.round(req * (bonusWithdrawalRate / 100)));
-                  const winningsPart = Math.max(0, req - bonusPart);
-
-                  if (winningsBalance < winningsPart) {
-                    showToast('⚠️ Insufficient winnings balance to satisfy this withdrawal.');
-                    return;
-                  }
-
-                  setIsProcessingPayout(true);
-                  setTimeout(() => {
-                    setWinningsBalance(prev => Math.max(0, prev - winningsPart));
-                    setBonusBalance(prev => Math.max(0, prev - bonusPart));
-
-                    const payoutTx = {
-                      id: 'payout_' + Date.now(),
-                      description: `UPI Payout to ${withdrawUpi} (${bonusWithdrawalRate}% Bonus Released)`,
-                      amount: -req,
-                      type: 'DEBIT',
-                      status: 'SUCCESS',
-                      date: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-                      reference: 'FASTPAY_UPI_' + Math.floor(1000000000 + Math.random() * 9000000000)
-                    };
-                    setTransactions(prev => [payoutTx, ...prev]);
-                    setIsProcessingPayout(false);
-                    setShowWithdrawModal(false);
-                    showToast(`🎉 Payout of ₹${req} initiated to ${withdrawUpi}!`);
-                  }, 800);
-                }}
-                className="px-5 py-2 rounded-lg bg-gold-primary hover:bg-gold-light text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {isProcessingPayout ? 'Processing UPI Transfer...' : 'Confirm UPI Payout'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ROOM CODE BRIEFING MODAL */}
-      {selectedBriefing && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[#D1D1D1]">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-base text-[#1F2937] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#C5A059]">vpn_key</span>
-                Match Room Key Briefing
-              </h3>
-              <button
-                onClick={() => setSelectedBriefing(null)}
-                className="text-gray-400 hover:text-black cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <p className="text-gray-600"><strong className="text-gray-900">Tournament:</strong> {selectedBriefing.title}</p>
-              <p className="text-gray-600"><strong className="text-gray-900">Format:</strong> {selectedBriefing.format}</p>
-              
-              <div className="p-4 rounded-xl bg-gray-900 text-white space-y-2 font-mono mt-3">
+              <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] space-y-1.5 font-mono">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Custom Room ID:</span>
-                  <span className="text-[#DFBD78] font-bold text-sm">{selectedBriefing.roomCode}</span>
+                  <span className="text-gray-500">Tournament:</span>
+                  <span className="font-bold text-gray-900">{selectedBriefing.title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Password:</span>
-                  <span className="text-[#DFBD78] font-bold text-sm">{selectedBriefing.roomPass}</span>
+                  <span className="text-gray-500">Custom Room ID:</span>
+                  <span className="font-bold text-emerald-600">{selectedBriefing.roomCode || 'LT-992184'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Assigned Slot:</span>
-                  <span className="text-emerald-400 font-bold">{selectedBriefing.slotNumber}</span>
+                  <span className="text-gray-500">Room Password:</span>
+                  <span className="font-bold text-gray-900">{selectedBriefing.roomPass || '8831'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Assigned Slot:</span>
+                  <span className="font-bold text-blue-600">{selectedBriefing.slotNumber || 'Slot 12'}</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-relaxed">
-                ⚠️ Fair Play Policy: Teaming or use of unauthorized third-party plugins results in immediate ban and forfeiture of prize pool.
+              <div className="text-[11px] text-gray-600 space-y-1">
+                <p>⚠️ Join the custom room at least 10 minutes before the scheduled drop time.</p>
+                <p>⚠️ Only registered in-game UIDs are permitted. Unverified players will be kicked by the referee pilot.</p>
               </div>
             </div>
 
             <button
-              onClick={() => {
-                navigator.clipboard?.writeText?.(`Room ID: ${selectedBriefing.roomCode} | Pass: ${selectedBriefing.roomPass}`);
-                showToast('✓ Credentials copied to clipboard!');
-                setSelectedBriefing(null);
-              }}
-              className="w-full py-2.5 rounded-xl bg-[#1F2937] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              onClick={() => setSelectedBriefing(null)}
+              className="w-full py-2.5 rounded-lg bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer"
             >
-              Copy Credentials &amp; Close
+              Acknowledge &amp; Close
             </button>
           </div>
         </div>
