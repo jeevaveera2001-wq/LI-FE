@@ -30,6 +30,34 @@ const GAMES_CATALOG = [
 
 export default function GamesSection() {
   const scrollContainerRef = React.useRef(null);
+  const [games, setGames] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_platform_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.games) && parsed.games.length > 0) return parsed.games;
+      }
+    } catch (e) {}
+    return GAMES_CATALOG;
+  });
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      try {
+        const saved = localStorage.getItem('lt_platform_settings');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.games) && parsed.games.length > 0) setGames(parsed.games);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('lt_platform_settings_updated', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('lt_platform_settings_updated', handleSync);
+    };
+  }, []);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -90,7 +118,7 @@ export default function GamesSection() {
               role="region"
               tabIndex="0"
             >
-              {GAMES_CATALOG.map((game) => (
+              {games.map((game) => (
                 <div
                   key={game.name}
                   className="group relative flex w-[249px] h-[249px] flex-none flex-col items-center justify-between rounded-2xl bg-white p-5 shadow-md hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 hover:scale-[1.025] hover:border-gold-primary hover:ring-2 hover:ring-gold-primary/40 relative z-0 hover:z-20 transition-all duration-300 ease-out transform-gpu will-change-transform select-none lg:rounded-3xl cursor-pointer"

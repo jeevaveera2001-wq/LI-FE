@@ -17,6 +17,10 @@ import AboutPage from './components/AboutPage';
 import TournamentsPage from './components/TournamentsPage';
 import TournamentRegistrationPage from './components/TournamentRegistrationPage';
 import PreviousFinishedMatchesSection from './components/PreviousFinishedMatchesSection';
+import HomeLiveBroadcastSection from './components/HomeLiveBroadcastSection';
+import PartnershipPage from './components/PartnershipPage';
+import ChampionshipRegistrationPage from './components/ChampionshipRegistrationPage';
+import ContactUsSection from './components/ContactUsSection';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
@@ -95,6 +99,8 @@ export default function App() {
       if (path.includes('about') || hash.includes('about')) return 'about';
       if (path.includes('tournament-register') || hash.includes('tournament-register')) return 'tournament-register';
       if (path.includes('tournaments') || hash.includes('tournaments')) return 'tournaments';
+      if (path.includes('partners') || hash.includes('partners')) return 'partners';
+      if (path.includes('championship-register') || hash.includes('championship-register')) return 'championship-register';
     }
     return 'home';
   });
@@ -127,6 +133,8 @@ export default function App() {
       else if (page === 'about') targetUrl = '/about';
       else if (page === 'tournaments') targetUrl = '/tournaments';
       else if (page === 'tournament-register') targetUrl = '/tournament-register';
+      else if (page === 'partners') targetUrl = '/partners';
+      else if (page === 'championship-register') targetUrl = '/championship-register';
       else if (page !== 'home') targetUrl = `/${page}`;
 
       if (param && typeof param === 'string') {
@@ -191,6 +199,10 @@ export default function App() {
         setCurrentPage('tournament-register');
       } else if (path.includes('tournaments') || hash.includes('tournaments')) {
         setCurrentPage('tournaments');
+      } else if (path.includes('partners') || hash.includes('partners')) {
+        setCurrentPage('partners');
+      } else if (path.includes('championship-register') || hash.includes('championship-register')) {
+        setCurrentPage('championship-register');
       } else {
         setCurrentPage('home');
         if (window.location.hash) {
@@ -287,17 +299,29 @@ export default function App() {
                   currentUser={currentUser}
                   onNavigate={navigateTo}
                 />
+              ) : currentPage === 'partners' ? (
+                <PartnershipPage
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                />
+              ) : currentPage === 'championship-register' ? (
+                <ChampionshipRegistrationPage
+                  currentUser={currentUser}
+                  onNavigate={navigateTo}
+                />
               ) : (
                 <>
                   <HeroSection onNavigate={navigateTo} />
                   <NewsletterSection />
                   <GamesSection />
+                  <HomeLiveBroadcastSection onNavigate={navigateTo} currentUser={currentUser} />
                   <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />
                   <HostTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <RecapsSection />
-                  <PartnersSection />
+                  <PartnersSection onNavigate={navigateTo} />
+                  <ContactUsSection onNavigate={navigateTo} currentUser={currentUser} />
                 </>
               )}
             </main>

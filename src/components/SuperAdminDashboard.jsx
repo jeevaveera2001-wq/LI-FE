@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DashboardPage from './DashboardPage';
 import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTournamentResultsEmail } from '../utils/emailService';
+import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 
 /**
  * LiveTournaments.in Command Center
@@ -40,6 +41,77 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [vipTournamentTitle, setVipTournamentTitle] = useState('BGMI Community Clan Masters');
   const [vipChannelUrl, setVipChannelUrl] = useState('https://youtube.com/@official_partner');
   const [vipNote, setVipNote] = useState('Official VIP Partner - Zero Payment Clearance');
+
+  // Matches Approvals sub-tab state ('tournaments' | 'scrims' | 'featured' | 'broadcast')
+  const [matchesApprovalTab, setMatchesApprovalTab] = useState('tournaments');
+
+  // Result Verifications State (for Super Admin Result Verifier)
+  const [resultVerifications, setResultVerifications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_admin_result_verifications');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      {
+        id: 'res_sample_1',
+        matchId: 'host_bgmi_101',
+        tournamentTitle: 'BGMI Clan Masters Grand Finals',
+        game: 'BATTLEGROUNDS MOBILE INDIA',
+        hostUser: 'Mortal (Naman Mathur)',
+        hostEmail: 'mortal@teamsoul.in',
+        winnerClan: 'GodLike Esports',
+        runnerUpClan: 'Team Soul',
+        thirdClan: 'Blind Esports',
+        mvp: 'JONATHAN (14 Kills)',
+        posterUrl: '/assets/tournament_bgmi_showdown_4k.jpg',
+        notes: 'Official lobby points verified. Screenshot proof attached. Ready for points table auto-email.',
+        status: 'PENDING_VERIFICATION',
+        submittedAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: 'res_sample_2',
+        matchId: 'scrim_bgmi_202',
+        tournamentTitle: 'Tier-1 Elite Practice Scrims',
+        game: 'BGMI',
+        hostUser: 'ScoutOP (Tanmay Singh)',
+        hostEmail: 'scout@s8ul.gg',
+        winnerClan: 'Team XSpark',
+        runnerUpClan: 'Orangutan Gaming',
+        thirdClan: 'Gladiator Esports',
+        mvp: 'Sarang (11 Kills)',
+        posterUrl: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
+        notes: 'Match 3 Erangel concluded. Standings verified with kill counts.',
+        status: 'PENDING_VERIFICATION',
+        submittedAt: new Date(Date.now() - 7200000).toISOString()
+      }
+    ];
+  });
+  useEffect(() => {
+    localStorage.setItem('lt_admin_result_verifications', JSON.stringify(resultVerifications));
+  }, [resultVerifications]);
+
+  // Platform Settings State (Real-time CMS for Home Arena)
+  const [platformSettings, setPlatformSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_platform_settings');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      heroTitle: 'LIVE TOURNAMENTS INDIA',
+      heroSubtitle: "INDIA'S PREMIER COMPETITIVE ESPORTS ARENA",
+      tagline: 'Join us from now to participate and host your tournaments via LT.IN.',
+      marqueeText: '🔥 BGMI PRO TOURNAMENT REGISTRATIONS OPEN • ₹50,000 PRIZE POOL • DAILY SCRIMS AT 8 PM • 4K YOUTUBE LIVE PRODUCTION',
+      featuredStreamUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+      games: [
+        { name: 'Counter-Strike 2', genre: 'Tactical FPS', logo: 'https://d3h9qea4qy4169.cloudfront.net/cs2_00be38ddd1.png', active: true },
+        { name: 'Valorant', genre: 'Hero Shooter', logo: 'https://d3h9qea4qy4169.cloudfront.net/Valorant_1710f7c511.png', active: true },
+        { name: 'BGMI Pro League', genre: 'Battle Royale', logo: '/assets/tournament_bgmi_showdown_4k.jpg', active: true },
+        { name: 'Fatal Fury: CotW', genre: 'Fighting', logo: 'https://d3h9qea4qy4169.cloudfront.net/Fatal_Fury_5779ac62be.png', active: true },
+        { name: 'Chess.com Masters', genre: 'Strategy', logo: 'https://d3h9qea4qy4169.cloudfront.net/chess_logo_v1_8b2f61713b.png', active: true },
+        { name: 'Dota 2', genre: 'MOBA', logo: 'https://d3h9qea4qy4169.cloudfront.net/dota2_logo_v1_c810ca7889.png', active: true }
+      ]
+    };
+  });
 
   // Live Indian Standard Time (IST - Asia/Kolkata) Clock
   const [currentIndiaDateTime, setCurrentIndiaDateTime] = useState(() => {
@@ -508,24 +580,42 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     const req = broadcastRequests.find(b => b.id === id);
     if (!req) return;
     setBroadcastRequests(prev => prev.filter(b => b.id !== id));
+
+    const rawUrl = req.streamUrl || req.channelLink || req.url || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
+    const val = validateLiveStreamUrl(rawUrl);
+    const validUrl = val.isValid ? val.normalizedUrl : 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
+
+    // Publish to Home Arena Live Broadcast Section
+    const approvedStreamObj = {
+      url: validUrl,
+      title: req.title || `${req.tournament || 'Live Match'} - Stream by ${req.creator || req.organizerName || 'Partner'}`,
+      organizer: req.creator || req.organizerName || 'Verified Streamer',
+      clan: req.clan || req.organizerClan || 'OFFICIAL',
+      game: req.game || 'BGMI',
+      isApproved: true,
+      viewers: 16840
+    };
+    localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
+    window.dispatchEvent(new Event('lt_stream_updated'));
+
     setActiveBroadcasts(prev => [
       {
         id: 'bcast_' + Date.now(),
-        title: `${req.tournament} - Stream by ${req.creator}`,
-        tournament: req.tournament,
-        casters: req.creator,
-        platform: 'Verified Streamer Broadcast',
-        streamUrl: 'https://youtube.com/live',
-        viewers: '0',
+        title: approvedStreamObj.title,
+        tournament: req.tournament || 'Competitive Series',
+        casters: req.creator || req.organizerName,
+        platform: 'YouTube Live Arena',
+        streamUrl: validUrl,
+        viewers: '16,840',
         resolution: '1080p 60FPS',
         bitrate: '8,000 kbps',
         status: 'LIVE ON AIR',
         duration: 'Just Started',
-        thumbnail: '/tournament_bgmi_showdown_4k.jpg'
+        thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg'
       },
       ...prev
     ]);
-    showToast(`✓ Broadcast for ${req.creator} approved and live!`);
+    showToast(`✓ Broadcast for ${req.creator || req.organizerName || 'host'} approved & live on Home Arena!`);
   };
 
   const handleDeclineBroadcastRequest = (id) => {
@@ -697,6 +787,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const pendingPartnerCount = useMemo(() => partnerHostingRequests.filter(r => r.status === 'PENDING').length, [partnerHostingRequests]);
   const pendingFeaturedCount = useMemo(() => featuredRequests.filter(r => r.status === 'PENDING').length, [featuredRequests]);
   const pendingAdCount = useMemo(() => adRequests.filter(r => r.status === 'PENDING').length, [adRequests]);
+  const pendingBroadcastCount = useMemo(() => broadcastRequests.length, [broadcastRequests]);
+  const totalPendingApprovals = useMemo(() => {
+    return pendingHostingCount + pendingScrimsCount + pendingFeaturedCount + pendingBroadcastCount;
+  }, [pendingHostingCount, pendingScrimsCount, pendingFeaturedCount, pendingBroadcastCount]);
+  const pendingResultsCount = useMemo(() => {
+    return resultVerifications.filter(r => r.status === 'PENDING_VERIFICATION').length;
+  }, [resultVerifications]);
 
   // Decision Handlers with Suspend & Block Options
   const handleApproveHosting = (id) => {
@@ -800,6 +897,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     const cleanEmail = vipEmail.toLowerCase().trim();
     const cleanName = vipName.trim() || cleanEmail.split('@')[0];
 
+    let validVipChannel = vipChannelUrl || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
+    if (vipChannelUrl && vipChannelUrl.trim()) {
+      const val = validateLiveStreamUrl(vipChannelUrl);
+      if (!val.isValid) {
+        showToast(`⚠️ ${val.error}`);
+        return;
+      }
+      validVipChannel = val.normalizedUrl;
+    }
+
     const vipEntry = {
       id: 'vip_host_' + Date.now(),
       title: vipTournamentTitle || 'VIP Partner Tournament',
@@ -813,7 +920,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       timing: 'Direct Clearance',
       thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg',
       tier: 'VIP_DIRECT',
-      channelLink: vipChannelUrl || 'https://youtube.com/@livetournament_in',
+      channelLink: validVipChannel,
       amountPaid: 0,
       paymentRef: 'SUPERADMIN_VIP_OVERRIDE',
       roomCode: 'VIP-' + Math.floor(100000 + Math.random() * 900000),
@@ -829,6 +936,33 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     };
 
     setHostingRequests(prev => [vipEntry, ...prev]);
+
+    // Publish room ID and password directly without admin block
+    try {
+      const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+      publishedCreds[vipEntry.id] = {
+        roomCode: vipEntry.roomCode,
+        roomPass: vipEntry.roomPass,
+        publishedAt: new Date().toISOString(),
+        directAccess: true
+      };
+      localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+    } catch (e) {}
+
+    // If VIP includes broadcast, set as active stream on Home Arena
+    if (vipPrivilege.includes('Broadcast') || validVipChannel) {
+      const approvedStreamObj = {
+        url: validVipChannel,
+        title: vipTournamentTitle || 'VIP Partner Live Stream',
+        organizer: cleanName,
+        clan: 'VIP',
+        game: 'BGMI',
+        isApproved: true,
+        viewers: 22400
+      };
+      localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
+      window.dispatchEvent(new Event('lt_stream_updated'));
+    }
 
     // Sync to user's hosted tournaments
     try {
@@ -893,6 +1027,77 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const handleRejectAd = (id) => {
     setAdRequests(prev => prev.map(a => a.id === id ? { ...a, status: 'REJECTED' } : a));
     showToast('❌ Sponsorship Deal Declined');
+  };
+
+  // Result Verifier Handlers
+  const handleVerifyResult = async (resultId) => {
+    const res = resultVerifications.find(r => r.id === resultId);
+    if (!res) return;
+
+    const updated = resultVerifications.map(r => r.id === resultId ? { ...r, status: 'VERIFIED' } : r);
+    setResultVerifications(updated);
+    localStorage.setItem('lt_admin_result_verifications', JSON.stringify(updated));
+
+    // Save to finished matches on Home Arena
+    try {
+      const finishedMatches = JSON.parse(localStorage.getItem('lt_finished_matches') || '[]');
+      const newFinished = {
+        id: 'fin_' + Date.now(),
+        title: res.tournamentTitle,
+        game: res.game || 'BGMI',
+        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        winnerClan: res.winnerClan,
+        runnerUp: res.runnerUpClan,
+        thirdPlace: res.thirdClan,
+        mvp: res.mvp,
+        thumbnail: res.posterUrl || '/assets/tournament_bgmi_showdown_4k.jpg',
+        status: 'COMPLETED & VERIFIED'
+      };
+      localStorage.setItem('lt_finished_matches', JSON.stringify([newFinished, ...finishedMatches]));
+    } catch (e) {}
+
+    // Send automated results & points table email
+    await sendTournamentResultsEmail({
+      email: res.hostEmail || 'organizer@livetournaments.in',
+      name: res.hostUser || 'Match Organizer',
+      tournamentTitle: res.tournamentTitle,
+      winnerClan: res.winnerClan,
+      posterUrl: res.posterUrl
+    });
+
+    showToast(`✓ Result verified! Points table published to Home Arena and emailed to participants.`);
+  };
+
+  const handleRejectResult = (resultId) => {
+    setResultVerifications(prev => prev.map(r => r.id === resultId ? { ...r, status: 'NEEDS_REVISION' } : r));
+    showToast(`⚠️ Result rejected: Revision requested from host clan.`);
+  };
+
+  // Save Platform Settings & Broadcast to Home Arena
+  const handleSavePlatformSettings = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (platformSettings.featuredStreamUrl) {
+      const val = validateLiveStreamUrl(platformSettings.featuredStreamUrl);
+      if (!val.isValid) {
+        showToast(`⚠️ ${val.error}`);
+        return;
+      }
+      const approvedStreamObj = {
+        url: val.normalizedUrl,
+        title: platformSettings.heroTitle || 'Live Tournament Production Feed',
+        organizer: 'Official Super Admin Arena',
+        clan: 'ADMIN',
+        game: 'ESPORTS ARENA',
+        isApproved: true,
+        viewers: 18450
+      };
+      localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
+      window.dispatchEvent(new Event('lt_stream_updated'));
+    }
+
+    localStorage.setItem('lt_platform_settings', JSON.stringify(platformSettings));
+    window.dispatchEvent(new Event('lt_platform_settings_updated'));
+    showToast('✓ Platform settings saved! Home Arena titles, games & stream updated.');
   };
 
   const handleCreateTournament = (e) => {
@@ -977,173 +1182,98 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </span>
         </div>
 
-        {/* Sidebar Nav Items (Static & Non-scrollable) */}
-        <div className="flex-1 overflow-hidden px-3 py-2 space-y-0.5 text-[11px] font-medium">
-          {/* Present Day (Exact gold outline/fill from screenshot) */}
+        {/* Sidebar Nav Items (Exact 9 Dedicated Sections per User Architecture Spec) */}
+        <div className="flex-1 overflow-hidden px-3 py-2 space-y-1 text-[11px] font-medium">
+          {/* 1. Present Day & Dashboard */}
           <button
-            onClick={() => { setActiveTab('present-day'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'present-day' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'dashboard' || activeTab === 'present-day' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-            <span className="flex-1">Present Day</span>
+            <span className="material-symbols-outlined text-[16px]">dashboard</span>
+            <span className="flex-1 text-left">Present Day &amp; Dashboard</span>
             <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
           </button>
 
-          {/* Dashboard */}
+          {/* 2. Matches Approvals (Tournaments, Scrims, Featured, Broadcast) */}
           <button
-            onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('matches-approvals'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'matches-approvals' || activeTab === 'hosting-requests' || activeTab === 'scrims-requests' || activeTab === 'featured-requests' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">dashboard</span>
-            <span className="flex-1">Dashboard</span>
-          </button>
-          {/* Tournament Hostings */}
-          <button
-            onClick={() => { setActiveTab('hosting-requests'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'hosting-requests' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-            <span className="flex-1">Tournament Hostings</span>
-            {pendingHostingCount > 0 && (
+            <span className="material-symbols-outlined text-[16px]">verified</span>
+            <span className="flex-1 text-left">Matches Approvals</span>
+            {totalPendingApprovals > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
-                {pendingHostingCount}
+                {totalPendingApprovals}
               </span>
             )}
           </button>
 
-          {/* Scrims Requests */}
+          {/* 3. Result Verifier */}
           <button
-            onClick={() => { setActiveTab('scrims-requests'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'scrims-requests' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('result-verifier'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'result-verifier' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-            <span className="flex-1">Daily & Weekly Scrims</span>
-            {pendingScrimsCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
-                {pendingScrimsCount}
-              </span>
-            )}
-          </button>
-
-          {/* Partner Hostings */}
-          <button
-            onClick={() => { setActiveTab('partner-hostings'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'partner-hostings' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
-            <span className="flex-1">Partner Hostings</span>
-            {pendingPartnerCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
-                {pendingPartnerCount}
-              </span>
-            )}
-          </button>
-
-          {/* Featured Arena */}
-          <button
-            onClick={() => { setActiveTab('featured-requests'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'featured-requests' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">star</span>
-            <span className="flex-1">Featured Arena</span>
-            {pendingFeaturedCount > 0 && (
+            <span className="material-symbols-outlined text-[16px]">fact_check</span>
+            <span className="flex-1 text-left">Result Verifier</span>
+            {pendingResultsCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
-                {pendingFeaturedCount}
+                {pendingResultsCount}
               </span>
             )}
           </button>
 
-          {/* Ad & Sponsor Deals */}
+          {/* 4. User Data */}
           <button
-            onClick={() => { setActiveTab('ad-requests'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'ad-requests' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">campaign</span>
-            <span className="flex-1">Ad & Sponsor Deals</span>
-            {pendingAdCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-500/30">
-                {pendingAdCount}
-              </span>
-            )}
-          </button>
-
-          {/* Section Divider */}
-          <div className="pt-2 pb-1">
-            <div className="h-px bg-[#1F2937]/80 my-1"></div>
-            <span className="px-3 text-[9px] font-bold uppercase tracking-wider text-[#6B7280]">Live Platform Modules</span>
-          </div>
-
-          {/* All Tournaments */}
-          <button
-            onClick={() => { setActiveTab('all-tournaments'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'all-tournaments' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">emoji_events</span>
-            <span className="flex-1">All Tournaments</span>
-          </button>
-
-          {/* Active Match Rooms */}
-          <button
-            onClick={() => { setActiveTab('active-matches'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'active-matches' ? 'active' : ''}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">meeting_room</span>
-            <span className="flex-1">Active Match Rooms</span>
-            <span className="size-2 rounded-full bg-[#10B981] animate-pulse"></span>
-          </button>
-
-          {/* User Database */}
-          <button
-            onClick={() => { setActiveTab('user-database'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'user-database' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('user-data'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'user-data' || activeTab === 'user-database' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">groups</span>
-            <span className="flex-1">User Database</span>
+            <span className="flex-1 text-left">User Data</span>
           </button>
 
-          {/* Broadcast & Stream Production */}
+          {/* 5. Reports */}
           <button
-            onClick={() => { setActiveTab('broadcast-stream'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'broadcast-stream' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('reports'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'reports' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">live_tv</span>
-            <span className="flex-1">Broadcast & Stream Production</span>
+            <span className="material-symbols-outlined text-[16px]">summarize</span>
+            <span className="flex-1 text-left">Reports</span>
           </button>
 
-          {/* Reports & Analytics */}
+          {/* 6. Analytics */}
           <button
-            onClick={() => { setActiveTab('reports-analytics'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'reports-analytics' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('analytics'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
-            <span className="flex-1">Reports & Analytics</span>
+            <span className="material-symbols-outlined text-[16px]">monitoring</span>
+            <span className="flex-1 text-left">Analytics</span>
           </button>
 
-          {/* Activity Logs */}
+          {/* 7. Activity Logs */}
           <button
             onClick={() => { setActiveTab('activity-logs'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'activity-logs' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">event_note</span>
-            <span className="flex-1">Activity Logs</span>
+            <span className="material-symbols-outlined text-[16px]">history</span>
+            <span className="flex-1 text-left">Activity Logs</span>
           </button>
 
-          {/* Payments & Transaction History */}
+          {/* 8. Payments */}
           <button
             onClick={() => { setActiveTab('payments'); setSidebarOpen(false); }}
             className={`nagulan-sidebar-btn ${activeTab === 'payments' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-            <span className="flex-1">Payment History</span>
+            <span className="flex-1 text-left">Payment History</span>
           </button>
 
-          {/* Platform Settings */}
+          {/* 9. Platform Settings */}
           <button
-            onClick={() => { showToast('LiveTournaments Engine Settings: All Systems Operational'); setSidebarOpen(false); }}
-            className="nagulan-sidebar-btn"
+            onClick={() => { setActiveTab('platform-settings'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'platform-settings' ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px]">settings</span>
-            <span className="flex-1">Platform Settings</span>
+            <span className="flex-1 text-left">Platform Settings</span>
           </button>
         </div>
 
@@ -1218,90 +1348,88 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
         </header>
 
-        {/* SUB-NAVIGATION TABS (Mobile / Small Screen Only) */}
+        {/* SUB-NAVIGATION TABS (Mobile / Small Screen Only - Exact 9 Sections) */}
         <nav className="lg:hidden bg-white border-b border-[#D1D1D1]/60 px-4 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold scrollbar-none">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'dashboard' || activeTab === 'present-day' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span className="material-symbols-outlined text-[14px]">dashboard</span>
           <span>Dashboard</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('present-day')}
-          className={`px-3 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'present-day' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('matches-approvals')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'matches-approvals' || activeTab === 'hosting-requests' || activeTab === 'scrims-requests' || activeTab === 'featured-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span className="material-symbols-outlined text-[14px] text-[#DFBD78]">calendar_today</span>
-          <span>Present Day Live</span>
-          <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse ml-0.5"></span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('hosting-requests')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'hosting-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
-        >
-          <span>Hosting Requests</span>
-          {pendingHostingCount > 0 && (
+          <span className="material-symbols-outlined text-[14px]">verified</span>
+          <span>Matches Approvals</span>
+          {totalPendingApprovals > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
-              {pendingHostingCount}
+              {totalPendingApprovals}
             </span>
           )}
         </button>
 
         <button
-          onClick={() => setActiveTab('scrims-requests')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'scrims-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('result-verifier')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'result-verifier' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span>Scrims Requests</span>
-          {pendingScrimsCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[#3B82F6] text-[9px] font-bold">
-              {pendingScrimsCount}
+          <span className="material-symbols-outlined text-[14px]">fact_check</span>
+          <span>Result Verifier</span>
+          {pendingResultsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">
+              {pendingResultsCount}
             </span>
           )}
         </button>
 
         <button
-          onClick={() => setActiveTab('partner-hostings')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'partner-hostings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('user-data')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'user-data' || activeTab === 'user-database' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span>Partner Hostings</span>
-          {pendingPartnerCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-[#059669] text-[9px] font-bold">
-              {pendingPartnerCount}
-            </span>
-          )}
+          <span className="material-symbols-outlined text-[14px]">groups</span>
+          <span>User Data</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('featured-requests')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'featured-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('reports')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'reports' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span>Featured Requests</span>
-          {pendingFeaturedCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-[#9333EA] text-[9px] font-bold">
-              {pendingFeaturedCount}
-            </span>
-          )}
+          <span className="material-symbols-outlined text-[14px]">summarize</span>
+          <span>Reports</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('ad-requests')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'ad-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('analytics')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'analytics' || activeTab === 'reports-analytics' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span>Ad & Sponsor Deals</span>
-          {pendingAdCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-[#EF4444] text-[9px] font-bold">
-              {pendingAdCount}
-            </span>
-          )}
+          <span className="material-symbols-outlined text-[14px]">monitoring</span>
+          <span>Analytics</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('all-in-one')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'all-in-one' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('activity-logs')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'activity-logs' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span>All in One</span>
+          <span className="material-symbols-outlined text-[14px]">history</span>
+          <span>Activity Logs</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('payments')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'payments' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px]">receipt_long</span>
+          <span>Payments</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('platform-settings')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'platform-settings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px]">settings</span>
+          <span>Settings</span>
         </button>
 
         <div className="ml-auto flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
@@ -1765,9 +1893,84 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {/* ========================================================
+            VIEW: MATCHES APPROVALS SUB-NAV (Tournaments, Scrims, Featured, Broadcast)
+            ======================================================== */}
+        {(activeTab === 'matches-approvals') && (
+          <div className="bg-white rounded-[14px] p-2 border border-[#D1D1D1]/60 flex flex-wrap items-center gap-2 shadow-xs mb-3 animate-fade-in">
+            <button
+              onClick={() => setMatchesApprovalTab('tournaments')}
+              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                matchesApprovalTab === 'tournaments'
+                  ? 'bg-[#1F2937] text-white shadow-xs'
+                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">emoji_events</span>
+              <span>Tournaments Approvals</span>
+              {pendingHostingCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[9px] font-black">
+                  {pendingHostingCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setMatchesApprovalTab('scrims')}
+              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                matchesApprovalTab === 'scrims'
+                  ? 'bg-[#1F2937] text-white shadow-xs'
+                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">swords</span>
+              <span>Daily Scrims Approvals</span>
+              {pendingScrimsCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-blue-500 text-white text-[9px] font-black">
+                  {pendingScrimsCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setMatchesApprovalTab('featured')}
+              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                matchesApprovalTab === 'featured'
+                  ? 'bg-[#1F2937] text-white shadow-xs'
+                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">stars</span>
+              <span>Featured Tournaments Approvals</span>
+              {pendingFeaturedCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-purple-500 text-white text-[9px] font-black">
+                  {pendingFeaturedCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setMatchesApprovalTab('broadcast')}
+              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                matchesApprovalTab === 'broadcast'
+                  ? 'bg-[#1F2937] text-white shadow-xs'
+                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">live_tv</span>
+              <span>Broadcast &amp; Stream Production Approvals</span>
+              {broadcastRequests.filter(b => b.status === 'PENDING').length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black">
+                  {broadcastRequests.filter(b => b.status === 'PENDING').length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* ========================================================
             VIEW: REQUEST SECTIONS (USER HOSTING, SCRIMS, PARTNER, FEATURED, ADS)
             ======================================================== */}
-        {(activeTab === 'hosting-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'tournaments') || activeTab === 'hosting-requests' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -1968,7 +2171,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </section>
         )}
 
-        {(activeTab === 'scrims-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'scrims') || activeTab === 'scrims-requests' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -2191,7 +2394,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </section>
         )}
 
-        {(activeTab === 'featured-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'featured') || activeTab === 'featured-requests' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
             <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
               <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
@@ -2636,7 +2839,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* ========================================================
             VIEW 3: USER DATABASE (SPECIFIC USER IDs & ACTIVE, SUSPEND, BLOCK CONTROLS)
             ======================================================== */}
-        {activeTab === 'user-database' && (
+        {(activeTab === 'user-data' || activeTab === 'user-database' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -2860,7 +3063,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* ========================================================
             VIEW 4: BROADCAST & STREAM PRODUCTION (LIVE & REQUESTS)
             ======================================================== */}
-        {activeTab === 'broadcast-stream' && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast') || activeTab === 'broadcast-stream' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -3042,7 +3245,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* ========================================================
             VIEW 5: REPORTS & ANALYTICS (PLAYER, MATCHES, TOURNAMENTS, SCRIMS)
             ======================================================== */}
-        {activeTab === 'reports-analytics' && (
+        {(activeTab === 'reports' || activeTab === 'analytics' || activeTab === 'reports-analytics' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-5 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -3471,6 +3674,350 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </tbody>
               </table>
             </div>
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 3: RESULT VERIFIER (OFFICIAL POST-MATCH CERTIFICATION)
+            ======================================================== */}
+        {(activeTab === 'result-verifier' || activeTab === 'all-in-one') && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-purple-600 text-[20px]">fact_check</span>
+                  Match Result Verifier &amp; Scoreboard Certification
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Inspect organizer scoreboard submissions, verify screenshot proof, validate winner clans, and certify results to push directly to Home Arena and dispatch participant emails.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 text-[11px] font-bold border border-purple-200">
+                  {pendingResultsCount} Awaiting Verification
+                </span>
+              </div>
+            </div>
+
+            {/* List of Match Result Submissions */}
+            {resultVerifications.length === 0 ? (
+              <div className="py-12 text-center text-gray-400">
+                <span className="material-symbols-outlined text-[36px] text-gray-300 block mb-1">fact_check</span>
+                <span className="font-bold text-gray-700 block text-xs">No Match Results Submitted Yet</span>
+                <span className="text-[11px] text-gray-400">When organizers complete matches and submit scores via User Dashboard, they will appear here for inspection.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {resultVerifications.map((item) => (
+                  <div key={item.id} className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-4.5 space-y-3.5 hover:border-purple-300 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E7EB] pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-[14px] text-gray-900">{item.tournamentTitle}</h4>
+                          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-mono text-[10px] font-bold border border-blue-200">
+                            {item.game}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          Host Organizer: <strong className="text-gray-800">{item.hostUser}</strong> ({item.hostEmail}) • Match ID: <span className="font-mono">{item.matchId}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        {item.status === 'VERIFIED' ? (
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold border border-emerald-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                            Certified &amp; Published
+                          </span>
+                        ) : item.status === 'NEEDS_REVISION' ? (
+                          <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-[10.5px] font-bold border border-rose-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">error</span>
+                            Revision Requested
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10.5px] font-bold border border-amber-300 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">pending</span>
+                            Pending SuperAdmin Review
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Standings Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                      <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-2.5">
+                        <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">🥇 1st Place (Winner)</span>
+                        <span className="font-bold text-gray-900 text-[12px] block mt-0.5">{item.winnerClan}</span>
+                      </div>
+                      <div className="bg-gray-100/80 border border-gray-300/80 rounded-xl p-2.5">
+                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-wider block">🥈 2nd Place (Runner-up)</span>
+                        <span className="font-bold text-gray-900 text-[12px] block mt-0.5">{item.runnerUpClan}</span>
+                      </div>
+                      <div className="bg-amber-900/10 border border-amber-800/20 rounded-xl p-2.5">
+                        <span className="text-[9px] font-bold text-amber-900 uppercase tracking-wider block">🥉 3rd Place</span>
+                        <span className="font-bold text-gray-900 text-[12px] block mt-0.5">{item.thirdClan}</span>
+                      </div>
+                      <div className="bg-purple-50/80 border border-purple-200/80 rounded-xl p-2.5">
+                        <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block">🎖️ Match MVP</span>
+                        <span className="font-bold text-gray-900 text-[12px] block mt-0.5">{item.mvp}</span>
+                      </div>
+                    </div>
+
+                    {/* Screenshot Proof Preview & Notes */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+                      <div className="flex items-center gap-3">
+                        {item.posterUrl && (
+                          <div 
+                            onClick={() => window.open(item.posterUrl, '_blank')}
+                            className="relative size-16 rounded-xl overflow-hidden border border-gray-300 shrink-0 cursor-pointer group"
+                            title="Click to view full screenshot proof"
+                          >
+                            <img src={item.posterUrl} alt="Scoreboard Proof" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="material-symbols-outlined text-white text-[18px]">zoom_in</span>
+                            </div>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Organizer Verification Notes</span>
+                          <p className="text-[11.5px] text-gray-700 italic max-w-xl">"{item.notes || 'Official room points verified. Result ready for public archive.'}"</p>
+                          <span className="text-[9.5px] text-gray-400 font-mono block mt-0.5">Submitted: {new Date(item.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        {item.status !== 'VERIFIED' ? (
+                          <>
+                            <button
+                              onClick={() => handleRejectResult(item.id)}
+                              className="px-3 py-1.5 rounded-[8px] bg-gray-200 hover:bg-rose-100 text-gray-700 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              Request Revision
+                            </button>
+                            <button
+                              onClick={() => handleVerifyResult(item.id)}
+                              className="px-4 py-1.5 rounded-[8px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">verified</span>
+                              <span>Verify &amp; Publish</span>
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => onNavigate && onNavigate('home')}
+                            className="px-3 py-1.5 rounded-[8px] bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                            <span>View on Home Arena</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 9: PLATFORM SETTINGS (LIVE HOME ARENA CMS)
+            ======================================================== */}
+        {(activeTab === 'platform-settings' || activeTab === 'all-in-one') && (
+          <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-5 animate-fade-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px]">settings</span>
+                  Platform Settings &amp; Live Home Arena CMS
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Update Home Arena titles, marketing headlines, marquee ticker announcements, featured YouTube broadcast, and manage the upcoming games catalog in real-time.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSavePlatformSettings}
+                  className="px-4 py-2 rounded-[8px] bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Save All Changes</span>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSavePlatformSettings} className="space-y-5">
+              {/* Home Arena Hero CMS */}
+              <div className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-4.5 space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-[#C5A059]">title</span>
+                  Hero Banner Titles &amp; Headings
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">Hero Main Title</label>
+                    <input
+                      type="text"
+                      value={platformSettings.heroTitle}
+                      onChange={(e) => setPlatformSettings({ ...platformSettings, heroTitle: e.target.value })}
+                      placeholder="e.g. LIVE TOURNAMENTS INDIA"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#C5A059]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">Hero Subtitle Badge</label>
+                    <input
+                      type="text"
+                      value={platformSettings.heroSubtitle}
+                      onChange={(e) => setPlatformSettings({ ...platformSettings, heroSubtitle: e.target.value })}
+                      placeholder="e.g. INDIA'S PREMIER COMPETITIVE ESPORTS ARENA"
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#C5A059]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Tagline &amp; CTA Description</label>
+                  <input
+                    type="text"
+                    value={platformSettings.tagline}
+                    onChange={(e) => setPlatformSettings({ ...platformSettings, tagline: e.target.value })}
+                    placeholder="Join us from now to participate and host your tournaments via LT.IN."
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-xs text-gray-900 focus:outline-none focus:border-[#C5A059]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Marquee Ticker Text (Announcements)</label>
+                  <input
+                    type="text"
+                    value={platformSettings.marqueeText}
+                    onChange={(e) => setPlatformSettings({ ...platformSettings, marqueeText: e.target.value })}
+                    placeholder="🔥 BGMI PRO TOURNAMENT REGISTRATIONS OPEN • ₹50,000 PRIZE POOL • DAILY SCRIMS AT 8 PM"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-xs font-mono text-gray-900 focus:outline-none focus:border-[#C5A059]"
+                  />
+                </div>
+              </div>
+
+              {/* Live Broadcast Stream Setting */}
+              <div className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-4.5 space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-rose-500">live_tv</span>
+                  Featured Homepage Broadcast Stream (YouTube Only)
+                </h4>
+                <p className="text-[11px] text-gray-500">
+                  Enter the official YouTube stream URL displayed on the Homepage Live Broadcast section. Must begin with <code className="text-rose-600 font-bold">www.</code> and contain <code className="text-rose-600 font-bold">youtube</code>.
+                </p>
+                <div>
+                  <input
+                    type="url"
+                    value={platformSettings.featuredStreamUrl}
+                    onChange={(e) => setPlatformSettings({ ...platformSettings, featuredStreamUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 text-xs font-mono text-gray-900 focus:outline-none focus:border-rose-500"
+                  />
+                  <span className="text-[10px] text-gray-400 block mt-1 font-mono">
+                    Rule: URL must start with www. (or https://www. / http://www.) and contain youtube. Raw hashtags (#) or handles (@) are blocked.
+                  </span>
+                </div>
+              </div>
+
+              {/* Upcoming Games Management */}
+              <div className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-4.5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] text-indigo-500">sports_esports</span>
+                    Upcoming Games &amp; Titles Catalog
+                  </h4>
+                  <span className="text-xs text-gray-500 font-bold">
+                    {platformSettings.games?.length || 0} Games Listed
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {platformSettings.games?.map((game, idx) => (
+                    <div key={idx} className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {game.logo && (
+                          <img src={game.logo} alt={game.name} className="size-9 rounded-lg object-cover border border-gray-200 shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-gray-900 truncate block">{game.name}</span>
+                          <span className="text-[10px] text-gray-500 truncate block">{game.genre}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = platformSettings.games.filter((_, i) => i !== idx);
+                          setPlatformSettings({ ...platformSettings, games: updated });
+                        }}
+                        className="text-gray-400 hover:text-rose-500 p-1 rounded transition-colors cursor-pointer shrink-0"
+                        title="Remove Game"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Game Bar */}
+                <div className="pt-2 border-t border-gray-200 flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    id="new-game-title"
+                    placeholder="New Game Title (e.g. Free Fire MAX)"
+                    className="flex-1 px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-xs text-gray-900 focus:outline-none focus:border-indigo-500"
+                  />
+                  <input
+                    type="text"
+                    id="new-game-genre"
+                    placeholder="Genre (e.g. Battle Royale)"
+                    className="w-full sm:w-44 px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-xs text-gray-900 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nameInput = document.getElementById('new-game-title');
+                      const genreInput = document.getElementById('new-game-genre');
+                      if (!nameInput?.value.trim()) return;
+                      const newG = {
+                        name: nameInput.value.trim(),
+                        genre: genreInput?.value.trim() || 'Esports Title',
+                        logo: '/assets/tournament_bgmi_showdown_4k.jpg',
+                        active: true
+                      };
+                      setPlatformSettings({
+                        ...platformSettings,
+                        games: [...(platformSettings.games || []), newG]
+                      });
+                      nameInput.value = '';
+                      if (genreInput) genreInput.value = '';
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    <span>Add Game</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit CTA */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-[10px] bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md cursor-pointer transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Save &amp; Publish Platform Settings</span>
+                </button>
+              </div>
+            </form>
           </section>
         )}
       </main>

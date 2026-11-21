@@ -1,7 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function HeroSection({ onNavigate }) {
   const videoRef = useRef(null);
+  const [platformSettings, setPlatformSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_platform_settings');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const saved = localStorage.getItem('lt_platform_settings');
+        if (saved) setPlatformSettings(JSON.parse(saved));
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('lt_platform_settings_updated', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('lt_platform_settings_updated', handleSync);
+    };
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -87,7 +110,9 @@ export default function HeroSection({ onNavigate }) {
           </div>
 
           <div className="mx-auto w-full max-w-[850px] text-center flex items-center justify-center">
-            <p className="primary-bold-s14-lh120 md:primary-bold-s21-lh120 text-white uppercase text-center">Join us from now to participate and host your tournaments via LT.IN.</p>
+            <p className="primary-bold-s14-lh120 md:primary-bold-s21-lh120 text-white uppercase text-center">
+              {platformSettings?.tagline || 'Join us from now to participate and host your tournaments via LT.IN.'}
+            </p>
           </div>
 
           {/* Bouncing Scroll Indicator */}

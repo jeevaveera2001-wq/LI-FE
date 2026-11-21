@@ -5,6 +5,7 @@ import {
   sendTournamentReminderEmail,
   sendTournamentResultsEmail
 } from '../utils/emailService';
+import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 
 export default function UserDashboard({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
   // Navigation Tabs strictly ordered:
@@ -42,17 +43,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   // Helper to extract clean YouTube embed URL
   const getEmbedYouTubeUrl = (url) => {
     if (!url) return null;
-    try {
-      const trimmed = url.trim();
-      const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-      if (shortMatch && shortMatch[1]) return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1&mute=1`;
-      const liveMatch = trimmed.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
-      if (liveMatch && liveMatch[1]) return `https://www.youtube.com/embed/${liveMatch[1]}?autoplay=1&mute=1`;
-      const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]+)/);
-      if (watchMatch && watchMatch[1]) return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1&mute=1`;
-      if (trimmed.includes('youtube.com/embed/')) return trimmed;
-    } catch (e) {}
-    return null;
+    return getYouTubeEmbedUrl(url);
   };
 
   // Helper to purge legacy mock items
@@ -249,6 +240,16 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     { name: 'Pro Esports Arena', url: '/assets/host_directly_4k.jpg' },
   ];
 
+  // Result Submission Modal State (for Super Admin Result Verifier)
+  const [showResultSubmitModal, setShowResultSubmitModal] = useState(false);
+  const [resultMatch, setResultMatch] = useState(null);
+  const [resultWinnerClan, setResultWinnerClan] = useState('GodLike Esports');
+  const [resultRunnerUpClan, setResultRunnerUpClan] = useState('Team Soul');
+  const [resultThirdClan, setResultThirdClan] = useState('Blind Esports');
+  const [resultMvp, setResultMvp] = useState('JONATHAN (14 Kills)');
+  const [resultPosterUrl, setResultPosterUrl] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
+  const [resultNotes, setResultNotes] = useState('Grand Finals Match concluded with official clan points recorded.');
+
   const displayName = currentUser?.name || currentUser?.username || 'Competitor';
   const displayEmail = currentUser?.email || 'player@livetournaments.in';
   const currentDateStr = new Date().toLocaleDateString('en-IN', {
@@ -330,6 +331,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       return;
     }
 
+    if (conductLiveUrl && conductLiveUrl.trim()) {
+      const val = validateLiveStreamUrl(conductLiveUrl);
+      if (!val.isValid) {
+        showToast(`⚠️ ${val.error}`);
+        return;
+      }
+    }
+
     triggerRazorpayCheckout({
       amount: 10,
       description: `Tournament Room Conduct: ${conductTitle} (₹10 Single Match)`,
@@ -363,7 +372,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         setHostedTournaments(updatedRooms);
         localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
 
-        // Sync to Super Admin Hosting Requests Queue
+        // Unique Room ID and password are directly published to players without admin approval
+        try {
+          const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+          publishedCreds[newRoom.id] = {
+            roomCode: conductRoomCode,
+            roomPass: conductRoomPass,
+            publishedAt: new Date().toISOString(),
+            directAccess: true
+          };
+          localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+        } catch (e) {}
+
+        // Sync to Super Admin Hosting Requests Queue for Public Listing Approval
         try {
           const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
           localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newRoom, ...adminHostings]));
@@ -425,6 +446,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       return;
     }
 
+    if (scrimLiveUrl && scrimLiveUrl.trim()) {
+      const val = validateLiveStreamUrl(scrimLiveUrl);
+      if (!val.isValid) {
+        showToast(`⚠️ ${val.error}`);
+        return;
+      }
+    }
+
     triggerRazorpayCheckout({
       amount: 50,
       description: `Daily Scrims Conduct: ${scrimTitle} (₹50 Base)`,
@@ -457,6 +486,18 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         const updatedRooms = [newScrim, ...hostedTournaments];
         setHostedTournaments(updatedRooms);
         localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
+
+        // Unique Scrim Room ID and password are directly published to players without admin approval
+        try {
+          const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+          publishedCreds[newScrim.id] = {
+            roomCode: scrimRoomCode,
+            roomPass: scrimRoomPass,
+            publishedAt: new Date().toISOString(),
+            directAccess: true
+          };
+          localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+        } catch (e) {}
 
         try {
           const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
@@ -624,11 +665,68 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   // 7. Update Live Stream URL
   const handleUpdateLiveStream = (e) => {
     e.preventDefault();
-    if (!liveStreamInput.trim()) return;
-    setLiveStreamUrl(liveStreamInput.trim());
-    localStorage.setItem('lt_user_live_stream_url', liveStreamInput.trim());
+    if (!liveStreamInput.trim()) {
+      showToast('⚠️ Please enter a YouTube live stream link.');
+      return;
+    }
+    const val = validateLiveStreamUrl(liveStreamInput);
+    if (!val.isValid) {
+      showToast(`⚠️ ${val.error}`);
+      return;
+    }
+    setLiveStreamUrl(val.normalizedUrl);
+    localStorage.setItem('lt_user_live_stream_url', val.normalizedUrl);
+
+    // Queue in pending broadcast stream requests for Super Admin approval
+    try {
+      const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+      const newReq = {
+        id: 'stream_' + Date.now(),
+        title: `${displayName}'s Competitive Live Broadcast`,
+        streamUrl: val.normalizedUrl,
+        organizerName: displayName,
+        organizerClan: currentUser?.clan || 'CLAN',
+        email: displayEmail,
+        status: 'PENDING_APPROVAL',
+        submittedAt: new Date().toISOString()
+      };
+      localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify([newReq, ...pendingBroadcasts]));
+    } catch (err) {}
+
+    // Dispatch update event so Home Arena live stream reflects change immediately
+    window.dispatchEvent(new Event('lt_stream_updated'));
     setLiveStreamInput('');
-    showToast('🔴 Exact Live Stream URL updated! Broadcast player refreshed.');
+    showToast('🔴 Validated! Stream URL active in player and submitted for Super Admin verification.');
+  };
+
+  // 8. Submit Results for Super Admin Verification
+  const handleSubmitResultsForVerification = (e) => {
+    e.preventDefault();
+    if (!resultMatch) return;
+    const newSubmission = {
+      id: 'res_' + Date.now(),
+      matchId: resultMatch.id,
+      tournamentTitle: resultMatch.title,
+      game: resultMatch.game,
+      hostUser: displayName,
+      hostEmail: displayEmail,
+      winnerClan: resultWinnerClan,
+      runnerUpClan: resultRunnerUpClan,
+      thirdClan: resultThirdClan,
+      mvp: resultMvp,
+      posterUrl: resultPosterUrl,
+      notes: resultNotes,
+      status: 'PENDING_VERIFICATION',
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('lt_admin_result_verifications') || '[]');
+      localStorage.setItem('lt_admin_result_verifications', JSON.stringify([newSubmission, ...existing]));
+    } catch (err) {}
+
+    setShowResultSubmitModal(false);
+    showToast('🏆 Match results & points table proof submitted for Super Admin verification!');
   };
 
   // Summary Metrics for Payments History
@@ -1209,6 +1307,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                               <span>Email Points Table</span>
                             </button>
 
+                            {/* Submit Results to Super Admin Result Verifier */}
+                            <button
+                              onClick={() => {
+                                setResultMatch(h);
+                                setShowResultSubmitModal(true);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
+                              title="Submit match results and points table poster proof for Super Admin verification"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">fact_check</span>
+                              <span>Submit Results to Admin</span>
+                            </button>
+
                             {/* Edit Room Key */}
                             <button
                               onClick={() => {
@@ -1425,9 +1536,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       type="url"
                       value={liveStreamInput}
                       onChange={(e) => setLiveStreamInput(e.target.value)}
-                      placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtube.com/live/..."
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                      placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-mono"
                     />
+                    <p className="text-[10px] text-gray-500 mt-1 font-medium flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px] text-amber-600">info</span>
+                      <span>URL must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</span>
+                    </p>
                   </div>
                   <button
                     type="submit"
@@ -1855,9 +1970,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   type="url"
                   value={conductLiveUrl}
                   onChange={(e) => setConductLiveUrl(e.target.value)}
-                  placeholder="e.g. https://www.youtube.com/watch?v=... or channel link"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs"
+                  placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono"
                 />
+                <p className="text-[10px] text-gray-500 mt-1 font-medium">Must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</p>
               </div>
 
               {/* Banner Poster Selection */}
@@ -2008,9 +2124,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     type="url"
                     value={scrimLiveUrl}
                     onChange={(e) => setScrimLiveUrl(e.target.value)}
-                    placeholder="e.g. https://www.youtube.com/@channel"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs"
+                    placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs font-mono"
                   />
+                  <p className="text-[10px] text-gray-500 mt-1 font-medium">Must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</p>
                 </div>
               </div>
 
@@ -2099,6 +2216,148 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
             >
               Done
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Result Submission Modal for Super Admin Result Verifier */}
+      {showResultSubmitModal && resultMatch && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-lg bg-purple-100 text-purple-700">
+                  <span className="material-symbols-outlined text-lg">fact_check</span>
+                </span>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">Submit Match Results & Standings</h3>
+                  <p className="text-[11px] text-gray-500 font-mono">{resultMatch.title} ({resultMatch.game})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowResultSubmitModal(false)}
+                className="text-gray-400 hover:text-gray-700 text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitResultsForVerification} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  1st Place Winner Clan / Squad
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resultWinnerClan}
+                  onChange={(e) => setResultWinnerClan(e.target.value)}
+                  placeholder="e.g. GodLike Esports / Team Soul"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:border-purple-600 outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    2nd Place Clan
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={resultRunnerUpClan}
+                    onChange={(e) => setResultRunnerUpClan(e.target.value)}
+                    placeholder="e.g. Blind Esports"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                    3rd Place Clan
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={resultThirdClan}
+                    onChange={(e) => setResultThirdClan(e.target.value)}
+                    placeholder="e.g. Orangutan Gaming"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  Tournament MVP / Top Fragger
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resultMvp}
+                  onChange={(e) => setResultMvp(e.target.value)}
+                  placeholder="e.g. JONATHAN (14 Kills)"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  Scoreboard / Points Table Image Proof
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resultPosterUrl}
+                  onChange={(e) => setResultPosterUrl(e.target.value)}
+                  placeholder="Image URL or choose preset below"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-mono focus:border-purple-600 outline-hidden"
+                />
+                <div className="flex gap-2 mt-2">
+                  {presetThumbnails.slice(0, 3).map((p) => (
+                    <button
+                      type="button"
+                      key={p.name}
+                      onClick={() => setResultPosterUrl(p.url)}
+                      className={`px-2 py-1 rounded text-[10px] border ${
+                        resultPosterUrl === p.url ? 'bg-purple-50 text-purple-700 border-purple-500 font-bold' : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {p.name.slice(0, 15)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">
+                  Organizer Remarks & Verification Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={resultNotes}
+                  onChange={(e) => setResultNotes(e.target.value)}
+                  placeholder="Notes for Super Admin result verification (e.g. All matches completed, slot scores verified)"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowResultSubmitModal(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 font-bold text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 shadow-md"
+                >
+                  <span className="material-symbols-outlined text-[16px]">verified</span>
+                  <span>Submit to Super Admin</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

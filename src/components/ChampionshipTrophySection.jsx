@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { sendPaymentReceiptEmail } from '../utils/emailService';
 
 export default function ChampionshipTrophySection({ onNavigate }) {
   const [showPreRegModal, setShowPreRegModal] = useState(false);
   const [preRegSuccess, setPreRegSuccess] = useState(null);
   const [clanName, setClanName] = useState('');
   const [leaderIgn, setLeaderIgn] = useState('');
+  const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [selectedGame, setSelectedGame] = useState('Battlegrounds Mobile India (BGMI)');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -27,14 +29,18 @@ export default function ChampionshipTrophySection({ onNavigate }) {
   const displayTrailingDigits = `${formattedFiveDigits.slice(0, 2)},${formattedFiveDigits.slice(2)}`;
 
   const handleOpenPreReg = () => {
-    setShowPreRegModal(true);
-    setPreRegSuccess(null);
+    if (onNavigate) {
+      onNavigate('championship-register');
+    } else {
+      setShowPreRegModal(true);
+      setPreRegSuccess(null);
+    }
   };
 
   const handleRazorpayPreReg = async (e) => {
     e.preventDefault();
-    if (!clanName.trim() || !leaderIgn.trim() || !whatsapp.trim()) {
-      alert('Please fill Clan Name, Team Leader IGN, and WhatsApp number.');
+    if (!clanName.trim() || !leaderIgn.trim() || !email.trim() || !whatsapp.trim()) {
+      alert('Please fill Clan Name, Team Leader IGN, Email, and WhatsApp number.');
       return;
     }
     setIsProcessing(true);
@@ -66,7 +72,7 @@ export default function ChampionshipTrophySection({ onNavigate }) {
       prefill: {
         name: leaderIgn,
         contact: whatsapp,
-        email: 'player@livetournaments.in'
+        email: email.trim()
       },
       theme: {
         color: '#DFBD78'
@@ -82,7 +88,6 @@ export default function ChampionshipTrophySection({ onNavigate }) {
       try {
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function () {
-          // If in test mode, complete with test reference
           completeRegistration('RZP_TEST_' + Date.now());
         });
         rzp.open();
@@ -95,11 +100,12 @@ export default function ChampionshipTrophySection({ onNavigate }) {
   };
 
   const completeRegistration = (payId) => {
-    setTimeout(() => {
+    setTimeout(async () => {
       const entry = {
         id: 'CHAMP_' + Date.now(),
         clanName,
         leaderIgn,
+        email: email.trim(),
         whatsapp,
         game: selectedGame,
         amount: 199,
@@ -109,6 +115,18 @@ export default function ChampionshipTrophySection({ onNavigate }) {
       try {
         const existing = JSON.parse(localStorage.getItem('lt_championship_pre_registrations') || '[]');
         localStorage.setItem('lt_championship_pre_registrations', JSON.stringify([entry, ...existing]));
+      } catch (e) {}
+
+      // Send automated payment receipt and championship confirmation email
+      try {
+        await sendPaymentReceiptEmail({
+          email: email.trim(),
+          name: leaderIgn,
+          amount: 199,
+          paymentId: payId,
+          service: `Championship Trophy VIP Pre-Registration: ${clanName} (${selectedGame})`,
+          category: 'Championship Pre-Registration'
+        });
       } catch (e) {}
 
       setIsProcessing(false);
@@ -332,6 +350,22 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden"
                     required
                   />
+                </div>
+
+                {/* Email Address for Championship Details */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Email Address (For Championship Details &amp; Match Schedule) *
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. leader@clan.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden font-mono"
+                    required
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Official championship schedule, room slot allocation, and receipt will be sent to this email.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
