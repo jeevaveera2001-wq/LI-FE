@@ -382,7 +382,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     {/* Completion Timestamp */}
                     <p className="text-[11px] text-gray-500 font-mono mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[13px] text-gold-primary">history</span>
-                      <span>{match.completedAt}</span>
+                      <span>{match.completedAt || match.date || 'Recently Completed'}</span>
                     </p>
                   </div>
 
@@ -399,7 +399,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     <div className="text-right">
                       <span className="text-[9px] text-gray-500 block font-mono">PRIZE WON</span>
                       <span className="text-xs font-extrabold text-emerald-700 font-mono">
-                        {match.prizePool.split(' ')[0]} {match.prizePool.split(' ')[1]}
+                        {match.prizePool || '₹ 50,000'}
                       </span>
                     </div>
                   </div>
@@ -451,7 +451,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                     VERIFIED MATCH RESULT
                   </span>
                   <span className="text-xs font-mono text-gold-primary font-bold">
-                    {selectedMatch.game} &bull; {selectedMatch.format}
+                    {selectedMatch.game} &bull; {selectedMatch.format || 'Squad Battle Royale'}
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-2xl font-black uppercase text-dark-default mt-1">
@@ -484,14 +484,14 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                       {selectedMatch.winnerClan}
                     </h4>
                     <p className="text-xs text-gray-600 font-mono">
-                      Completed: {selectedMatch.completedAt} &bull; {selectedMatch.totalKills}
+                      Completed: {selectedMatch.completedAt || selectedMatch.date || 'Recent Match'} &bull; {selectedMatch.totalKills || 'Finalist Squad'}
                     </p>
                   </div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-center sm:text-right shadow-xs">
                   <span className="text-[10px] font-mono text-gray-500 uppercase block">Total Prize Pool</span>
-                  <span className="text-lg font-black text-dark-default font-mono">{selectedMatch.prizePool}</span>
+                  <span className="text-lg font-black text-dark-default font-mono">{selectedMatch.prizePool || '₹ 50,000 INR'}</span>
                 </div>
               </div>
 
