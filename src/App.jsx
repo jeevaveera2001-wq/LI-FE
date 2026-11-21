@@ -109,6 +109,9 @@ export default function App() {
     setIsNavigating(true);
     setTimeout(() => setIsNavigating(false), 450);
 
+    if (page === 'user-dashboard' && param) {
+      setSelectedRegistrationTourney(param);
+    }
     if (page === 'tournament-register' && param && typeof param === 'object') {
       setSelectedRegistrationTourney(param);
       try {
@@ -234,6 +237,7 @@ export default function App() {
         ) : currentPage === 'user-dashboard' ? (
           <UserDashboard
             currentUser={currentUser}
+            initialTab={selectedRegistrationTourney === 'broadcast' ? 'broadcast' : (typeof window !== 'undefined' && window.location.hash ? window.location.hash.replace('#', '') : 'dashboard')}
             onNavigate={navigateTo}
             onLogout={handleLogout}
           />
@@ -291,7 +295,7 @@ export default function App() {
                   <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />
-                  <HostTournamentsSection onNavigate={navigateTo} />
+                  <HostTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
                   <RecapsSection />
                   <PartnersSection />
                 </>

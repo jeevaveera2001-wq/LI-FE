@@ -1,9 +1,13 @@
 import React from 'react';
 
-export default function HostTournamentsSection({ onNavigate }) {
+export default function HostTournamentsSection({ onNavigate, currentUser }) {
   const handleHostRedirect = () => {
+    if (!currentUser) {
+      if (onNavigate) onNavigate('login');
+      return;
+    }
     if (onNavigate) {
-      onNavigate('user-dashboard');
+      onNavigate('user-dashboard', 'broadcast');
     }
   };
 
@@ -169,7 +173,7 @@ export default function HostTournamentsSection({ onNavigate }) {
                 Ready to Host Your Own Tournament on LiveTournaments?
               </h3>
               <p className="text-xs md:text-sm text-gray-300">
-                Choose your hosting package starting at ₹149. Complete with verified UPI gateway payment collection, instant slot approval, and Super Admin verification.
+                Choose your hosting package: Weekly (₹249), Pro 15-Day (₹549), or Monthly (₹999). Host everyday with first tournament FREE OF COST and your live stream showcased!
               </p>
             </div>
 

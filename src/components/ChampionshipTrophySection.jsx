@@ -54,7 +54,7 @@ export default function ChampionshipTrophySection({ onNavigate }) {
     const res = await loadScript();
 
     const options = {
-      key: 'rzp_test_51NgQ7Z4L9mabc', // Razorpay Test Key ID
+      key: 'rzp_test_TKSMD0fP2Rxjxc', // Razorpay Test Key ID
       amount: 199 * 100, // in paise
       currency: 'INR',
       name: 'LiveTournaments.in',

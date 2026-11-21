@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DashboardPage from './DashboardPage';
+import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTournamentResultsEmail } from '../utils/emailService';
 
 /**
  * LiveTournaments.in Command Center
@@ -30,6 +31,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   // Inspect Thumbnail Modal State
   const [selectedInspectImage, setSelectedInspectImage] = useState(null);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
+
+  // Direct VIP Access Modal State (Super Admin Zero-Payment Clearance)
+  const [showVipDirectGrantModal, setShowVipDirectGrantModal] = useState(false);
+  const [vipEmail, setVipEmail] = useState('');
+  const [vipName, setVipName] = useState('');
+  const [vipPrivilege, setVipPrivilege] = useState('Direct Broadcast & Streams Pass (30 Days)');
+  const [vipTournamentTitle, setVipTournamentTitle] = useState('BGMI Community Clan Masters');
+  const [vipChannelUrl, setVipChannelUrl] = useState('https://youtube.com/@official_partner');
+  const [vipNote, setVipNote] = useState('Official VIP Partner - Zero Payment Clearance');
 
   // Live Indian Standard Time (IST - Asia/Kolkata) Clock
   const [currentIndiaDateTime, setCurrentIndiaDateTime] = useState(() => {
@@ -727,11 +737,30 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       };
       setActiveMatchRooms(prev => [newR, ...prev]);
     }
+
+    // Sync status into user's hosted tournaments
+    try {
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id || h.title === req?.title) ? { ...h, status: 'APPROVED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+    } catch (e) {}
+
     showToast('✅ Tournament Hosting Request Approved & Automated Room Generated!');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectHosting = (id) => {
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'REJECTED' } : r));
+    try {
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id) ? { ...h, status: 'REJECTED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+    } catch (e) {}
     showToast('❌ Tournament Hosting Request Declined');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
@@ -758,6 +787,69 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const handleUnblockUser = (email) => {
     setBlockedUsers(prev => prev.filter(b => b.email !== email));
     showToast(`✅ User unblocked successfully`);
+  };
+
+  // Direct VIP Access (Zero Payment) - Super Admin clearance
+  const handleGrantVipDirectAccess = async (e) => {
+    e.preventDefault();
+    if (!vipEmail || !vipEmail.includes('@')) {
+      alert('Please enter a valid recipient email address');
+      return;
+    }
+
+    const cleanEmail = vipEmail.toLowerCase().trim();
+    const cleanName = vipName.trim() || cleanEmail.split('@')[0];
+
+    const vipEntry = {
+      id: 'vip_host_' + Date.now(),
+      title: vipTournamentTitle || 'VIP Partner Tournament',
+      game: 'Battlegrounds Mobile India',
+      type: vipPrivilege.includes('Scrim') ? 'SCRIM' : 'TOURNAMENT',
+      format: 'Squad Battle Royale',
+      slots: '25 Squads (100 Players)',
+      registeredSquads: 25,
+      slotCap: 25,
+      prize: 'VIP Sponsored Pool',
+      timing: 'Direct Clearance',
+      thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg',
+      tier: 'VIP_DIRECT',
+      channelLink: vipChannelUrl || 'https://youtube.com/@livetournament_in',
+      amountPaid: 0,
+      paymentRef: 'SUPERADMIN_VIP_OVERRIDE',
+      roomCode: 'VIP-' + Math.floor(100000 + Math.random() * 900000),
+      roomPass: String(Math.floor(1000 + Math.random() * 9000)),
+      status: 'APPROVED',
+      whatsApp: '9840192831',
+      hostUser: cleanName,
+      organizer: cleanName,
+      clan: 'VIP Partner',
+      email: cleanEmail,
+      note: vipNote,
+      createdAt: new Date().toISOString()
+    };
+
+    setHostingRequests(prev => [vipEntry, ...prev]);
+
+    // Sync to user's hosted tournaments
+    try {
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      const userHostings = userHostingsRaw ? JSON.parse(userHostingsRaw) : [];
+      localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify([vipEntry, ...userHostings]));
+    } catch (err) {}
+
+    // Send VIP Invitation Email
+    await sendSuperAdminVipInviteEmail({
+      email: cleanEmail,
+      name: cleanName,
+      privilege: vipPrivilege,
+      note: vipNote
+    });
+
+    setShowVipDirectGrantModal(false);
+    showToast(`🌟 VIP Direct Access granted to ${cleanEmail}! Invitation email sent.`);
+
+    setVipEmail('');
+    setVipName('');
   };
 
   const handleApproveScrim = (id) => {
@@ -1690,13 +1782,20 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setShowVipDirectGrantModal(true)}
+                  className="px-3 py-1.5 rounded-[6px] bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black text-[10.5px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+                >
+                  <span className="material-symbols-outlined text-[15px]">stars</span>
+                  <span>+ Grant Direct VIP Access (₹0)</span>
+                </button>
+                <button
                   onClick={() => setShowBlockedModal(true)}
-                  className="px-2.5 py-1 rounded-[6px] bg-gray-100 hover:bg-gray-200 text-[#4B5563] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  className="px-2.5 py-1.5 rounded-[6px] bg-gray-100 hover:bg-gray-200 text-[#4B5563] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <span className="material-symbols-outlined text-[14px]">block</span>
                   Blocked Users ({blockedUsers.length})
                 </button>
-                <span className="px-3 py-1 rounded-full bg-amber-50 text-[#D97706] text-[11px] font-bold border border-amber-200">
+                <span className="px-3 py-1.5 rounded-full bg-amber-50 text-[#D97706] text-[11px] font-bold border border-amber-200">
                   {pendingHostingCount} Pending Review
                 </span>
               </div>
@@ -1793,27 +1892,38 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                       </div>
 
                       <p className="text-[11px] text-[#4B5563]">
-                        {req.organizer} &bull; <strong className="text-[#C5A059]">{req.clan}</strong>
+                        {req.organizer || req.hostUser} &bull; <strong className="text-[#C5A059]">{req.clan || 'Organizer'}</strong>
                       </p>
 
                       <div className="text-[10px] text-[#4B5563] space-y-1 bg-[#F9FAFB] p-2.5 rounded-[8px] border border-[#E5E7EB]">
-                        <p><strong>Format:</strong> {req.format} &bull; {req.slots}</p>
-                        <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold font-mono">{req.prizePool}</span> (Entry: {req.entryFee})</p>
+                        <p><strong>Format:</strong> {req.format || 'Squad'} &bull; {req.slots || '25 Squads'}</p>
+                        <p><strong>Prize Pool:</strong> <span className="text-[#059669] font-bold font-mono">{req.prizePool || req.prize || 'Standard'}</span> (Paid: <span className="font-bold font-mono text-[#DFBD78]">₹{req.amountPaid || (req.type === 'SCRIM' ? 50 : 10)}</span>)</p>
                         <p><strong>Schedule:</strong> {req.timing}</p>
-                        <p className="truncate text-[#6B7280]"><strong>Contact:</strong> {req.email} &bull; {req.mobile}</p>
+                        <p className="truncate text-[#6B7280]"><strong>Contact:</strong> {req.email} &bull; WhatsApp: <strong>{req.whatsApp || req.mobile || 'Provided'}</strong></p>
+                        {req.channelLink && (
+                          <p className="flex items-center gap-1.5 pt-0.5">
+                            <span className="material-symbols-outlined text-[13px] text-red-600">live_tv</span>
+                            <a href={req.channelLink} target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline truncate">
+                              Live Stream Channel ↗
+                            </a>
+                          </p>
+                        )}
+                        {req.paymentRef && (
+                          <p className="text-[9px] text-gray-400 font-mono">Ref: {req.paymentRef}</p>
+                        )}
                       </div>
                     </div>
 
                     {/* DECISION ACTION BUTTONS (ACCEPT, SUSPEND, BLOCK USER) */}
                     <div className="pt-2 border-t border-[#F3F4F6] flex flex-col gap-1.5">
-                      {req.status === 'PENDING' ? (
+                      {(req.status === 'PENDING' || req.status === 'PENDING_APPROVAL') ? (
                         <>
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleApproveHosting(req.id)}
                               className="flex-1 py-1.5 rounded-[6px] bg-[#10B981] hover:bg-[#059669] text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
                             >
-                              ✓ Approve
+                              ✓ Accept &amp; Grant Access
                             </button>
                             <button
                               onClick={() => handleSuspendHosting(req.id)}
@@ -1829,7 +1939,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                             </button>
                           </div>
                           <button
-                            onClick={() => handleBlockUser(req.organizer, req.email, req.id)}
+                            onClick={() => handleBlockUser(req.organizer || req.hostUser, req.email, req.id)}
                             className="w-full py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-[13px]">block</span>
@@ -3598,6 +3708,143 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL: GRANT DIRECT VIP ACCESS (ZERO PAYMENT CLEARANCE)
+          ======================================================== */}
+      {showVipDirectGrantModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[16px] max-w-lg w-full overflow-hidden shadow-2xl border border-[#DFBD78]/40 flex flex-col">
+            <div className="p-4 bg-[#1F2937] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#DFBD78] text-[22px]">stars</span>
+                <div>
+                  <h3 className="text-base font-bold text-white leading-tight">Grant Direct VIP Access</h3>
+                  <span className="text-[10px] text-gray-300">Super Admin Direct Clearance &bull; Zero Payment (₹0)</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowVipDirectGrantModal(false)}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleGrantVipDirectAccess} className="p-5 space-y-3.5 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Recipient User / Organizer Email *
+                </label>
+                <input
+                  type="email"
+                  value={vipEmail}
+                  onChange={(e) => setVipEmail(e.target.value)}
+                  placeholder="e.g. streamer@clan.com or favorite user email"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    User / Creator Name
+                  </label>
+                  <input
+                    type="text"
+                    value={vipName}
+                    onChange={(e) => setVipName(e.target.value)}
+                    placeholder="e.g. Jonathan Gaming"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Access Privilege to Grant
+                  </label>
+                  <select
+                    value={vipPrivilege}
+                    onChange={(e) => setVipPrivilege(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs bg-white"
+                  >
+                    <option>Direct Broadcast &amp; Streams Pass (30 Days)</option>
+                    <option>Direct Broadcast &amp; Streams Pass (15 Days)</option>
+                    <option>Direct Broadcast &amp; Streams Pass (7 Days)</option>
+                    <option>Direct Tournament Room Conducting Access (₹0)</option>
+                    <option>Direct Daily Scrims Conducting Access (₹0)</option>
+                    <option>Direct Featured Tournament Boost (Home Carousel)</option>
+                    <option>All-Access Master Partner Pass</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Assigned Tournament / Match Title
+                </label>
+                <input
+                  type="text"
+                  value={vipTournamentTitle}
+                  onChange={(e) => setVipTournamentTitle(e.target.value)}
+                  placeholder="e.g. Official Partner Invitational Cup"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Live Stream / YouTube Channel URL
+                </label>
+                <input
+                  type="url"
+                  value={vipChannelUrl}
+                  onChange={(e) => setVipChannelUrl(e.target.value)}
+                  placeholder="e.g. https://youtube.com/@channel or live link"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Invitation Note / Administrative Memo
+                </label>
+                <textarea
+                  value={vipNote}
+                  onChange={(e) => setVipNote(e.target.value)}
+                  rows="2"
+                  placeholder="e.g. Official VIP invitation. Direct clearance granted without payment."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#DFBD78] outline-hidden text-xs"
+                />
+              </div>
+
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-2 text-[11px]">
+                <span className="material-symbols-outlined text-[16px] text-amber-700">email</span>
+                <span>
+                  Granting access will immediately approve this user in the hosting directory and dispatch an official VIP invitation email to <strong>{vipEmail || 'the recipient'}</strong>.
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowVipDirectGrantModal(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                >
+                  Grant Direct Access &amp; Send VIP Email
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
