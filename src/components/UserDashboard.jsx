@@ -485,7 +485,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           if (conductLiveUrl && conductLiveUrl.trim()) {
             const bVal = validateLiveStreamUrl(conductLiveUrl);
             if (bVal.isValid) {
-              const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+              let pendingBroadcasts = [];
+              try {
+                const b1 = localStorage.getItem('lt_broadcast_requests');
+                const b2 = localStorage.getItem('lt_admin_broadcast_requests');
+                if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
+                if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
+              } catch (e) {}
               const streamReq = {
                 id: 'bcast_' + Date.now(),
                 title: `${conductTitle} - Tournament Live Broadcast`,
@@ -507,6 +513,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
               localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+              localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+              window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
             }
           }
@@ -639,7 +647,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           if (scrimLiveUrl && scrimLiveUrl.trim()) {
             const bVal = validateLiveStreamUrl(scrimLiveUrl);
             if (bVal.isValid) {
-              const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+              let pendingBroadcasts = [];
+              try {
+                const b1 = localStorage.getItem('lt_broadcast_requests');
+                const b2 = localStorage.getItem('lt_admin_broadcast_requests');
+                if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
+                if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
+              } catch (e) {}
               const streamReq = {
                 id: 'bcast_' + Date.now(),
                 title: `${scrimTitle} - Daily Scrim Live Broadcast`,
@@ -661,6 +675,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
               localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+              localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+              window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
             }
           }
@@ -856,7 +872,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
     // Queue in pending broadcast stream requests for Super Admin approval
     try {
-      const pendingBroadcasts = JSON.parse(localStorage.getItem('lt_broadcast_requests') || localStorage.getItem('lt_admin_broadcast_requests') || '[]');
+      let pendingBroadcasts = [];
+      try {
+        const b1 = localStorage.getItem('lt_broadcast_requests');
+        const b2 = localStorage.getItem('lt_admin_broadcast_requests');
+        if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
+        if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
+      } catch (e) {}
       const newReq = {
         id: 'bcast_' + Date.now(),
         title: `${displayName}'s Competitive Live Broadcast`,
@@ -1101,6 +1123,31 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           </button>
 
           <button
+            onClick={() => {
+              const superAdminUser = {
+                id: 'LT-ADM-001',
+                name: 'Super Admin',
+                username: 'superadmin',
+                email: 'superadmin@lt.in',
+                role: 'superadmin',
+                clan: 'ADMIN HQ'
+              };
+              try {
+                localStorage.setItem('lt_user', JSON.stringify(superAdminUser));
+              } catch (e) {}
+              if (onNavigate) {
+                onNavigate('admin-dashboard');
+              } else {
+                window.location.href = '/admin';
+              }
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10.5px] font-bold transition-colors cursor-pointer"
+          >
+            <span>⚡</span>
+            <span>Switch to Super Admin</span>
+          </button>
+
+          <button
             onClick={onLogout}
             className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 text-[10.5px] font-semibold transition-colors cursor-pointer"
           >
@@ -1169,6 +1216,33 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Competitor</span>
               </div>
             </div>
+
+            {/* 1-Click Role Switcher to Super Admin */}
+            <button
+              onClick={() => {
+                const superAdminUser = {
+                  id: 'LT-ADM-001',
+                  name: 'Super Admin',
+                  username: 'superadmin',
+                  email: 'superadmin@lt.in',
+                  role: 'superadmin',
+                  clan: 'ADMIN HQ'
+                };
+                try {
+                  localStorage.setItem('lt_user', JSON.stringify(superAdminUser));
+                } catch (e) {}
+                if (onNavigate) {
+                  onNavigate('admin-dashboard');
+                } else {
+                  window.location.href = '/admin';
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 border border-amber-500/30 text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Switch to Super Admin Dashboard"
+            >
+              <span>⚡</span>
+              <span className="hidden sm:inline">Switch to Super Admin</span>
+            </button>
           </div>
         </header>
 

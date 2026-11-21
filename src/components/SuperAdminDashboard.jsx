@@ -255,6 +255,70 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           map.set(key, item);
         }
       });
+
+      // Also ensure live stream URL submitted from User Dashboard is captured
+      const userStreamUrl = localStorage.getItem('lt_user_live_stream_url');
+      if (userStreamUrl && userStreamUrl.trim()) {
+        const val = validateLiveStreamUrl(userStreamUrl);
+        if (val.isValid) {
+          const alreadyExists = Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl);
+          if (!alreadyExists) {
+            map.set('user_live_stream_active', {
+              id: 'bcast_user_active',
+              title: 'Competitor Match Live Broadcast',
+              tournament: 'Live Stream Arena Feed',
+              streamUrl: val.normalizedUrl,
+              organizerName: 'Competitor Streamer',
+              creator: 'Competitor Streamer',
+              channel: 'YouTube Live Stream',
+              requestedSlot: 'Prime Live Stream Feed',
+              language: 'Hindi / English',
+              viewers: '16,840',
+              status: 'PENDING',
+              submittedAt: new Date().toISOString(),
+              isUserSubmitted: true
+            });
+          }
+        }
+      }
+
+      // Also capture stream links attached to tournaments or scrims
+      const checkTourneys = (storageKey) => {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(t => {
+                const sUrl = t.channelLink || t.liveUrl || t.streamUrl;
+                if (sUrl && sUrl.trim() && !isMockEntry(t)) {
+                  const val = validateLiveStreamUrl(sUrl);
+                  if (val.isValid && !Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl)) {
+                    map.set(`bcast_match_${t.id}`, {
+                      id: `bcast_match_${t.id}`,
+                      title: `${t.title || 'Tournament'} - Official Stream`,
+                      tournament: t.title || 'Tournament Match',
+                      streamUrl: val.normalizedUrl,
+                      organizerName: t.organizerName || t.creator || 'Tournament Host',
+                      creator: t.organizerName || t.creator || 'Tournament Host',
+                      channel: `${t.organizerName || 'Host'} Official Live`,
+                      requestedSlot: 'Tournament Match Broadcast',
+                      language: 'Hindi / English',
+                      status: 'PENDING',
+                      submittedAt: t.createdAt || new Date().toISOString(),
+                      isUserSubmitted: true
+                    });
+                  }
+                }
+              });
+            }
+          } catch (e) {}
+        }
+      };
+      checkTourneys('lt_admin_hosting_requests');
+      checkTourneys('lt_user_hosted_tourneys');
+      checkTourneys('lt_admin_scrims_requests');
+
       return Array.from(map.values());
     } catch (e) {
       return [];
@@ -645,15 +709,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [broadcastRequests, setBroadcastRequests] = useState(() => {
     return loadBroadcastRequestsFromStorage();
   });
-  useEffect(() => {
-    localStorage.setItem('lt_broadcast_requests', JSON.stringify(broadcastRequests));
-    localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(broadcastRequests));
-  }, [broadcastRequests]);
 
   const handleApproveBroadcastRequest = (id) => {
     const req = broadcastRequests.find(b => b.id === id);
     if (!req) return;
-    setBroadcastRequests(prev => prev.filter(b => b.id !== id));
+    const remaining = broadcastRequests.filter(b => b.id !== id);
+    setBroadcastRequests(remaining);
+    try {
+      localStorage.setItem('lt_broadcast_requests', JSON.stringify(remaining));
+      localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(remaining));
+    } catch (e) {}
 
     const rawUrl = req.streamUrl || req.channelLink || req.url || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
     const val = validateLiveStreamUrl(rawUrl);
@@ -695,7 +760,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleDeclineBroadcastRequest = (id) => {
-    setBroadcastRequests(prev => prev.filter(b => b.id !== id));
+    const remaining = broadcastRequests.filter(b => b.id !== id);
+    setBroadcastRequests(remaining);
+    try {
+      localStorage.setItem('lt_broadcast_requests', JSON.stringify(remaining));
+      localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(remaining));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
     showToast(`✕ Broadcast request declined`);
   };
 
@@ -1312,29 +1383,69 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
           </button>
 
-          {/* 2. Matches Approvals (Tournaments, Scrims, Featured, Broadcast) */}
+          {/* 2. Tournaments Approvals (Dedicated Section) */}
           <button
-            onClick={() => { setActiveTab('matches-approvals'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'matches-approvals' || activeTab === 'hosting-requests' || activeTab === 'scrims-requests' || activeTab === 'featured-requests' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('tournaments-approvals');
+              setMatchesApprovalTab('tournaments');
+              setSidebarOpen(false);
+            }}
+            className={`nagulan-sidebar-btn ${activeTab === 'tournaments-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'tournaments') ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">verified</span>
-            <span className="flex-1 text-left">Matches Approvals</span>
-            {totalPendingApprovals > 0 && (
+            <span className="material-symbols-outlined text-[16px] text-[#DFBD78]">emoji_events</span>
+            <span className="flex-1 text-left">Tournaments Approvals</span>
+            {pendingHostingCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">
-                {totalPendingApprovals}
+                {pendingHostingCount}
               </span>
             )}
           </button>
 
-          {/* Broadcast & Live Streams Dedicated Navigation */}
+          {/* 3. Daily Scrims Approvals (Dedicated Section) */}
           <button
             onClick={() => {
-              setActiveTab('matches-approvals');
+              setActiveTab('scrims-approvals');
+              setMatchesApprovalTab('scrims');
+              setSidebarOpen(false);
+            }}
+            className={`nagulan-sidebar-btn ${activeTab === 'scrims-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'scrims') ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px] text-blue-400">swords</span>
+            <span className="flex-1 text-left">Daily Scrims Approvals</span>
+            {pendingScrimsCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9px] font-bold border border-blue-500/30">
+                {pendingScrimsCount}
+              </span>
+            )}
+          </button>
+
+          {/* 4. Featured Tournaments Approvals (Dedicated Section) */}
+          <button
+            onClick={() => {
+              setActiveTab('featured-approvals');
+              setMatchesApprovalTab('featured');
+              setSidebarOpen(false);
+            }}
+            className={`nagulan-sidebar-btn ${activeTab === 'featured-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'featured') ? 'active' : ''}`}
+          >
+            <span className="material-symbols-outlined text-[16px] text-purple-400">stars</span>
+            <span className="flex-1 text-left">Featured Approvals</span>
+            {pendingFeaturedCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[9px] font-bold border border-purple-500/30">
+                {pendingFeaturedCount}
+              </span>
+            )}
+          </button>
+
+          {/* 5. Broadcast & Live Streams Dedicated Section */}
+          <button
+            onClick={() => {
+              setActiveTab('broadcast-streams');
               setMatchesApprovalTab('broadcast');
               setBroadcastActiveTab('requests');
               setSidebarOpen(false);
             }}
-            className={`nagulan-sidebar-btn ${activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast' ? 'active' : ''}`}
+            className={`nagulan-sidebar-btn ${activeTab === 'broadcast-streams' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast') ? 'active' : ''}`}
           >
             <span className="material-symbols-outlined text-[16px] text-red-500">live_tv</span>
             <span className="flex-1 text-left">Broadcast &amp; Live Streams</span>
@@ -1487,6 +1598,33 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Superadmin</span>
               </div>
             </div>
+
+            {/* Quick 1-Click Role Switcher to Competitor View */}
+            <button
+              onClick={() => {
+                const competitorUser = {
+                  id: 'LT-USR-001',
+                  name: 'Competitor Player',
+                  username: 'competitor',
+                  email: 'player@livetournaments.in',
+                  role: 'user',
+                  clan: 'GODL'
+                };
+                try {
+                  localStorage.setItem('lt_user', JSON.stringify(competitorUser));
+                } catch (e) {}
+                if (onNavigate) {
+                  onNavigate('user-dashboard');
+                } else {
+                  window.location.href = '/dashboard';
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-gray-200"
+              title="Switch to Competitor User View"
+            >
+              <span>👤</span>
+              <span className="hidden sm:inline">Switch to Competitor View</span>
+            </button>
           </div>
         </header>
 
@@ -1501,25 +1639,60 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <button
-          onClick={() => setActiveTab('matches-approvals')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'matches-approvals' || activeTab === 'hosting-requests' || activeTab === 'scrims-requests' || activeTab === 'featured-requests' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => {
+            setActiveTab('tournaments-approvals');
+            setMatchesApprovalTab('tournaments');
+          }}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'tournaments-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'tournaments') ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span className="material-symbols-outlined text-[14px]">verified</span>
-          <span>Matches Approvals</span>
-          {totalPendingApprovals > 0 && (
+          <span className="material-symbols-outlined text-[14px] text-[#DFBD78]">emoji_events</span>
+          <span>Tournaments</span>
+          {pendingHostingCount > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[#D97706] text-[9px] font-bold">
-              {totalPendingApprovals}
+              {pendingHostingCount}
             </span>
           )}
         </button>
 
         <button
           onClick={() => {
-            setActiveTab('matches-approvals');
+            setActiveTab('scrims-approvals');
+            setMatchesApprovalTab('scrims');
+          }}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'scrims-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'scrims') ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px] text-blue-500">swords</span>
+          <span>Daily Scrims</span>
+          {pendingScrimsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold">
+              {pendingScrimsCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('featured-approvals');
+            setMatchesApprovalTab('featured');
+          }}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'featured-approvals' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'featured') ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+        >
+          <span className="material-symbols-outlined text-[14px] text-purple-500">stars</span>
+          <span>Featured</span>
+          {pendingFeaturedCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">
+              {pendingFeaturedCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('broadcast-streams');
             setMatchesApprovalTab('broadcast');
             setBroadcastActiveTab('requests');
           }}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'broadcast-streams' || (activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast') ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
           <span className="material-symbols-outlined text-[14px] text-red-500">live_tv</span>
           <span>Broadcast</span>
@@ -1651,8 +1824,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               </button>
               <button
                 onClick={() => {
-                  setActiveTab('matches-approvals');
-                  setMatchesApprovalTab('broadcast');
+                  setActiveTab('broadcast-streams');
                   setBroadcastActiveTab('requests');
                 }}
                 className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all cursor-pointer"
@@ -2102,85 +2274,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
         )}
 
-        {/* ========================================================
-            VIEW: MATCHES APPROVALS SUB-NAV (Tournaments, Scrims, Featured, Broadcast)
-            ======================================================== */}
-        {(activeTab === 'matches-approvals') && (
-          <div className="bg-white rounded-[14px] p-2 border border-[#D1D1D1]/60 flex flex-wrap items-center gap-2 shadow-xs mb-3 animate-fade-in">
-            <button
-              onClick={() => setMatchesApprovalTab('tournaments')}
-              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                matchesApprovalTab === 'tournaments'
-                  ? 'bg-[#1F2937] text-white shadow-xs'
-                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[15px]">emoji_events</span>
-              <span>Tournaments Approvals</span>
-              {pendingHostingCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[9px] font-black">
-                  {pendingHostingCount}
-                </span>
-              )}
-            </button>
 
-            <button
-              onClick={() => setMatchesApprovalTab('scrims')}
-              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                matchesApprovalTab === 'scrims'
-                  ? 'bg-[#1F2937] text-white shadow-xs'
-                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[15px]">swords</span>
-              <span>Daily Scrims Approvals</span>
-              {pendingScrimsCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-blue-500 text-white text-[9px] font-black">
-                  {pendingScrimsCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setMatchesApprovalTab('featured')}
-              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                matchesApprovalTab === 'featured'
-                  ? 'bg-[#1F2937] text-white shadow-xs'
-                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[15px]">stars</span>
-              <span>Featured Tournaments Approvals</span>
-              {pendingFeaturedCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-purple-500 text-white text-[9px] font-black">
-                  {pendingFeaturedCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setMatchesApprovalTab('broadcast')}
-              className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                matchesApprovalTab === 'broadcast'
-                  ? 'bg-[#1F2937] text-white shadow-xs'
-                  : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[15px]">live_tv</span>
-              <span>Broadcast &amp; Stream Production Approvals</span>
-              {broadcastRequests.filter(b => b.status === 'PENDING').length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black">
-                  {broadcastRequests.filter(b => b.status === 'PENDING').length}
-                </span>
-              )}
-            </button>
-          </div>
-        )}
 
         {/* ========================================================
             VIEW: REQUEST SECTIONS (USER HOSTING, SCRIMS, PARTNER, FEATURED, ADS)
             ======================================================== */}
-        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'tournaments') || activeTab === 'hosting-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'tournaments') || activeTab === 'hosting-requests' || activeTab === 'tournaments-approvals' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -2415,7 +2514,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </section>
         )}
 
-        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'scrims') || activeTab === 'scrims-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'scrims') || activeTab === 'scrims-requests' || activeTab === 'scrims-approvals' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
@@ -2638,7 +2737,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </section>
         )}
 
-        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'featured') || activeTab === 'featured-requests' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'featured') || activeTab === 'featured-requests' || activeTab === 'featured-approvals' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-3.5 animate-fade-in">
             <div className="flex items-center justify-between pb-2 border-b border-[#F3F4F6]">
               <h3 className="text-[14px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
@@ -3307,7 +3406,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         {/* ========================================================
             VIEW 4: BROADCAST & STREAM PRODUCTION (LIVE & REQUESTS)
             ======================================================== */}
-        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast') || activeTab === 'broadcast-stream' || activeTab === 'all-in-one') && (
+        {((activeTab === 'matches-approvals' && matchesApprovalTab === 'broadcast') || activeTab === 'broadcast-stream' || activeTab === 'broadcast-streams' || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-5 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 animate-fade-in">
             {/* Header & Overall Counter Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
