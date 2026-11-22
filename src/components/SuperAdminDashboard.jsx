@@ -18,6 +18,7 @@ import {
   updateCloudContactTicket,
   updateCloudUserVip,
   deleteCloudUser,
+  clearCloudUserTournamentHistory,
   fetchCloudPlatformSettings,
   saveCloudPlatformSettings,
   fetchCloudSuspiciousReports,
@@ -279,6 +280,35 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     // Allow any timestamp-based IDs (generated via Date.now())
     if (idStr.match(/\d{10,}/)) return false;
     return false;
+  };
+
+  // Helper to detect purged tournaments and events from cleared users
+  const isPurgedTournament = (item) => {
+    if (!item) return true;
+    try {
+      const deletedRaw = localStorage.getItem('lt_deleted_event_identifiers');
+      const deletedList = deletedRaw ? JSON.parse(deletedRaw) : [];
+      const clearedRaw = localStorage.getItem('lt_cleared_tournament_users');
+      const clearedUsers = clearedRaw ? JSON.parse(clearedRaw) : ['jeevaveera2001@gmail.com', 'usr_1794998954886'];
+
+      const idStr = String(item.id || '').trim();
+      const titleStr = String(item.title || '').trim().toLowerCase();
+      const orgStr = String(item.organizer || item.hostUser || item.organizerName || '').trim().toLowerCase();
+      const emailStr = String(item.email || item.contact || '').trim().toLowerCase();
+
+      if (idStr && deletedList.includes(idStr)) return true;
+      if (titleStr && deletedList.includes(titleStr)) return true;
+      if (idStr === 'host_1795343216143' || titleStr === 'test') return true;
+
+      for (const cu of clearedUsers) {
+        const u = String(cu).toLowerCase().trim();
+        if (emailStr === u) return true;
+        if (u.includes('jeeva') && (orgStr.includes('jeeva') || titleStr === 'test')) return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   };
 
   // Persistent tracking for declined broadcast requests so they never re-appear
@@ -828,22 +858,22 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         if (Array.isArray(cloudHostings)) {
           setHostingRequests(prev => {
             const map = new Map();
-            cloudHostings.filter(h => h.status !== 'REJECTED' && (h.type === 'TOURNAMENT' || !h.type)).forEach(h => {
+            cloudHostings.filter(h => h.status !== 'REJECTED' && !isPurgedTournament(h) && (h.type === 'TOURNAMENT' || !h.type)).forEach(h => {
               map.set(h.id, h);
             });
             prev.forEach(h => {
-              if (!map.has(h.id) && h.status !== 'REJECTED') map.set(h.id, h);
+              if (!map.has(h.id) && h.status !== 'REJECTED' && !isPurgedTournament(h)) map.set(h.id, h);
             });
             return Array.from(map.values());
           });
 
           setScrimsRequests(prev => {
             const map = new Map();
-            cloudHostings.filter(h => h.status !== 'REJECTED' && h.type === 'SCRIM').forEach(h => {
+            cloudHostings.filter(h => h.status !== 'REJECTED' && !isPurgedTournament(h) && h.type === 'SCRIM').forEach(h => {
               map.set(h.id, h);
             });
             prev.forEach(h => {
-              if (!map.has(h.id) && h.status !== 'REJECTED') map.set(h.id, h);
+              if (!map.has(h.id) && h.status !== 'REJECTED' && !isPurgedTournament(h)) map.set(h.id, h);
             });
             return Array.from(map.values());
           });
@@ -910,13 +940,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(t => !isMockEntry(t));
+        if (Array.isArray(parsed)) return parsed.filter(t => !isMockEntry(t) && !isPurgedTournament(t));
       } catch (e) {}
     }
     return [];
   });
   useEffect(() => {
-    localStorage.setItem('lt_admin_all_tournaments', JSON.stringify(allTournamentsList));
+    const cleanList = allTournamentsList.filter(t => !isPurgedTournament(t));
+    localStorage.setItem('lt_admin_all_tournaments', JSON.stringify(cleanList));
   }, [allTournamentsList]);
 
   // 2. ACTIVE MATCH ROOMS (Dynamic from localStorage, zero mock data)
@@ -925,22 +956,34 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(r => !isMockEntry(r));
+        if (Array.isArray(parsed)) return parsed.filter(r => !isMockEntry(r) && !isPurgedTournament(r));
       } catch (e) {}
     }
     return [];
   });
   useEffect(() => {
-    localStorage.setItem('lt_active_match_rooms', JSON.stringify(activeMatchRooms));
+    const cleanRooms = activeMatchRooms.filter(r => !isPurgedTournament(r));
+    localStorage.setItem('lt_active_match_rooms', JSON.stringify(cleanRooms));
   }, [activeMatchRooms]);
 
   // 3. USER DATABASE (Dynamic from localStorage, seeded with authentic competitors)
   const [userDatabase, setUserDatabase] = useState(() => {
     const saved = localStorage.getItem('lt_user_database');
+    const clearedRaw = typeof window !== 'undefined' ? localStorage.getItem('lt_cleared_tournament_users') : null;
+    const clearedList = clearedRaw ? JSON.parse(clearedRaw) : ['jeevaveera2001@gmail.com', 'usr_1794998954886'];
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(u => {
+            const uEmail = (u.email || '').toLowerCase().trim();
+            const uId = u.userId || u.id;
+            if (clearedList.includes(uEmail) || clearedList.includes(uId) || uEmail === 'jeevaveera2001@gmail.com') {
+              return { ...u, matchesPlayed: 0, tournamentsWon: 0, walletBalance: '₹ 0' };
+            }
+            return u;
+          });
+        }
       } catch (e) {}
     }
     return [
@@ -1065,7 +1108,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               const key = u.email || u.userId;
               if (!map.has(key)) map.set(key, u);
             });
-            const merged = Array.from(map.values());
+            const clearedRaw = localStorage.getItem('lt_cleared_tournament_users');
+            const clearedList = clearedRaw ? JSON.parse(clearedRaw) : ['jeevaveera2001@gmail.com', 'usr_1794998954886'];
+            const merged = Array.from(map.values()).map(u => {
+              const uEmail = (u.email || '').toLowerCase().trim();
+              const uId = u.userId || u.id;
+              if (clearedList.includes(uEmail) || clearedList.includes(uId) || uEmail === 'jeevaveera2001@gmail.com') {
+                return { ...u, matchesPlayed: 0, tournamentsWon: 0, walletBalance: '₹ 0' };
+              }
+              return u;
+            });
             localStorage.setItem('lt_user_database', JSON.stringify(merged));
             return merged;
           });
@@ -1289,6 +1341,128 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     window.dispatchEvent(new Event('storage'));
 
     showToast(`🗑️ User "${userDisplayName}" & all conducted tournaments permanently deleted.`);
+  };
+
+  const handleClearUserTournamentHistory = async (userId, userEmail, userName) => {
+    const targetUser = userDatabase.find(u => u.userId === userId || u.email === (userEmail || userId));
+    const userDisplayName = targetUser?.name || userName || 'Competitor';
+    const email = (targetUser?.email || userEmail || '').toLowerCase().trim();
+    const uid = targetUser?.userId || userId;
+
+    if (!window.confirm(`Are you sure you want to REMOVE ALL TOURNAMENT HISTORY for "${userDisplayName}" (${email || uid})?\n\nThis will remove all conducted tournaments, match records, card slot assignments, and reset their match statistics to 0 while keeping their account and VIP status intact.`)) {
+      return;
+    }
+
+    // 1. Reset user statistics in local userDatabase state & storage
+    setUserDatabase(prev => {
+      const updated = prev.map(u => {
+        if (u.userId === uid || (email && u.email?.toLowerCase() === email)) {
+          return {
+            ...u,
+            matchesPlayed: 0,
+            tournamentsWon: 0,
+            walletBalance: '₹ 0',
+            joinedTournaments: [],
+            hostedTournaments: [],
+            tournamentHistory: []
+          };
+        }
+        return u;
+      });
+      try {
+        localStorage.setItem('lt_user_database', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 2. Add to persistent cleared users list
+    try {
+      const clearedRaw = localStorage.getItem('lt_cleared_tournament_users');
+      const clearedList = clearedRaw ? JSON.parse(clearedRaw) : [];
+      if (email && !clearedList.includes(email)) clearedList.push(email);
+      if (uid && !clearedList.includes(uid)) clearedList.push(uid);
+      localStorage.setItem('lt_cleared_tournament_users', JSON.stringify(clearedList));
+    } catch (e) {}
+
+    // 3. Purge all tournaments, matches, and rooms associated with this user
+    try {
+      const deletedRaw = localStorage.getItem('lt_deleted_event_identifiers');
+      const deletedList = deletedRaw ? JSON.parse(deletedRaw) : [];
+
+      hostingRequests.forEach(r => {
+        const rEmail = (r.email || r.contact || '').toLowerCase();
+        const rOrg = (r.organizer || r.hostUser || '').toLowerCase();
+        if (
+          r.hostUserId === uid ||
+          r.userId === uid ||
+          (email && rEmail === email) ||
+          (userDisplayName && rOrg.includes(userDisplayName.toLowerCase()))
+        ) {
+          if (r.id && !deletedList.includes(r.id)) deletedList.push(r.id);
+          if (r.title && !deletedList.includes(r.title.toLowerCase())) deletedList.push(r.title.toLowerCase());
+          deleteCloudHostingRequest(r.id);
+        }
+      });
+
+      localStorage.setItem('lt_deleted_event_identifiers', JSON.stringify(deletedList));
+
+      // Filter allTournamentsList
+      setAllTournamentsList(prev => prev.filter(t => {
+        const tEmail = (t.email || t.contact || '').toLowerCase();
+        const tOrg = (t.organizer || t.hostUser || '').toLowerCase();
+        if (t.id === 'host_1795343216143' || t.title?.toLowerCase() === 'test') return false;
+        if (email && tEmail === email) return false;
+        if (userDisplayName && tOrg.includes(userDisplayName.toLowerCase())) return false;
+        return true;
+      }));
+
+      // Filter hostingRequests
+      setHostingRequests(prev => prev.filter(r => {
+        const rEmail = (r.email || r.contact || '').toLowerCase();
+        const rOrg = (r.organizer || r.hostUser || '').toLowerCase();
+        if (r.id === 'host_1795343216143' || r.title?.toLowerCase() === 'test') return false;
+        if (email && rEmail === email) return false;
+        if (userDisplayName && rOrg.includes(userDisplayName.toLowerCase())) return false;
+        return true;
+      }));
+
+      // Filter activeMatchRooms
+      setActiveMatchRooms(prev => prev.filter(r => {
+        const rTitle = (r.title || '').toLowerCase();
+        const rOrg = (r.organizer || '').toLowerCase();
+        if (rTitle.includes('test')) return false;
+        if (userDisplayName && (rOrg.includes(userDisplayName.toLowerCase()) || rTitle.includes(userDisplayName.toLowerCase()))) return false;
+        return true;
+      }));
+
+      // Wipe local storage if current logged-in user matches
+      const cur = JSON.parse(localStorage.getItem('lt_user') || 'null');
+      if (cur && (cur.id === uid || cur.userId === uid || cur.email?.toLowerCase() === email)) {
+        cur.matchesPlayed = 0;
+        cur.tournamentsWon = 0;
+        localStorage.setItem('lt_user', JSON.stringify(cur));
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify([]));
+        localStorage.setItem('lt_user_joined_tourneys', JSON.stringify([]));
+        localStorage.setItem('lt_user_tournament_history', JSON.stringify([]));
+        localStorage.setItem('lt_user_scrims', JSON.stringify([]));
+      }
+    } catch (e) {
+      console.warn('Local tournament purge warning:', e);
+    }
+
+    // 4. Call CloudSync backend API
+    try {
+      await clearCloudUserTournamentHistory({ userId: uid, email, name: userDisplayName });
+    } catch (err) {
+      console.warn('[SuperAdmin] Clear tournament history API warning:', err);
+    }
+
+    // 5. Dispatch global sync events
+    window.dispatchEvent(new Event('lt_refresh_dashboard'));
+    window.dispatchEvent(new Event('lt_hosting_approved'));
+    window.dispatchEvent(new Event('storage'));
+
+    showToast(`✓ Tournament history successfully removed for "${userDisplayName}"`);
   };
 
   // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)
@@ -4726,6 +4900,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                                 🚫 Block
                               </button>
                             )}
+
+                            {/* Clear Tournament & Match History */}
+                            <button
+                              onClick={() => handleClearUserTournamentHistory(user.userId, user.email, user.name)}
+                              className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 hover:text-amber-900 font-bold text-[10px] border border-amber-300 cursor-pointer flex items-center gap-1 transition-colors"
+                              title="Wipe tournament records, hosted rooms, and reset match stats to 0"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">history_toggle_off</span>
+                              <span>Clear History</span>
+                            </button>
 
                             {/* Permanent Cascade Account Deletion */}
                             <button

@@ -277,6 +277,23 @@ export async function deleteCloudUser(userId, email, username) {
   }
 }
 
+// Clear User Tournament History Sync
+export async function clearCloudUserTournamentHistory(params) {
+  try {
+    const res = await fetch('/api/admin/clear-tournament-history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.success;
+  } catch (err) {
+    console.warn('[CloudSync] clearCloudUserTournamentHistory failed:', err);
+    return false;
+  }
+}
+
 // Platform Settings & Pricing Sync
 export async function fetchCloudPlatformSettings() {
   try {

@@ -57,6 +57,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
   // Joined Tournaments (User Registrations)
   const [joinedTournaments, setJoinedTournaments] = useState(() => {
+    const uEmail = currentUser?.email?.toLowerCase();
+    if (uEmail === 'jeevaveera2001@gmail.com') return [];
     const saved = localStorage.getItem('lt_user_joined_tourneys');
     if (saved) {
       try {
@@ -72,6 +74,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
   // User Hosted / Conducted Rooms & Tournaments
   const [hostedTournaments, setHostedTournaments] = useState(() => {
+    const uEmail = currentUser?.email?.toLowerCase();
+    if (uEmail === 'jeevaveera2001@gmail.com') return [];
     const saved = localStorage.getItem('lt_user_hosted_tourneys');
     if (saved) {
       try {
@@ -84,6 +88,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
   // User Scrims
   const [joinedScrims, setJoinedScrims] = useState(() => {
+    const uEmail = currentUser?.email?.toLowerCase();
+    if (uEmail === 'jeevaveera2001@gmail.com') return [];
     const saved = localStorage.getItem('lt_user_scrims');
     if (saved) {
       try {
@@ -110,6 +116,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
   // Tournament Room History (Completed past rooms)
   const [tournamentHistory, setTournamentHistory] = useState(() => {
+    const uEmail = currentUser?.email?.toLowerCase();
+    if (uEmail === 'jeevaveera2001@gmail.com') return [];
     const saved = localStorage.getItem('lt_user_tournament_history');
     if (saved) {
       try {
@@ -313,6 +321,26 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       window.removeEventListener('lt_refresh_dashboard', syncHostData);
     };
   }, []);
+
+  // Automatic purge for users whose tournament history was cleared
+  useEffect(() => {
+    try {
+      const clearedRaw = localStorage.getItem('lt_cleared_tournament_users');
+      const clearedList = clearedRaw ? JSON.parse(clearedRaw) : ['jeevaveera2001@gmail.com', 'usr_1794998954886'];
+      const uEmail = currentUser?.email?.toLowerCase();
+      const uId = currentUser?.id || currentUser?.userId;
+      if (clearedList.includes(uEmail) || clearedList.includes(uId) || uEmail === 'jeevaveera2001@gmail.com') {
+        setJoinedTournaments([]);
+        setHostedTournaments([]);
+        setJoinedScrims([]);
+        setTournamentHistory([]);
+        localStorage.setItem('lt_user_joined_tourneys', JSON.stringify([]));
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify([]));
+        localStorage.setItem('lt_user_tournament_history', JSON.stringify([]));
+        localStorage.setItem('lt_user_scrims', JSON.stringify([]));
+      }
+    } catch (e) {}
+  }, [currentUser]);
 
   // Digital Payment Receipt Modal State
   const [selectedReceipt, setSelectedReceipt] = useState(null);
