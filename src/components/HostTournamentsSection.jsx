@@ -1,52 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getYouTubeEmbedUrl } from '../utils/urlValidator';
+import { getCardSlotsFromStorage } from '../utils/broadcastSlots';
 
 export default function HostTournamentsSection({ onNavigate, currentUser }) {
-  const [approvedBroadcasts, setApprovedBroadcasts] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('lt_approved_broadcasts') || '[]');
-      if (Array.isArray(stored) && stored.length > 0) return stored;
-      const single = JSON.parse(localStorage.getItem('lt_approved_live_stream') || 'null');
-      if (single && single.url) return [single];
-    } catch (e) {}
-    return [];
-  });
-
-  const [userHostedTourneys, setUserHostedTourneys] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('lt_user_hosted_tourneys') || '[]');
-      if (Array.isArray(stored) && stored.length > 0) return stored;
-      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-      if (Array.isArray(adminReqs) && adminReqs.length > 0) return adminReqs;
-    } catch (e) {}
-    return [];
-  });
+  const [cardSlots, setCardSlots] = useState(() => getCardSlotsFromStorage());
 
   useEffect(() => {
     const handleUpdate = () => {
-      try {
-        const storedBroadcasts = JSON.parse(localStorage.getItem('lt_approved_broadcasts') || '[]');
-        if (Array.isArray(storedBroadcasts) && storedBroadcasts.length > 0) {
-          setApprovedBroadcasts(storedBroadcasts);
-        } else {
-          const single = JSON.parse(localStorage.getItem('lt_approved_live_stream') || 'null');
-          if (single && single.url) {
-            setApprovedBroadcasts([single]);
-          } else {
-            setApprovedBroadcasts([]);
-          }
-        }
-
-        const stored = JSON.parse(localStorage.getItem('lt_user_hosted_tourneys') || '[]');
-        if (Array.isArray(stored) && stored.length > 0) {
-          setUserHostedTourneys(stored);
-          return;
-        }
-        const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-        if (Array.isArray(adminReqs) && adminReqs.length > 0) {
-          setUserHostedTourneys(adminReqs);
-        }
-      } catch (e) {}
+      setCardSlots(getCardSlotsFromStorage());
     };
 
     window.addEventListener('storage', handleUpdate);
@@ -71,62 +32,96 @@ export default function HostTournamentsSection({ onNavigate, currentUser }) {
     }
   };
 
-  // Helper to render an approved live video broadcast card slot
-  const renderLiveStreamCard = (stream, slotNumber, defaultViewers = 16840) => {
-    const embedUrl = getYouTubeEmbedUrl(stream.url);
-    const viewersCount = stream.viewers ? Number(stream.viewers).toLocaleString() : Number(defaultViewers).toLocaleString();
+  // Helper to render each video card slot (NO viewers count, active video embed, never empty theme)
+  const renderCardSlot = (slotItem, slotNumber) => {
+    const embedUrl = getYouTubeEmbedUrl(slotItem.url);
+    const isLive = !slotItem.isDefault;
 
     return (
       <div
-        key={`slot-live-${slotNumber}-${stream.id || stream.url}`}
-        className="group relative h-full overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border border-gold-primary/60 flex flex-col justify-between transform-gpu will-change-transform"
+        key={`card-slot-${slotNumber}-${slotItem.id || slotItem.url}`}
+        className={`group relative h-full overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border flex flex-col justify-between transform-gpu will-change-transform ${
+          isLive ? 'border-gold-primary/70 ring-1 ring-gold-primary/30' : 'border-black/10 hover:border-gold-primary/50'
+        }`}
       >
         <div>
-          {/* Live Video Player Embed */}
+          {/* Active Video Player Embed (Never empty theme, plays live or standby video) */}
           <div className="relative w-full aspect-[16/9] bg-black overflow-hidden rounded-t-2xl">
             <iframe
               src={embedUrl}
-              title={stream.title || `Live Broadcast Slot ${slotNumber}`}
+              title={slotItem.title || `Slot ${slotNumber} Video`}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
-            {/* Live Status Overlay Badge */}
-            <div className="absolute top-2.5 left-2.5 bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md pointer-events-none">
-              <span className="size-1.5 rounded-full bg-white animate-ping"></span>
-              <span>LIVE • SLOT {slotNumber}</span>
+            {/* Live or Standby Status Badge */}
+            <div
+              className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md pointer-events-none ${
+                isLive ? 'bg-red-600 text-white' : 'bg-black/80 backdrop-blur-md text-gold-primary border border-gold-primary/40'
+              }`}
+            >
+              {isLive ? (
+                <>
+                  <span className="size-1.5 rounded-full bg-white animate-ping"></span>
+                  <span>LIVE • SLOT {slotNumber}</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[12px] text-gold-primary">play_circle</span>
+                  <span>STANDBY VIDEO • SLOT {slotNumber}</span>
+                </>
+              )}
             </div>
+
             <div className="absolute top-2.5 right-2.5 bg-black/85 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-bold text-gold-primary pointer-events-none">
-              {stream.game || 'BGMI'}
+              {slotItem.game || 'BGMI'}
             </div>
           </div>
 
-          {/* Stream Information */}
+          {/* Card Content & Details (ZERO viewer count per user specification) */}
           <div className="flex flex-col gap-2 p-5">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
-                <span className="size-1.5 rounded-full bg-red-600 animate-pulse"></span>
-                ON AIR BROADCAST
+              <span
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border flex items-center gap-1 ${
+                  isLive
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                }`}
+              >
+                {isLive ? (
+                  <>
+                    <span className="size-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                    ACTIVE LIVE STREAM
+                  </>
+                ) : (
+                  <>
+                    <span className="size-1.5 rounded-full bg-amber-500"></span>
+                    UPCOMING ARENA STREAM
+                  </>
+                )}
               </span>
               <span className="text-[11px] font-mono text-gray-500">
-                Authorized Stream
+                Slot #{slotNumber}
               </span>
             </div>
 
             <h3 className="text-base font-black text-gray-900 group-hover:text-gold-primary transition-colors line-clamp-1">
-              {stream.title || `Live Match Stream - Slot ${slotNumber}`}
+              {slotItem.title}
             </h3>
 
             <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
-              Official live broadcast channel authorized by Super Admin. Watch stream, chat, and room match progression.
+              {isLive
+                ? 'Official live broadcast channel authorized by Admin. Watch live match stream, commentary, and room action in real time.'
+                : 'Dedicated esports tournament streaming slot. Watch official gameplay broadcast, daily scrims production, or stream highlights.'}
             </p>
 
+            {/* Host and Clan Details - NO Viewers Count */}
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500 pt-1">
-              <span>Host: <strong className="text-gray-800">{stream.organizer || 'Verified Host'}</strong></span>
+              <span>Host: <strong className="text-gray-800">{slotItem.organizer || 'Verified Host'}</strong></span>
               <span>&bull;</span>
-              <span>Clan: <strong className="text-gray-800">{stream.clan || 'OFFICIAL'}</strong></span>
+              <span>Clan: <strong className="text-gray-800">{slotItem.clan || 'OFFICIAL'}</strong></span>
               <span>&bull;</span>
-              <span className="text-emerald-700 font-bold">👥 {viewersCount} Viewers</span>
+              <span>Game: <strong className="text-gray-800">{slotItem.game || 'BGMI'}</strong></span>
             </div>
           </div>
         </div>
@@ -134,7 +129,7 @@ export default function HostTournamentsSection({ onNavigate, currentUser }) {
         {/* Card Footer Actions */}
         <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2 gap-2">
           <a
-            href={stream.url}
+            href={slotItem.url}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -194,210 +189,11 @@ export default function HostTournamentsSection({ onNavigate, currentUser }) {
             </div>
           </div>
 
-          {/* 3-CARD SEQUENTIAL HOST & LIVE BROADCAST GRID */}
+          {/* 3-CARD SEQUENTIAL VIDEO HOSTING GRID (Slots 1, 2, 3 with zero viewers count & zero empty theme) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2 pb-6">
-            
-            {/* ================= CARD SLOT 1 ================= */}
-            {approvedBroadcasts[0] ? (
-              renderLiveStreamCard(approvedBroadcasts[0], 1, 16840)
-            ) : userHostedTourneys.length > 0 ? (
-              <div
-                onClick={() => {
-                  if (onNavigate) onNavigate('tournaments');
-                }}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border border-gold-primary/50 flex flex-col justify-between transform-gpu will-change-transform"
-              >
-                <div>
-                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-dark-default">
-                    <img
-                      alt={userHostedTourneys[0].title || 'Community Hosted Tournament'}
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 w-full h-full transform-gpu"
-                      src={userHostedTourneys[0].thumbnail || userHostedTourneys[0].poster || '/assets/host_directly_4k.jpg'}
-                    />
-                    <div className="absolute top-2.5 left-2.5 bg-[#DFBD78] text-black px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider shadow-sm">
-                      Slot 1 &bull; Community Match
-                    </div>
-                    <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-bold text-white">
-                      {userHostedTourneys[0].game || 'BGMI'}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                        {userHostedTourneys[0].type || 'TOURNAMENT'}
-                      </span>
-                      <span className="text-[11px] font-mono text-gray-500">
-                        {userHostedTourneys[0].timing || 'Upcoming Today'}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-black text-gray-900 group-hover:text-gold-primary transition-colors line-clamp-1">
-                      {userHostedTourneys[0].title}
-                    </h3>
-
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                      Entry: <strong className="text-black">{userHostedTourneys[0].entryFee || '₹10 - ₹50'}</strong> &bull; Prize: <strong className="text-emerald-600">{userHostedTourneys[0].prizePool || userHostedTourneys[0].prize || '₹50,000 INR'}</strong>
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500 pt-1">
-                      <span>Host: <strong className="text-gray-800">{userHostedTourneys[0].organizer || userHostedTourneys[0].hostUser || 'Verified Host'}</strong></span>
-                      <span>&bull;</span>
-                      <span>Slots: <strong className="text-gray-800">{userHostedTourneys[0].slots || '25 Squads'}</strong></span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Open
-                  </span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Join Match &rarr;
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div
-                onClick={handleHostRedirect}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border border-black/10 hover:border-gold-primary flex flex-col justify-between transform-gpu will-change-transform"
-              >
-                <div>
-                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-dark-default">
-                    <img
-                      alt="Host Your Live Tournaments Directly With Us"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 w-full h-full transform-gpu"
-                      src="/assets/host_directly_4k.jpg"
-                    />
-                    <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider">
-                      Slot 1 &bull; Pro Hosting
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">
-                        OFFICIAL HOSTING
-                      </span>
-                      <span className="text-[11px] font-mono text-gray-500">Tier 1 Production</span>
-                    </div>
-                    <h3 className="text-base font-black text-gray-900 group-hover:text-gold-primary transition-colors">
-                      Host Your Live Tournaments Directly With Us
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                      Set entry fees, define custom prize distributions, and let our engine handle player registrations, room code distribution, automated referee pilots, and YouTube live broadcast streaming.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold text-gray-500">₹10 / Match &bull; 1st Free</span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Open Studio &rarr;
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* ================= CARD SLOT 2 ================= */}
-            {approvedBroadcasts[1] ? (
-              renderLiveStreamCard(approvedBroadcasts[1], 2, 14250)
-            ) : (
-              <div
-                onClick={handleHostRedirect}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border border-black/10 hover:border-gold-primary flex flex-col justify-between transform-gpu will-change-transform"
-              >
-                <div>
-                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-dark-default">
-                    <img
-                      alt="Launch with Our Expert Pilots & Referees"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 w-full h-full transform-gpu"
-                      src="/assets/expert_pilots_4k.jpg"
-                    />
-                    <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-gold-primary uppercase tracking-wider">
-                      Slot 2 &bull; Daily Scrims Arena
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">
-                        OFFICIAL REFEREES
-                      </span>
-                      <span className="text-[11px] font-mono text-gray-500">Tier 2 Supervision</span>
-                    </div>
-                    <h3 className="text-base font-black text-gray-900 group-hover:text-gold-primary transition-colors">
-                      Launch with Our Expert Pilots &amp; Referees
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                      Certified tournament pilots supervise your matches in real time, preventing illegal teaming, managing drop timings, and validating fair play results.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold text-gray-500">Match Pilots &bull; Anti-Cheat</span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Host Scrim &rarr;
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* ================= CARD SLOT 3 ================= */}
-            {approvedBroadcasts[2] ? (
-              renderLiveStreamCard(approvedBroadcasts[2], 3, 11900)
-            ) : (
-              <div
-                onClick={handleHostRedirect}
-                className="group relative h-full overflow-hidden bg-white rounded-2xl cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1.5 transition-all duration-300 ease-out border border-black/10 hover:border-gold-primary flex flex-col justify-between transform-gpu will-change-transform"
-              >
-                <div>
-                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-dark-default">
-                    <img
-                      alt="Give Your Event a Professional Broadcaster Polish"
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-108 group-hover:brightness-105 w-full h-full transform-gpu"
-                      src="/assets/professional_quality_4k.jpg"
-                    />
-                    <div className="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded text-[10px] font-bold text-purple-400 uppercase tracking-wider">
-                      Slot 3 &bull; Championship Studio
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                        MEDIA PRODUCTION
-                      </span>
-                      <span className="text-[11px] font-mono text-gray-500">Tier 3 Broadcast</span>
-                    </div>
-                    <h3 className="text-base font-black text-gray-900 group-hover:text-gold-primary transition-colors">
-                      Give Your Event a Professional Broadcaster Polish
-                    </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                      Full HD multi-camera production overlays, live tournament leaderboard graphics, and direct RTMP YouTube broadcast integration for maximum reach.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-gray-100 mt-2">
-                  <span className="text-[11px] font-bold text-gray-500">LiveTournaments Production</span>
-                  <span className="text-xs font-bold text-black group-hover:text-gold-primary flex items-center gap-1 transition-all group-hover:translate-x-1">
-                    Media Feeds &rarr;
-                  </span>
-                </div>
-              </div>
-            )}
-
+            {renderCardSlot(cardSlots[0], 1)}
+            {renderCardSlot(cardSlots[1], 2)}
+            {renderCardSlot(cardSlots[2], 3)}
           </div>
 
           {/* Paid Hosting Workflow CTA Banner */}

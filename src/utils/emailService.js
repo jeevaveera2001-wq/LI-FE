@@ -148,7 +148,7 @@ export const sendRoomConductedEmail = async ({ email, name, title, type, game, r
     bodyHtml: `
       <h2>${type} Room Created Successfully</h2>
       <p>Hello ${cleanName},</p>
-      <p>Your ${type === 'SCRIM' ? 'Daily Scrim' : 'Tournament Room'} <strong>${title}</strong> has been created and submitted to Super Admin for broadcast clearance.</p>
+      <p>Your ${type === 'SCRIM' ? 'Daily Scrim' : 'Tournament Room'} <strong>${title}</strong> has been created and submitted to Admin for broadcast clearance.</p>
       <p><strong>Assigned Room Code:</strong> ${roomCode}</p>
       <p><strong>Passcode:</strong> ${roomPass}</p>
       <p><strong>Live Stream URL:</strong> ${channelLink || 'Not configured'}</p>
@@ -213,8 +213,8 @@ export const sendSuperAdminVipInviteEmail = async ({ email, name, privilege, not
     status: 'DELIVERED',
     details: {
       privilege,
-      note: note || 'Granted directly by LiveTournaments Super Admin (Zero Payment Required)',
-      activatedBy: 'Super Admin HQ'
+      note: note || 'Granted directly by LiveTournaments Admin (Zero Payment Required)',
+      activatedBy: 'Admin HQ'
     },
     bodyHtml: `
       <h2>VIP Direct Access Granted</h2>

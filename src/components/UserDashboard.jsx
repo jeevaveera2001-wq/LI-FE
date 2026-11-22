@@ -558,7 +558,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         });
 
         setIsConductModalOpen(false);
-        showToast('🎉 Tournament Room launched! Awaiting Super Admin approval. Confirmation email sent.');
+        showToast(currentUser?.hasTourneyApproval ? '🎉 Tournament Room launched & approved instantly with VIP Clearance!' : '🎉 Tournament Room launched! Awaiting Admin approval. Confirmation email sent.');
         
         // Reset form fields
         setConductTitle('');
@@ -718,7 +718,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         });
 
         setIsConductScrimModalOpen(false);
-        showToast('🎉 Daily Scrim created! Awaiting Super Admin approval. Confirmation email sent.');
+        showToast(currentUser?.hasScrimsApproval ? '🎉 Daily Scrim created & approved instantly with VIP Clearance!' : '🎉 Daily Scrim created! Awaiting Admin approval. Confirmation email sent.');
 
         setScrimTitle('');
         setScrimRoomCode('SCRIM-' + Math.floor(10000 + Math.random() * 90000));
@@ -908,10 +908,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     // Dispatch update event so Home Arena live stream reflects change immediately
     window.dispatchEvent(new Event('lt_stream_updated'));
     setLiveStreamInput('');
-    showToast('🔴 Validated! Stream URL active in player and submitted for Super Admin verification.');
+    showToast(currentUser?.hasBroadcastVip ? '🌟 Broadcast VIP Active! Stream published directly to Homepage!' : '🔴 Validated! Stream URL active in player and submitted for Admin verification.');
   };
 
-  // 8. Submit Results for Super Admin Verification
+  // 8. Submit Results for Admin Verification
   const handleSubmitResultsForVerification = (e) => {
     e.preventDefault();
     if (!resultMatch) return;
@@ -945,7 +945,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     } catch (err) {}
 
     setShowResultSubmitModal(false);
-    showToast('🏆 Match results & certified points table submitted for Super Admin verification!');
+    showToast('🏆 Match results & certified points table submitted for Admin verification!');
   };
 
   // Summary Metrics for Payments History
@@ -1123,31 +1123,6 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           </button>
 
           <button
-            onClick={() => {
-              const superAdminUser = {
-                id: 'LT-ADM-001',
-                name: 'Super Admin',
-                username: 'superadmin',
-                email: 'superadmin@lt.in',
-                role: 'superadmin',
-                clan: 'ADMIN HQ'
-              };
-              try {
-                localStorage.setItem('lt_user', JSON.stringify(superAdminUser));
-              } catch (e) {}
-              if (onNavigate) {
-                onNavigate('admin-dashboard');
-              } else {
-                window.location.href = '/admin';
-              }
-            }}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10.5px] font-bold transition-colors cursor-pointer"
-          >
-            <span>⚡</span>
-            <span>Switch to Super Admin</span>
-          </button>
-
-          <button
             onClick={onLogout}
             className="w-full flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 text-[10.5px] font-semibold transition-colors cursor-pointer"
           >
@@ -1217,32 +1192,6 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               </div>
             </div>
 
-            {/* 1-Click Role Switcher to Super Admin */}
-            <button
-              onClick={() => {
-                const superAdminUser = {
-                  id: 'LT-ADM-001',
-                  name: 'Super Admin',
-                  username: 'superadmin',
-                  email: 'superadmin@lt.in',
-                  role: 'superadmin',
-                  clan: 'ADMIN HQ'
-                };
-                try {
-                  localStorage.setItem('lt_user', JSON.stringify(superAdminUser));
-                } catch (e) {}
-                if (onNavigate) {
-                  onNavigate('admin-dashboard');
-                } else {
-                  window.location.href = '/admin';
-                }
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 border border-amber-500/30 text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Switch to Super Admin Dashboard"
-            >
-              <span>⚡</span>
-              <span className="hidden sm:inline">Switch to Super Admin</span>
-            </button>
           </div>
         </header>
 
@@ -1493,7 +1442,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                                 h.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
                               }`}>
-                                {h.status === 'APPROVED' ? 'APPROVED ✓' : 'AWAITING SUPER ADMIN APPROVAL'}
+                                {h.status === 'APPROVED' ? 'APPROVED ✓' : 'AWAITING ADMIN APPROVAL'}
                               </span>
                               <span className="text-xs font-mono text-gray-500">{h.game}</span>
                             </div>
@@ -1562,7 +1511,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                                   <div className="flex items-start gap-2">
                                     <span className="material-symbols-outlined text-[18px] text-amber-700 shrink-0 mt-0.5">warning</span>
                                     <div>
-                                      <span className="font-bold text-[12px] block text-amber-950">Super Admin Requested Re-Request / Revision:</span>
+                                      <span className="font-bold text-[12px] block text-amber-950">Admin Requested Revision:</span>
                                       <p className="italic text-amber-800 mt-0.5">"{ver.adminFeedback || 'Please verify slot-by-slot scores or re-upload clearer scoreboard proof.'}"</p>
                                     </div>
                                   </div>
@@ -1602,7 +1551,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                             return (
                               <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 flex items-center gap-2 text-xs">
                                 <span className="material-symbols-outlined text-[16px] text-purple-600">hourglass_top</span>
-                                <span className="font-semibold">Results Submitted &bull; Awaiting Super Admin Certification Review</span>
+                                <span className="font-semibold">Results Submitted &bull; Awaiting Admin Certification Review</span>
                               </div>
                             );
                           } catch (e) {
@@ -1638,14 +1587,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                               <span>Email Points Table</span>
                             </button>
 
-                            {/* Submit Results to Super Admin Result Verifier */}
+                            {/* Submit Results to Admin Result Verifier */}
                             <button
                               onClick={() => {
                                 setResultMatch(h);
                                 setShowResultSubmitModal(true);
                               }}
                               className="px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
-                              title="Submit match results and points table poster proof for Super Admin verification"
+                              title="Submit match results and points table poster proof for Admin verification"
                             >
                               <span className="material-symbols-outlined text-[14px]">fact_check</span>
                               <span>Submit Results to Admin</span>
@@ -2551,7 +2500,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         </div>
       )}
 
-      {/* Result Submission Modal for Super Admin Result Verifier */}
+      {/* Result Submission Modal for Admin Result Verifier */}
       {showResultSubmitModal && resultMatch && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-gray-200 space-y-4 max-h-[92vh] overflow-y-auto">
@@ -2863,7 +2812,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   rows={2}
                   value={resultNotes}
                   onChange={(e) => setResultNotes(e.target.value)}
-                  placeholder="Notes for Super Admin result verification (e.g. All matches completed, slot scores verified)"
+                  placeholder="Notes for Admin result verification (e.g. All matches completed, slot scores verified)"
                   className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs focus:border-purple-600 outline-hidden"
                 />
               </div>
@@ -2882,7 +2831,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   className="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px]">verified</span>
-                  <span>Submit to Super Admin</span>
+                  <span>Submit to Admin</span>
                 </button>
               </div>
             </form>

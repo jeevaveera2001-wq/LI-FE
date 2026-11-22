@@ -138,7 +138,7 @@ const DEFAULT_FINISHED_MATCHES = [
 ];
 
 export default function PreviousFinishedMatchesSection({ onNavigate, currentUser }) {
-  // Load finished matches from localStorage or fallback
+  // Load finished matches from localStorage (real published matches only, zero fake data)
   const [finishedMatches, setFinishedMatches] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -149,7 +149,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
         }
       } catch (e) {}
     }
-    return DEFAULT_FINISHED_MATCHES;
+    return [];
   });
 
   useEffect(() => {
@@ -345,13 +345,23 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
           </div>
 
           {/* Finished Matches Cards Grid (White Theme Matching Homepage Canvas) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 pt-2 pb-6">
-            {finishedMatches.map((match) => (
-              <div
-                key={match.id}
-                onClick={() => setSelectedMatch(match)}
-                className="group relative flex flex-col rounded-2xl bg-white border border-black/10 hover:border-gold-primary overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out transform-gpu will-change-transform hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-30 hover:ring-2 hover:ring-gold-primary/50 flex flex-col justify-between"
-              >
+          <div className="pt-2 pb-6">
+            {finishedMatches.length === 0 ? (
+              <div className="py-12 px-6 rounded-2xl bg-white border border-dashed border-gray-300 text-center space-y-2">
+                <span className="material-symbols-outlined text-4xl text-gray-400">emoji_events</span>
+                <h4 className="text-sm font-bold text-gray-800">No Finished Match Leaderboards Yet</h4>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
+                  Official certified results and 25-slot leaderboards will appear here once verified and published by the Admin.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                {finishedMatches.map((match) => (
+                  <div
+                    key={match.id}
+                    onClick={() => setSelectedMatch(match)}
+                    className="group relative flex flex-col rounded-2xl bg-white border border-black/10 hover:border-gold-primary overflow-hidden cursor-pointer shadow-md hover:shadow-2xl hover:shadow-black/25 transition-all duration-300 ease-out transform-gpu will-change-transform hover:-translate-y-2 hover:scale-[1.025] relative z-0 hover:z-30 hover:ring-2 hover:ring-gold-primary/50 flex flex-col justify-between"
+                  >
                 {/* Image Banner with Smooth Hover Zoom & Forward Elevation */}
                 <div className="relative aspect-[1.74/1] w-full overflow-hidden bg-neutral-900 rounded-t-2xl">
                   <img
@@ -426,6 +436,8 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                 </div>
               </div>
             ))}
+              </div>
+            )}
           </div>
 
         </div>
@@ -495,7 +507,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                 </div>
               </div>
 
-              {/* Standings if Verified by Super Admin */}
+              {/* Standings if Verified by Admin */}
               {selectedMatch.runnerUp && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">

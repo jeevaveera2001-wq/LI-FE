@@ -39,7 +39,7 @@ export default function PartnersSection({ onNavigate }) {
                 Official Partnership &amp; Direct Sponsorship Portal
               </p>
               <p className="primary-regular-s14-lh120 text-[#6B6B6B] max-w-2xl">
-                Interested in sponsoring or partnering with official LiveTournaments.in events and broadcast seasons? Submit your official proposal directly to our Super Admin command team on the dedicated partnership page.
+                Interested in sponsoring or partnering with official LiveTournaments.in events and broadcast seasons? Submit your official proposal directly to our Admin command team on the dedicated partnership page.
               </p>
             </div>
             <button

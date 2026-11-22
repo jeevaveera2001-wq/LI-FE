@@ -271,6 +271,33 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       } catch (e) {}
     }
 
+    // Direct Admin Credentials Authentication (admin / admin@123)
+    const normalizedInput = (loginEmail || '').trim().toLowerCase();
+    if (
+      (normalizedInput === 'admin' || normalizedInput === 'admin@lt.in' || normalizedInput === 'admin@livetournaments.in' || normalizedInput === 'superadmin@lt.in') &&
+      loginPassword === 'admin@123'
+    ) {
+      const adminUser = {
+        id: 'LT-ADM-001',
+        name: 'Admin',
+        username: 'admin',
+        displayName: 'Admin',
+        email: 'admin@livetournaments.in',
+        role: 'admin',
+        status: 'ACTIVE',
+        location: activeLoc || 'Chennai, Tamil Nadu, India'
+      };
+      localStorage.setItem('lt_user', JSON.stringify(adminUser));
+      if (onLoginSuccess) onLoginSuccess(adminUser);
+      setSuccessMessage('Admin Authenticated! Redirecting to Admin Dashboard...');
+      setTimeout(() => {
+        if (onNavigate) onNavigate('admin-dashboard');
+        else if (onNavigateHome) onNavigateHome();
+      }, 400);
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await axios.post('/api/auth/login', {
         usernameOrEmail: loginEmail,
@@ -339,9 +366,9 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         } catch (e) {}
       }
 
-      const isSuper = user && (user.role === 'superadmin' || user.email === 'superadmin@lt.in');
+      const isSuper = user && (user.role === 'superadmin' || user.role === 'admin' || user.email === 'superadmin@lt.in' || user.email === 'admin@lt.in');
 
-      setSuccessMessage(isSuper ? '👑 Super Admin Authenticated! Redirecting to Dashboard...' : 'Login successful! Redirecting to your Dashboard...');
+      setSuccessMessage(isSuper ? 'Admin Authenticated! Redirecting to Admin Dashboard...' : 'Login successful! Redirecting to your Dashboard...');
       setTimeout(() => {
         if (isSuper) {
           if (onNavigate) onNavigate('admin-dashboard');
@@ -353,37 +380,37 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       }, 800);
     } catch (err) {
       if (
-        (loginEmail.toLowerCase() === 'superadmin@lt.in' || loginEmail.toLowerCase() === 'superadmin') &&
-        loginPassword === 'SuperAdmin@21'
+        (loginEmail.toLowerCase() === 'superadmin@lt.in' || loginEmail.toLowerCase() === 'superadmin' || loginEmail.toLowerCase() === 'admin' || loginEmail.toLowerCase() === 'admin@lt.in') &&
+        (loginPassword === 'SuperAdmin@21' || loginPassword === 'admin@123')
       ) {
         const resolvedLocation = exactLocation.location || 'Chennai, Tamil Nadu, India';
         const resolvedIp = exactLocation.ip || '127.0.0.1';
         const superUser = {
-          id: 'LT-USR-1001',
-          username: 'superadmin',
-          email: 'superadmin@lt.in',
-          name: 'Super Admin',
-          role: 'superadmin',
-          displayName: 'Super Admin',
+          id: 'LT-ADM-001',
+          username: 'admin',
+          email: 'admin@livetournaments.in',
+          name: 'Admin',
+          role: 'admin',
+          displayName: 'Admin',
           status: 'ACTIVE',
           location: resolvedLocation
         };
         localStorage.setItem('lt_user', JSON.stringify(superUser));
         if (onLoginSuccess) onLoginSuccess(superUser);
 
-        // Record Super Admin Login in local logs with exact location
+        // Record Admin Login in local logs with exact location
         try {
           const savedLogs = localStorage.getItem('lt_activity_logs');
           const logsList = savedLogs ? JSON.parse(savedLogs) : [];
           logsList.unshift({
             id: 'act_' + Date.now(),
-            userId: 'LT-USR-1001',
-            userName: 'Super Admin',
-            userEmail: 'superadmin@lt.in',
-            action: 'Super Admin Console Access & Authentication',
+            userId: 'LT-ADM-001',
+            userName: 'Admin',
+            userEmail: 'admin@livetournaments.in',
+            action: 'Admin Console Access & Authentication',
             ip: resolvedIp,
             location: resolvedLocation,
-            agreements: 'Super Administrator Master Security Protocol Verified',
+            agreements: 'Administrator Master Security Protocol Verified',
             device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
             time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
             date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
@@ -392,7 +419,7 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
         } catch (e) {}
 
-        setSuccessMessage('👑 Super Admin Authenticated! Redirecting to Dashboard...');
+        setSuccessMessage('Admin Authenticated! Redirecting to Admin Dashboard...');
         setTimeout(() => {
           if (onNavigate) onNavigate('admin-dashboard');
           else if (onNavigateHome) onNavigateHome();

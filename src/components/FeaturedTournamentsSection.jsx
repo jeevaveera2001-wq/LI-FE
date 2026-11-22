@@ -415,10 +415,10 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="text-dark-default section-title flex w-full flex-col gap-2 text-left">
               <h2 className="primary-bold-s26-lh110 md:primary-bold-s32-lh100 lg:primary-bold-s38-lh100 xl:primary-bold-s42-lh90">
-                Tournament Match Registrations
+                Featured Tournaments
               </h2>
               <p className="primary-regular-s14-lh120 md:primary-regular-s18-lh120 lg:primary-regular-s20-lh120 text-[#6B7280]">
-                Sign in to register your squad for upcoming competitive tournaments and explore active championship brackets.
+                Explore premier esports championships, verified daily scrims, and official tournaments. Approved by Admin with automated room codes and broadcast integration.
               </p>
             </div>
 

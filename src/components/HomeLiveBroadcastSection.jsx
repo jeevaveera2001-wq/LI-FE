@@ -132,7 +132,7 @@ export default function HomeLiveBroadcastSection({ onNavigate, currentUser }) {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-tight text-white flex items-center gap-3">
               <span>FEATURED LIVE STREAM</span>
               <span className="text-xs px-2.5 py-1 rounded bg-[#C5A059]/20 text-[#DFBD78] border border-[#C5A059]/40 font-mono font-semibold">
-                SUPER ADMIN APPROVED
+                ADMIN APPROVED
               </span>
             </h2>
             <p className="text-sm text-gray-400 mt-1 max-w-xl">

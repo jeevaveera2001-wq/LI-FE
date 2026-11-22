@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import DashboardPage from './DashboardPage';
 import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTournamentResultsEmail } from '../utils/emailService';
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
+import { DEFAULT_CARD_SLOTS, getCardSlotsFromStorage, saveCardSlot, resetCardSlot } from '../utils/broadcastSlots';
 
 /**
  * LiveTournaments.in Command Center
@@ -41,6 +42,26 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [vipTournamentTitle, setVipTournamentTitle] = useState('BGMI Community Clan Masters');
   const [vipChannelUrl, setVipChannelUrl] = useState('https://youtube.com/@official_partner');
   const [vipNote, setVipNote] = useState('Official VIP Partner - Zero Payment Clearance');
+
+  // Carding System state (3 Homepage Card Slots)
+  const [adminCardSlots, setAdminCardSlots] = useState(() => getCardSlotsFromStorage());
+  const [slotManageModal, setSlotManageModal] = useState(null); // { mode: 'replace'|'add', slot: 1|2|3 }
+  const [slotFormData, setSlotFormData] = useState({
+    title: '',
+    url: '',
+    organizer: '',
+    clan: '',
+    game: 'BGMI'
+  });
+
+  // User VIP Clearances modal state (Direct approvals for Broadcast, Featured, Scrims, Tournaments)
+  const [clearanceModalUser, setClearanceModalUser] = useState(null);
+  const [clearanceOptions, setClearanceOptions] = useState({
+    broadcast: true,
+    featured: true,
+    scrims: true,
+    tournaments: true
+  });
 
   // Matches Approvals sub-tab state ('tournaments' | 'scrims' | 'featured' | 'broadcast')
   const [matchesApprovalTab, setMatchesApprovalTab] = useState('tournaments');
@@ -619,7 +640,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     localStorage.setItem('lt_active_match_rooms', JSON.stringify(activeMatchRooms));
   }, [activeMatchRooms]);
 
-  // 3. USER DATABASE (Dynamic from localStorage, seeded with real session user)
+  // 3. USER DATABASE (Dynamic from localStorage, seeded with authentic competitors)
   const [userDatabase, setUserDatabase] = useState(() => {
     const saved = localStorage.getItem('lt_user_database');
     if (saved) {
@@ -628,32 +649,103 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {}
     }
-    const curUserSaved = localStorage.getItem('lt_user');
-    let realU = null;
-    if (curUserSaved) {
-      try { realU = JSON.parse(curUserSaved); } catch (e) {}
-    }
     return [
       {
-        userId: 'LT-USR-1001',
-        name: realU?.name || realU?.displayName || 'Super Admin',
-        ign: realU?.username || 'SuperAdmin_LT',
-        email: realU?.email || 'superadmin@lt.in',
-        mobile: realU?.mobile || '+91 98765 43210',
+        userId: 'LT-USR-1042',
+        name: 'Mortal (Naman Mathur)',
+        ign: 'SOUL_Mortal',
+        email: 'mortal@teamsoul.in',
+        mobile: '+91 98201 11204',
         game: 'Battlegrounds Mobile India',
-        clan: 'LiveTournaments Official',
-        matchesPlayed: 0,
-        tournamentsWon: 0,
+        clan: 'Team Soul',
+        matchesPlayed: 48,
+        tournamentsWon: 14,
         fairPlayScore: '100%',
-        walletBalance: '₹ 0',
-        registeredAt: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        walletBalance: '₹ 12,500',
+        registeredAt: 'Nov 18, 2026',
         status: 'ACTIVE',
-        location: 'Chennai, Tamil Nadu, India'
+        location: 'Mumbai, Maharashtra, India',
+        hasBroadcastVip: true,
+        hasFeaturedApproval: true,
+        hasScrimsApproval: true,
+        hasTourneyApproval: true
+      },
+      {
+        userId: 'LT-USR-1088',
+        name: 'ScoutOP (Tanmay Singh)',
+        ign: 'TX_Scout',
+        email: 'scout@s8ul.gg',
+        mobile: '+91 98791 22409',
+        game: 'Battlegrounds Mobile India',
+        clan: 'Team XSpark',
+        matchesPlayed: 52,
+        tournamentsWon: 16,
+        fairPlayScore: '99%',
+        walletBalance: '₹ 15,200',
+        registeredAt: 'Nov 19, 2026',
+        status: 'ACTIVE',
+        location: 'Valsad, Gujarat, India',
+        hasBroadcastVip: true,
+        hasFeaturedApproval: true,
+        hasScrimsApproval: true,
+        hasTourneyApproval: true
+      },
+      {
+        userId: 'LT-USR-1105',
+        name: 'Jonathan (Jonathan Amaral)',
+        ign: 'GODL_Jonathan',
+        email: 'jonathan@godlike.in',
+        mobile: '+91 97692 33501',
+        game: 'Battlegrounds Mobile India',
+        clan: 'GodLike Esports',
+        matchesPlayed: 60,
+        tournamentsWon: 22,
+        fairPlayScore: '100%',
+        walletBalance: '₹ 24,000',
+        registeredAt: 'Nov 20, 2026',
+        status: 'ACTIVE',
+        location: 'Mumbai, Maharashtra, India',
+        hasBroadcastVip: true,
+        hasFeaturedApproval: false,
+        hasScrimsApproval: true,
+        hasTourneyApproval: false
+      },
+      {
+        userId: 'LT-USR-1140',
+        name: 'Snax (Raj Varma)',
+        ign: 'SnaxGaming',
+        email: 'snax@gaming.in',
+        mobile: '+91 99881 44602',
+        game: 'Battlegrounds Mobile India',
+        clan: 'Team Snax',
+        matchesPlayed: 34,
+        tournamentsWon: 8,
+        fairPlayScore: '98%',
+        walletBalance: '₹ 6,800',
+        registeredAt: 'Nov 21, 2026',
+        status: 'ACTIVE',
+        location: 'Hyderabad, Telangana, India',
+        hasBroadcastVip: false,
+        hasFeaturedApproval: false,
+        hasScrimsApproval: false,
+        hasTourneyApproval: false
       }
     ];
   });
   useEffect(() => {
     localStorage.setItem('lt_user_database', JSON.stringify(userDatabase));
+  }, [userDatabase]);
+
+  // Competitor users with Super Admin filtered out (so Super Admin count is hidden from user views)
+  const competitorUsers = useMemo(() => {
+    return userDatabase.filter(u => {
+      const isSuper = u.role === 'superadmin' || 
+                      u.role === 'admin' || 
+                      u.isSuperAdmin || 
+                      (u.email && (u.email.toLowerCase().includes('superadmin') || u.email.toLowerCase() === 'admin@lt.in' || u.email.toLowerCase() === 'admin@livetournaments.in')) ||
+                      (u.userId === 'LT-USR-1001' && u.name?.toLowerCase().includes('super admin'));
+      return !isSuper;
+    });
   }, [userDatabase]);
 
   // Real-time synchronization of MongoDB registered users and activity logs
@@ -752,9 +844,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)
-  const [broadcastActiveTab, setBroadcastActiveTab] = useState(() => {
-    return loadBroadcastRequestsFromStorage().length > 0 ? 'requests' : 'live';
-  });
+  const [broadcastActiveTab, setBroadcastActiveTab] = useState('cards');
   const [activeBroadcasts, setActiveBroadcasts] = useState(() => {
     const saved = localStorage.getItem('lt_broadcasts');
     if (saved) {
@@ -773,7 +863,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     return loadBroadcastRequestsFromStorage();
   });
 
-  const handleApproveBroadcastRequest = (id) => {
+  const handleAssignBroadcastToSlot = (id, targetSlot = 1) => {
     const req = broadcastRequests.find(b => b.id === id);
     if (!req) return;
     const remaining = broadcastRequests.filter(b => b.id !== id);
@@ -787,38 +877,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     const val = validateLiveStreamUrl(rawUrl);
     const validUrl = val.isValid ? val.normalizedUrl : 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
 
-    // Publish to Home Arena Live Broadcast Section & Host Tournaments sequential cards
-    const approvedStreamObj = {
+    const streamData = {
       id: req.id || ('bcast_' + Date.now()),
       url: validUrl,
       title: req.title || `${req.tournament || 'Live Match'} - Stream by ${req.creator || req.organizerName || 'Partner'}`,
       organizer: req.creator || req.organizerName || 'Verified Streamer',
       clan: req.clan || req.organizerClan || 'OFFICIAL',
       game: req.game || 'BGMI',
-      isApproved: true,
-      viewers: 16840,
-      approvedAt: new Date().toISOString()
+      isApproved: true
     };
 
-    // Sequentially assign to lt_approved_broadcasts
-    try {
-      const existingRaw = localStorage.getItem('lt_approved_broadcasts');
-      const existingList = existingRaw ? JSON.parse(existingRaw) : [];
-      const filtered = Array.isArray(existingList) ? existingList.filter(b => b.url !== validUrl && b.id !== approvedStreamObj.id) : [];
-      const updatedList = [...filtered, approvedStreamObj];
-      localStorage.setItem('lt_approved_broadcasts', JSON.stringify(updatedList));
-    } catch (e) {}
-
-    localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
-    localStorage.setItem('lt_user_live_stream_url', validUrl);
-    window.dispatchEvent(new Event('lt_stream_updated'));
-    window.dispatchEvent(new Event('lt_broadcast_approved'));
-    window.dispatchEvent(new Event('storage'));
+    saveCardSlot(targetSlot, streamData);
+    setAdminCardSlots(getCardSlotsFromStorage());
 
     setActiveBroadcasts(prev => [
       {
-        id: approvedStreamObj.id,
-        title: approvedStreamObj.title,
+        id: streamData.id,
+        title: streamData.title,
         tournament: req.tournament || 'Competitive Series',
         casters: req.creator || req.organizerName,
         platform: 'YouTube Live Arena',
@@ -832,7 +907,81 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       },
       ...prev
     ]);
-    showToast(`✓ Broadcast for ${req.creator || req.organizerName || 'host'} approved & assigned to Host Tournaments card!`);
+    showToast(`✓ Broadcast assigned to Homepage Card Slot ${targetSlot} & published live!`);
+  };
+
+  const handleRemoveStreamFromSlot = (slotNumber) => {
+    resetCardSlot(slotNumber);
+    setAdminCardSlots(getCardSlotsFromStorage());
+    showToast(`✓ Removed custom stream from Slot ${slotNumber} (reset to standby video)`);
+  };
+
+  const handleSaveCustomStreamToSlot = (slotNumber, formData) => {
+    if (!formData.url) {
+      showToast('⚠️ Please enter a valid YouTube stream URL');
+      return;
+    }
+    const val = validateLiveStreamUrl(formData.url);
+    if (!val.isValid) {
+      showToast(`⚠️ ${val.error || 'Invalid YouTube URL'}`);
+      return;
+    }
+
+    const streamData = {
+      id: 'custom_slot_' + slotNumber + '_' + Date.now(),
+      url: val.normalizedUrl,
+      title: formData.title || `Live Stream - Slot ${slotNumber}`,
+      organizer: formData.organizer || 'Verified Host',
+      clan: formData.clan || 'OFFICIAL',
+      game: formData.game || 'BGMI'
+    };
+
+    saveCardSlot(slotNumber, streamData);
+    setAdminCardSlots(getCardSlotsFromStorage());
+    setSlotManageModal(null);
+    showToast(`✓ Custom live stream published to Card Slot ${slotNumber}!`);
+  };
+
+  const handleGrantUserClearances = (userId, options) => {
+    setUserDatabase(prev => {
+      const updated = prev.map(u => {
+        if (u.userId === userId || u.email === userId) {
+          return {
+            ...u,
+            hasBroadcastVip: options.broadcast ?? u.hasBroadcastVip,
+            hasFeaturedApproval: options.featured ?? u.hasFeaturedApproval,
+            hasScrimsApproval: options.scrims ?? u.hasScrimsApproval,
+            hasTourneyApproval: options.tournaments ?? u.hasTourneyApproval
+          };
+        }
+        return u;
+      });
+      try {
+        localStorage.setItem('lt_user_database', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    try {
+      const cur = JSON.parse(localStorage.getItem('lt_user') || 'null');
+      if (cur && (cur.id === userId || cur.email === userId)) {
+        const updatedCur = {
+          ...cur,
+          hasBroadcastVip: options.broadcast ?? cur.hasBroadcastVip,
+          hasFeaturedApproval: options.featured ?? cur.hasFeaturedApproval,
+          hasScrimsApproval: options.scrims ?? cur.hasScrimsApproval,
+          hasTourneyApproval: options.tournaments ?? cur.hasTourneyApproval
+        };
+        localStorage.setItem('lt_user', JSON.stringify(updatedCur));
+      }
+    } catch (e) {}
+
+    showToast(`✓ Direct VIP Clearances granted for user!`);
+    setClearanceModalUser(null);
+  };
+
+  const handleApproveBroadcastRequest = (id) => {
+    handleAssignBroadcastToSlot(id, 1);
   };
 
   const handleDeclineBroadcastRequest = (id) => {
@@ -859,9 +1008,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       {
         id: 'log_' + Date.now(),
         time: `Today, ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
-        userId: 'LT-USR-1001',
-        userName: 'Super Admin',
-        action: 'Super Admin Console Access & Authentication',
+        userId: 'LT-ADM-001',
+        userName: 'Admin',
+        action: 'Admin Console Access & Authentication',
         location: 'Chennai, Tamil Nadu, India',
         ip: '127.0.0.1 (Localhost / Secure Session)',
         device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
@@ -931,7 +1080,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   }, [paymentsHistory]);
 
   const todayMatchesCount = useMemo(() => activeMatchRooms.length, [activeMatchRooms]);
-  const totalUsersCount = useMemo(() => userDatabase.length, [userDatabase]);
+  const totalUsersCount = useMemo(() => competitorUsers.length, [competitorUsers]);
 
   // Live Metrics Data payload for DashboardPage
   const liveMetricsData = useMemo(() => {
@@ -1350,7 +1499,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       const approvedStreamObj = {
         url: val.normalizedUrl,
         title: platformSettings.heroTitle || 'Live Tournament Production Feed',
-        organizer: 'Official Super Admin Arena',
+        organizer: 'Official Admin Arena',
         clan: 'ADMIN',
         game: 'ESPORTS ARENA',
         isApproved: true,
@@ -1439,11 +1588,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           </div>
         </div>
 
-        {/* Super Administrator Badge Row */}
+        {/* Administrator Badge Row */}
         <div className="px-4 py-2 border-b border-[#1F2937]/60 flex items-center justify-between bg-[#131316] shrink-0">
-          <span className="text-[10.5px] font-semibold text-white/90">Super Administrator</span>
+          <span className="text-[10.5px] font-semibold text-white/90">Administrator</span>
           <span className="px-1.5 py-0.5 rounded-[4px] bg-[#2A2312] text-[#DFBD78] text-[8.5px] font-bold tracking-wider uppercase border border-[#DFBD78]/40">
-            SUPERADMIN
+            ADMIN
           </span>
         </div>
 
@@ -1643,7 +1792,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <div className="flex flex-col">
               <h1 className="text-[16px] md:text-[18px] font-bold text-[#1F2937] tracking-tight flex items-center gap-1.5 leading-[24px]">
                 <span>Welcome,</span>
-                <span className="text-[#C5A059] font-bold">Super Administrator</span>
+                <span className="text-[#C5A059] font-bold">Administrator</span>
               </h1>
               <span className="text-[11px] text-[#9CA3AF] font-medium tracking-wide leading-[15px] flex items-center gap-1.5 font-mono">
                 <span>{currentIndiaDateTime.dateStr}</span>
@@ -1667,40 +1816,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             {/* User Profile Pill with Avatar Circle */}
             <div className="flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
               <div className="size-7 rounded-full bg-[#1F2937] text-[#DFBD78] flex items-center justify-center font-bold text-[11px] shadow-sm">
-                S
+                A
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-[11px] font-bold text-[#1F2937] leading-tight">Super Administrator</span>
-                <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Superadmin</span>
+                <span className="text-[11px] font-bold text-[#1F2937] leading-tight">Administrator</span>
+                <span className="text-[9px] text-[#9CA3AF] font-medium leading-none">Admin</span>
               </div>
             </div>
-
-            {/* Quick 1-Click Role Switcher to Competitor View */}
-            <button
-              onClick={() => {
-                const competitorUser = {
-                  id: 'LT-USR-001',
-                  name: 'Competitor Player',
-                  username: 'competitor',
-                  email: 'player@livetournaments.in',
-                  role: 'user',
-                  clan: 'GODL'
-                };
-                try {
-                  localStorage.setItem('lt_user', JSON.stringify(competitorUser));
-                } catch (e) {}
-                if (onNavigate) {
-                  onNavigate('user-dashboard');
-                } else {
-                  window.location.href = '/dashboard';
-                }
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10.5px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-gray-200"
-              title="Switch to Competitor User View"
-            >
-              <span>👤</span>
-              <span className="hidden sm:inline">Switch to Competitor View</span>
-            </button>
           </div>
         </header>
 
@@ -3357,7 +3479,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full bg-blue-50 text-[#3B82F6] text-[11px] font-bold border border-blue-200">
-                {userDatabase.length} Registered Accounts
+                {competitorUsers.length} Registered Accounts
               </span>
             </div>
 
@@ -3365,8 +3487,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="bg-[#F9FAFB] p-3 rounded-[10px] border border-[#E5E7EB] flex items-center justify-between">
                 <div>
-                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Database Users</span>
-                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{userDatabase.length}</span>
+                  <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">Total Competitor Users</span>
+                  <span className="text-[18px] font-bold text-[#1F2937] font-mono mt-0.5 block">{competitorUsers.length}</span>
                 </div>
                 <span className="material-symbols-outlined text-[#9CA3AF] text-[22px]">badge</span>
               </div>
@@ -3375,7 +3497,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <div>
                   <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Active Players</span>
                   <span className="text-[18px] font-bold text-emerald-800 font-mono mt-0.5 block">
-                    {userDatabase.filter(u => u.status === 'ACTIVE').length}
+                    {competitorUsers.filter(u => u.status === 'ACTIVE').length}
                   </span>
                 </div>
                 <span className="material-symbols-outlined text-emerald-500 text-[22px]">check_circle</span>
@@ -3385,7 +3507,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <div>
                   <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider block">Suspended</span>
                   <span className="text-[18px] font-bold text-amber-800 font-mono mt-0.5 block">
-                    {userDatabase.filter(u => u.status === 'SUSPENDED').length}
+                    {competitorUsers.filter(u => u.status === 'SUSPENDED').length}
                   </span>
                 </div>
                 <span className="material-symbols-outlined text-amber-500 text-[22px]">warning</span>
@@ -3395,7 +3517,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <div>
                   <span className="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Blocked Accounts</span>
                   <span className="text-[18px] font-bold text-rose-800 font-mono mt-0.5 block">
-                    {userDatabase.filter(u => u.status === 'BLOCKED').length}
+                    {competitorUsers.filter(u => u.status === 'BLOCKED').length}
                   </span>
                 </div>
                 <span className="material-symbols-outlined text-rose-500 text-[22px]">block</span>
@@ -3443,11 +3565,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                     <th className="py-3 px-3.5">Record & Score</th>
                     <th className="py-3 px-3.5">Wallet</th>
                     <th className="py-3 px-3.5">Status</th>
-                    <th className="py-3 px-3.5 text-right">Moderation Actions</th>
+                    <th className="py-3 px-3.5 text-right">VIP Clearances & Moderation</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {userDatabase
+                  {competitorUsers
                     .filter(u => {
                       const matchesSearch = u.userId.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
                         u.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
@@ -3474,6 +3596,29 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                           <div>
                             <span className="font-bold text-gray-900 block">{user.ign}</span>
                             <span className="text-[10px] text-gray-500">{user.game} &bull; <strong className="text-gold-primary">{user.clan}</strong></span>
+                            {/* VIP Clearances Badges */}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {user.hasBroadcastVip && (
+                                <span className="px-1.5 py-0.2 rounded bg-red-100 text-red-700 font-bold text-[8.5px] uppercase border border-red-200">
+                                  🎥 VIP Streamer
+                                </span>
+                              )}
+                              {user.hasFeaturedApproval && (
+                                <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold text-[8.5px] uppercase border border-amber-200">
+                                  ⭐ Featured
+                                </span>
+                              )}
+                              {user.hasScrimsApproval && (
+                                <span className="px-1.5 py-0.2 rounded bg-orange-100 text-orange-800 font-bold text-[8.5px] uppercase border border-orange-200">
+                                  ⚔️ Scrims VIP
+                                </span>
+                              )}
+                              {user.hasTourneyApproval && (
+                                <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8.5px] uppercase border border-emerald-200">
+                                  🏆 Tournaments VIP
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
 
@@ -3529,7 +3674,38 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         </td>
 
                         <td className="py-3 px-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Broadcast VIP Quick Toggle */}
+                            <button
+                              onClick={() => handleGrantUserClearances(user.userId, { broadcast: !user.hasBroadcastVip })}
+                              className={`px-2 py-1 rounded font-bold text-[10px] cursor-pointer transition-all ${
+                                user.hasBroadcastVip
+                                  ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                                  : 'bg-red-600 hover:bg-red-700 text-white shadow-xs'
+                              }`}
+                              title={user.hasBroadcastVip ? 'Revoke broadcast VIP membership' : 'Grant direct broadcast live stream membership'}
+                            >
+                              {user.hasBroadcastVip ? '🎥 VIP Active' : '🎥 + VIP Stream'}
+                            </button>
+
+                            {/* Direct Clearances Modal Trigger */}
+                            <button
+                              onClick={() => {
+                                setClearanceModalUser(user);
+                                setClearanceOptions({
+                                  broadcast: !!user.hasBroadcastVip,
+                                  featured: !!user.hasFeaturedApproval,
+                                  scrims: !!user.hasScrimsApproval,
+                                  tournaments: !!user.hasTourneyApproval
+                                });
+                              }}
+                              className="px-2 py-1 rounded bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black font-bold text-[10px] shadow-xs cursor-pointer flex items-center gap-1"
+                              title="Grant direct approvals for broadcasts, featured listings, scrims, and tournaments"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">verified</span>
+                              <span>Clearances</span>
+                            </button>
+
                             {user.status !== 'ACTIVE' && (
                               <button
                                 onClick={() => handleUpdateUserStatus(user.userId, 'ACTIVE')}
@@ -3583,6 +3759,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
               {/* Sub-tab switcher */}
               <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-lg text-xs font-bold">
+                <button
+                  onClick={() => setBroadcastActiveTab('cards')}
+                  className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer ${
+                    broadcastActiveTab === 'cards' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  🎴 Carding System (3 Homepage Slots)
+                </button>
                 <button
                   onClick={() => setBroadcastActiveTab('live')}
                   className={`px-3 py-1 rounded-[6px] transition-all cursor-pointer ${
@@ -3672,22 +3856,164 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
-                        <button
-                          onClick={() => handleApproveBroadcastRequest(br.id)}
-                          className="flex-1 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer shadow-xs"
-                        >
-                          ✓ Authorize &amp; Stream Live
-                        </button>
+                      <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5">
+                        <span className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider">Assign to Homepage Card Slot:</span>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          <button
+                            onClick={() => handleAssignBroadcastToSlot(br.id, 1)}
+                            className="py-1 px-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                            title="Assign to Homepage Slot 1"
+                          >
+                            Slot 1 ➔
+                          </button>
+                          <button
+                            onClick={() => handleAssignBroadcastToSlot(br.id, 2)}
+                            className="py-1 px-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                            title="Assign to Homepage Slot 2"
+                          >
+                            Slot 2 ➔
+                          </button>
+                          <button
+                            onClick={() => handleAssignBroadcastToSlot(br.id, 3)}
+                            className="py-1 px-1 rounded bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                            title="Assign to Homepage Slot 3"
+                          >
+                            Slot 3 ➔
+                          </button>
+                        </div>
                         <button
                           onClick={() => handleDeclineBroadcastRequest(br.id)}
-                          className="py-1.5 px-3 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[11px] font-bold transition-colors cursor-pointer"
+                          className="w-full py-1 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[10px] font-bold transition-colors cursor-pointer text-center"
                         >
-                          Decline
+                          Decline Request
                         </button>
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 0: HOMEPAGE 3-CARD SLOT MANAGEMENT SYSTEM (CARDING SYSTEM) */}
+            {broadcastActiveTab === 'cards' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-neutral-900 to-gray-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+                  <div>
+                    <h4 className="text-sm font-bold flex items-center gap-2 text-white">
+                      <span className="material-symbols-outlined text-red-500 text-[18px]">view_carousel</span>
+                      Homepage 3-Card Slot Management System
+                    </h4>
+                    <p className="text-[11px] text-gray-300 mt-0.5">
+                      Directly inspect and manage the 3 live card slots on the Home Arena. Custom streams take priority; when removed, slots automatically play authentic standby esports videos. Zero broken images, zero empty black cards.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSlotManageModal({ mode: 'add', slot: 1 });
+                      setSlotFormData({
+                        title: '',
+                        url: '',
+                        organizer: 'Official Admin Broadcast',
+                        clan: 'OFFICIAL',
+                        game: 'BGMI'
+                      });
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">add_circle</span>
+                    <span>+ Publish Live Feed</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map(slotNum => {
+                    const slotData = adminCardSlots[slotNum] || {};
+                    const isCustom = !!slotData.isCustom;
+                    const videoId = slotData.videoId || 'jfKfPfyJRdk';
+                    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&mute=1&controls=1&rel=0`;
+
+                    return (
+                      <div
+                        key={slotNum}
+                        className={`rounded-[14px] border bg-white overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between ${
+                          isCustom ? 'border-red-400/80 ring-1 ring-red-400/40' : 'border-[#D1D1D1]/60'
+                        }`}
+                      >
+                        {/* Video Player Preview */}
+                        <div className="relative w-full aspect-video bg-black">
+                          <iframe
+                            src={embedUrl}
+                            title={`Card Slot ${slotNum} Preview`}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                          <span className={`absolute top-2.5 left-2.5 px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider shadow-md flex items-center gap-1.5 ${
+                            isCustom ? 'bg-red-600 text-white' : 'bg-black/85 text-amber-300 border border-amber-400/30'
+                          }`}>
+                            {isCustom ? (
+                              <>
+                                <span className="size-1.5 rounded-full bg-white animate-ping" />
+                                <span>🔴 LIVE • SLOT {slotNum}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📺 STANDBY • SLOT {slotNum}</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Slot Information */}
+                        <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between gap-2 text-[10px] text-gray-500 font-mono">
+                              <span className="font-bold text-blue-600 uppercase">{slotData.game || 'BGMI'}</span>
+                              <span>ID: {videoId}</span>
+                            </div>
+                            <h4 className="text-[13px] font-bold text-[#1F2937] line-clamp-2 mt-1">
+                              {slotData.title || `Homepage Broadcast Slot ${slotNum}`}
+                            </h4>
+                            <div className="mt-2 p-2 rounded bg-gray-50 border border-gray-200 text-[10px] font-mono text-gray-600 space-y-0.5">
+                              <p><strong>Host/Caster:</strong> {slotData.organizer || 'LiveTournaments Admin'}</p>
+                              <p><strong>Clan/Tag:</strong> {slotData.clan || 'OFFICIAL'}</p>
+                              <p className="truncate"><strong>Source URL:</strong> {slotData.url || `https://www.youtube.com/watch?v=${videoId}`}</p>
+                            </div>
+                          </div>
+
+                          {/* Slot Actions */}
+                          <div className="pt-2.5 border-t border-[#F3F4F6] flex items-center justify-between gap-2">
+                            <button
+                              onClick={() => {
+                                setSlotManageModal({ mode: 'replace', slot: slotNum });
+                                setSlotFormData({
+                                  title: slotData.title || '',
+                                  url: slotData.url || (slotData.videoId ? `https://www.youtube.com/watch?v=${slotData.videoId}` : ''),
+                                  organizer: slotData.organizer || '',
+                                  clan: slotData.clan || '',
+                                  game: slotData.game || 'BGMI'
+                                });
+                              }}
+                              className="flex-1 py-1.5 rounded bg-gray-900 hover:bg-black text-white text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">edit</span>
+                              <span>Replace Stream</span>
+                            </button>
+
+                            {isCustom && (
+                              <button
+                                onClick={() => handleRemoveStreamFromSlot(slotNum)}
+                                className="px-2.5 py-1.5 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold cursor-pointer transition-colors"
+                                title="Reset to authentic standby video"
+                              >
+                                🗑️ Reset
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -3793,18 +4119,36 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
-                          <button
-                            onClick={() => handleApproveBroadcastRequest(br.id)}
-                            className="flex-1 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
-                          >
-                            ✓ Authorize
-                          </button>
+                        <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5">
+                          <span className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider">Assign to Homepage Card Slot:</span>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            <button
+                              onClick={() => handleAssignBroadcastToSlot(br.id, 1)}
+                              className="py-1 px-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                              title="Assign to Homepage Slot 1"
+                            >
+                              Slot 1 ➔
+                            </button>
+                            <button
+                              onClick={() => handleAssignBroadcastToSlot(br.id, 2)}
+                              className="py-1 px-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                              title="Assign to Homepage Slot 2"
+                            >
+                              Slot 2 ➔
+                            </button>
+                            <button
+                              onClick={() => handleAssignBroadcastToSlot(br.id, 3)}
+                              className="py-1 px-1 rounded bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                              title="Assign to Homepage Slot 3"
+                            >
+                              Slot 3 ➔
+                            </button>
+                          </div>
                           <button
                             onClick={() => handleDeclineBroadcastRequest(br.id)}
-                            className="py-1.5 px-3 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[11px] font-bold transition-colors cursor-pointer"
+                            className="w-full py-1 rounded bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-600 text-[10px] font-bold transition-colors cursor-pointer text-center"
                           >
-                            Decline
+                            Decline Request
                           </button>
                         </div>
                       </div>
@@ -5227,7 +5571,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 <span className="material-symbols-outlined text-[#DFBD78] text-[22px]">stars</span>
                 <div>
                   <h3 className="text-base font-bold text-white leading-tight">Grant Direct VIP Access</h3>
-                  <span className="text-[10px] text-gray-300">Super Admin Direct Clearance &bull; Zero Payment (₹0)</span>
+                  <span className="text-[10px] text-gray-300">Admin Direct Clearance &bull; Zero Payment (₹0)</span>
                 </div>
               </div>
               <button
@@ -5349,6 +5693,302 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL: CARDING SYSTEM (MANAGE HOMEPAGE CARD SLOTS)
+          ======================================================== */}
+      {slotManageModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[16px] max-w-lg w-full overflow-hidden shadow-2xl border border-gray-200 flex flex-col">
+            <div className="p-4 bg-[#1F2937] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-red-500 text-[22px]">live_tv</span>
+                <div>
+                  <h3 className="text-base font-bold text-white leading-tight">
+                    Manage Homepage Card Slot {slotManageModal.slot}
+                  </h3>
+                  <span className="text-[10px] text-gray-300">
+                    Publish custom live YouTube stream directly to Homepage Slot {slotManageModal.slot}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSlotManageModal(null)}
+                className="text-gray-400 hover:text-white p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveCustomStreamToSlot(slotManageModal.slot, slotFormData);
+              }}
+              className="p-5 space-y-3.5 text-xs"
+            >
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Target Homepage Slot
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map(sNum => (
+                    <button
+                      type="button"
+                      key={sNum}
+                      onClick={() => {
+                        const targetSlotData = adminCardSlots[sNum] || {};
+                        setSlotManageModal({ mode: 'replace', slot: sNum });
+                        setSlotFormData({
+                          title: targetSlotData.title || '',
+                          url: targetSlotData.url ? (targetSlotData.url.startsWith('http') ? targetSlotData.url : `https://www.youtube.com/watch?v=${targetSlotData.url}`) : '',
+                          organizer: targetSlotData.organizer || '',
+                          clan: targetSlotData.clan || '',
+                          game: targetSlotData.game || 'BGMI'
+                        });
+                      }}
+                      className={`py-2 px-3 rounded-lg font-bold text-xs border text-center transition-all cursor-pointer ${
+                        slotManageModal.slot === sNum
+                          ? 'border-red-600 bg-red-50 text-red-700 shadow-xs'
+                          : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      Slot {sNum} {adminCardSlots[sNum]?.isCustom ? '🔴' : '📺'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  YouTube Stream URL / Live Video Link *
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  value={slotFormData.url}
+                  onChange={(e) => setSlotFormData({ ...slotFormData, url: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 font-medium text-xs focus:border-red-500 outline-hidden font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Broadcast Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. BGMI Pro League Championship Grand Finals Live"
+                  value={slotFormData.title}
+                  onChange={(e) => setSlotFormData({ ...slotFormData, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 font-medium text-xs focus:border-red-500 outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Host / Caster
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mortal &amp; Thug"
+                    value={slotFormData.organizer}
+                    onChange={(e) => setSlotFormData({ ...slotFormData, organizer: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 font-medium text-xs focus:border-red-500 outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Clan / Tag
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. OFFICIAL / TEAM SOUL"
+                    value={slotFormData.clan}
+                    onChange={(e) => setSlotFormData({ ...slotFormData, clan: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 font-medium text-xs focus:border-red-500 outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                  Esports Title
+                </label>
+                <select
+                  value={slotFormData.game}
+                  onChange={(e) => setSlotFormData({ ...slotFormData, game: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 font-medium text-xs focus:border-red-500 outline-hidden bg-white"
+                >
+                  <option value="BATTLEGROUNDS MOBILE INDIA">BATTLEGROUNDS MOBILE INDIA (BGMI)</option>
+                  <option value="PUBG MOBILE">PUBG MOBILE</option>
+                  <option value="FREE FIRE MAX">FREE FIRE MAX</option>
+                  <option value="VALORANT">VALORANT</option>
+                  <option value="CALL OF DUTY: MOBILE">CALL OF DUTY: MOBILE</option>
+                </select>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                {adminCardSlots[slotManageModal.slot]?.isCustom && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleRemoveStreamFromSlot(slotManageModal.slot);
+                      setSlotManageModal(null);
+                    }}
+                    className="px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 cursor-pointer"
+                  >
+                    Reset to Standby Video
+                  </button>
+                )}
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSlotManageModal(null)}
+                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                  >
+                    Publish to Slot {slotManageModal.slot}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL: DIRECT VIP CLEARANCES & APPROVALS (USER DATABASE)
+          ======================================================== */}
+      {clearanceModalUser && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[16px] max-w-lg w-full overflow-hidden shadow-2xl border border-[#DFBD78]/40 flex flex-col">
+            <div className="p-4 bg-[#1F2937] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#DFBD78] text-[22px]">verified_user</span>
+                <div>
+                  <h3 className="text-base font-bold text-white leading-tight">
+                    Direct VIP Clearances &amp; Approvals
+                  </h3>
+                  <span className="text-[10px] text-[#DFBD78] font-bold">
+                    {clearanceModalUser.name} &bull; {clearanceModalUser.userId}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setClearanceModalUser(null)}
+                className="text-gray-400 hover:text-white p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+                <strong>Admin Exclusive Control:</strong> Grant direct VIP memberships and instant approvals for this user. When granted, their tournaments, scrims, or broadcasts bypass approval queues and go live instantly.
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-red-400 transition-colors cursor-pointer bg-white">
+                  <input
+                    type="checkbox"
+                    checked={clearanceOptions.broadcast}
+                    onChange={(e) => setClearanceOptions({ ...clearanceOptions, broadcast: e.target.checked })}
+                    className="mt-1 size-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+                  />
+                  <div>
+                    <span className="font-bold text-gray-900 text-[12px] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-red-600 text-[16px]">live_tv</span>
+                      Broadcast Live Streams Direct Membership
+                    </span>
+                    <p className="text-[10.5px] text-gray-500 mt-0.5">
+                      Grants permission to stream live directly on the homepage video player without waiting for review queues.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-amber-400 transition-colors cursor-pointer bg-white">
+                  <input
+                    type="checkbox"
+                    checked={clearanceOptions.featured}
+                    onChange={(e) => setClearanceOptions({ ...clearanceOptions, featured: e.target.checked })}
+                    className="mt-1 size-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500"
+                  />
+                  <div>
+                    <span className="font-bold text-gray-900 text-[12px] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[#C5A059] text-[16px]">stars</span>
+                      Featured Tournaments Direct Approval
+                    </span>
+                    <p className="text-[10.5px] text-gray-500 mt-0.5">
+                      Tournaments created or hosted by this user are automatically approved and showcased in the Featured Tournaments section.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-orange-400 transition-colors cursor-pointer bg-white">
+                  <input
+                    type="checkbox"
+                    checked={clearanceOptions.scrims}
+                    onChange={(e) => setClearanceOptions({ ...clearanceOptions, scrims: e.target.checked })}
+                    className="mt-1 size-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500"
+                  />
+                  <div>
+                    <span className="font-bold text-gray-900 text-[12px] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-orange-600 text-[16px]">sports_esports</span>
+                      Daily Scrims Direct Approval
+                    </span>
+                    <p className="text-[10.5px] text-gray-500 mt-0.5">
+                      Daily practice scrims scheduled by this user are immediately approved and scheduled on the public scrim board.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 hover:border-emerald-400 transition-colors cursor-pointer bg-white">
+                  <input
+                    type="checkbox"
+                    checked={clearanceOptions.tournaments}
+                    onChange={(e) => setClearanceOptions({ ...clearanceOptions, tournaments: e.target.checked })}
+                    className="mt-1 size-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
+                  />
+                  <div>
+                    <span className="font-bold text-gray-900 text-[12px] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-emerald-600 text-[16px]">emoji_events</span>
+                      Tournament Hosting Direct Approval
+                    </span>
+                    <p className="text-[10.5px] text-gray-500 mt-0.5">
+                      Custom tournament rooms launched by this user are immediately approved and published with automated room codes.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setClearanceModalUser(null)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleGrantUserClearances(clearanceModalUser.userId, clearanceOptions)}
+                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:from-[#C5A059] hover:to-[#DFBD78] text-black text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                >
+                  Save Clearances
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
