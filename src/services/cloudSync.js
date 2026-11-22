@@ -179,6 +179,32 @@ export async function deleteCloudContactTicket(id) {
   }
 }
 
+// User Profile Real-Time Sync
+export async function fetchUserProfile(email, id) {
+  try {
+    const params = new URLSearchParams();
+    if (email) params.append('email', email);
+    if (id) params.append('id', id);
+    const res = await fetch(`/api/auth/profile?${params.toString()}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success && data.user ? data.user : null;
+  } catch (err) {
+    console.warn('[CloudSync] fetchUserProfile failed:', err);
+    return null;
+  }
+}
+
+export async function dismissVipModal(email, id) {
+  try {
+    await fetch('/api/auth/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, id, action: 'DISMISS_VIP_MODAL' })
+    });
+  } catch (err) {}
+}
+
 // User VIP & Clearance Sync
 export async function updateCloudUserVip(userId, email, vipClearances) {
   try {

@@ -20,6 +20,7 @@ import PreviousFinishedMatchesSection from './components/PreviousFinishedMatches
 import PartnershipPage from './components/PartnershipPage';
 import ChampionshipRegistrationPage from './components/ChampionshipRegistrationPage';
 import ContactUsSection from './components/ContactUsSection';
+import { fetchUserProfile } from './services/cloudSync';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
 class ErrorBoundary extends Component {
@@ -88,32 +89,36 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (currentUser?.email) {
-      try {
-        const dbRaw = localStorage.getItem('lt_user_database');
-        if (dbRaw) {
-          const dbList = JSON.parse(dbRaw);
-          const found = dbList.find(u => u.email?.toLowerCase() === currentUser.email?.toLowerCase());
-          if (found && (found.isVip || found.role === 'VIP' || found.hasBroadcastVip)) {
-            setCurrentUser(prev => {
-              if (!prev) return prev;
-              const updated = {
-                ...prev,
-                role: found.role || prev.role,
-                isVip: found.isVip ?? prev.isVip,
-                hasBroadcastVip: found.hasBroadcastVip ?? prev.hasBroadcastVip,
-                hasFeaturedApproval: found.hasFeaturedApproval ?? prev.hasFeaturedApproval,
-                hasScrimsApproval: found.hasScrimsApproval ?? prev.hasScrimsApproval,
-                hasTourneyApproval: found.hasTourneyApproval ?? prev.hasTourneyApproval,
-                tier: found.tier || prev.tier
-              };
-              localStorage.setItem('lt_user', JSON.stringify(updated));
-              return updated;
-            });
-          }
+    if (!currentUser?.email) return;
+
+    const syncLiveProfile = () => {
+      fetchUserProfile(currentUser.email).then(profile => {
+        if (profile) {
+          setCurrentUser(prev => {
+            if (!prev) return prev;
+            const isChanged = prev.role !== profile.role ||
+                              prev.isVip !== profile.isVip ||
+                              prev.hasBroadcastVip !== profile.hasBroadcastVip ||
+                              prev.hasFeaturedApproval !== profile.hasFeaturedApproval ||
+                              prev.hasScrimsApproval !== profile.hasScrimsApproval ||
+                              prev.hasTourneyApproval !== profile.hasTourneyApproval ||
+                              prev.tier !== profile.tier;
+            if (!isChanged) return prev;
+            const updated = {
+              ...prev,
+              ...profile
+            };
+            localStorage.setItem('lt_user', JSON.stringify(updated));
+            window.dispatchEvent(new Event('lt_user_updated'));
+            return updated;
+          });
         }
-      } catch (e) {}
-    }
+      }).catch(() => {});
+    };
+
+    syncLiveProfile();
+    const pollInterval = setInterval(syncLiveProfile, 3000);
+    return () => clearInterval(pollInterval);
   }, [currentUser?.email]);
 
   const [currentPage, setCurrentPage] = useState(() => {

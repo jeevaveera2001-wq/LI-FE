@@ -7,7 +7,7 @@ import {
 } from '../utils/emailService';
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 import { emitRealtimeEvent, subscribeRealtimeEvents } from '../utils/realtimeSync';
-import { submitCloudBroadcastRequest, submitCloudHostingRequest } from '../services/cloudSync';
+import { submitCloudBroadcastRequest, submitCloudHostingRequest, dismissVipModal } from '../services/cloudSync';
 
 export default function UserDashboard({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
   // Navigation Tabs strictly ordered:
@@ -166,20 +166,58 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     currentUser?.tier === 'VIP_DIRECT'
   );
 
+  const hasTourneyClearance = !!(isUserVip || currentUser?.hasTourneyApproval);
+  const hasScrimClearance = !!(isUserVip || currentUser?.hasScrimsApproval);
+  const hasBroadcastClearance = !!(isUserVip || currentUser?.hasBroadcastVip);
+  const hasFeaturedClearance = !!(isUserVip || currentUser?.hasFeaturedApproval);
+
   const [activeBroadcastPass, setActiveBroadcastPass] = useState(() => {
     const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
     if (isPurchased) {
       return localStorage.getItem('lt_user_broadcast_pass') || null;
     }
-    return isUserVip ? 'VIP Broadcast Pass' : null;
+    return hasBroadcastClearance ? 'VIP Broadcast Pass' : null;
   });
   const [broadcastExpiresAt, setBroadcastExpiresAt] = useState(() => {
     const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
     if (isPurchased) {
       return localStorage.getItem('lt_user_broadcast_expiry') || null;
     }
-    return isUserVip ? 'Unlimited VIP' : null;
+    return hasBroadcastClearance ? 'Unlimited VIP Access' : null;
   });
+
+  const [showVipCongratsModal, setShowVipCongratsModal] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const seen = sessionStorage.getItem('lt_vip_congrats_seen') === 'true';
+    if (seen) return false;
+    return isUserVip || currentUser?.hasBroadcastVip || currentUser?.hasTourneyApproval || currentUser?.hasScrimsApproval;
+  });
+
+  useEffect(() => {
+    if (hasBroadcastClearance) {
+      setActiveBroadcastPass('VIP Broadcast Pass');
+      setBroadcastExpiresAt('Unlimited VIP Access');
+    }
+    const seen = typeof window !== 'undefined' && sessionStorage.getItem('lt_vip_congrats_seen') === 'true';
+    if (!seen && (isUserVip || currentUser?.hasBroadcastVip || currentUser?.hasTourneyApproval || currentUser?.hasScrimsApproval)) {
+      setShowVipCongratsModal(true);
+    }
+  }, [isUserVip, hasBroadcastClearance, currentUser?.hasTourneyApproval, currentUser?.hasScrimsApproval]);
+
+  const handleDismissVipCongrats = (redirectTab = null) => {
+    setShowVipCongratsModal(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lt_vip_congrats_seen', 'true');
+    }
+    if (currentUser?.email) {
+      dismissVipModal(currentUser.email);
+    }
+    if (redirectTab) {
+      setActiveTab(redirectTab);
+      if (redirectTab === 'rooms') setIsConductingTournament(true);
+      if (redirectTab === 'scrims') setIsConductingScrim(true);
+    }
+  };
 
   // Banner file upload handler for custom image selection from PC or Mobile device
   const handleBannerFileUpload = (e, target = 'tournament') => {
@@ -446,157 +484,166 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       }
     }
 
+    const processTournamentSuccess = async (paymentId, isVipBypass = false) => {
+      const newRoom = {
+        id: 'host_' + Date.now(),
+        title: conductTitle,
+        tournament: conductTitle,
+        game: conductGame,
+        type: 'TOURNAMENT',
+        format: conductFormat,
+        slots: '25 Squads (100 Players)',
+        registeredSquads: 1,
+        slotCap: 25,
+        prize: conductPrize || '₹ 5,000 INR',
+        timing: conductTiming,
+        thumbnail: conductThumbnail,
+        tier: isVipBypass ? 'VIP' : 'standard',
+        channelLink: conductLiveUrl || 'https://www.youtube.com/@livetournament_in',
+        amountPaid: isVipBypass ? 0 : 10,
+        paymentRef: paymentId,
+        roomCode: '', // Host provides custom credentials on match day
+        roomPass: '', // Host provides custom credentials on match day
+        matchDayCredentialsProvided: false,
+        status: isVipBypass ? 'APPROVED' : 'PENDING',
+        whatsApp: conductWhatsApp || '9876543210',
+        createdAt: new Date().toISOString(),
+        hostUser: displayName,
+        organizer: displayName,
+        email: displayEmail,
+        isUserSubmitted: true
+      };
+
+      const updatedRooms = [newRoom, ...hostedTournaments];
+      setHostedTournaments(updatedRooms);
+      localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
+
+      // Unique Room ID and password are directly published to players without admin approval
+      try {
+        const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+        publishedCreds[newRoom.id] = {
+          roomCode: conductRoomCode,
+          roomPass: conductRoomPass,
+          publishedAt: new Date().toISOString(),
+          directAccess: true
+        };
+        localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+      } catch (e) {}
+
+      // Sync to Super Admin Hosting Requests Queue for Public Listing Approval
+      try {
+        const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+        localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newRoom, ...adminHostings]));
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('lt_room_requested'));
+        window.dispatchEvent(new Event('lt_hosting_requested'));
+        emitRealtimeEvent('HOSTING_REQUESTED', newRoom);
+        submitCloudHostingRequest(newRoom);
+
+        // If a broadcast stream URL was provided during hosting, register it in broadcast requests
+        if (conductLiveUrl && conductLiveUrl.trim()) {
+          const bVal = validateLiveStreamUrl(conductLiveUrl);
+          if (bVal.isValid) {
+            let pendingBroadcasts = [];
+            try {
+              const b1 = localStorage.getItem('lt_broadcast_requests');
+              const b2 = localStorage.getItem('lt_admin_broadcast_requests');
+              if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
+              if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
+            } catch (e) {}
+            const streamReq = {
+              id: 'bcast_' + Date.now(),
+              title: `${conductTitle} - Tournament Live Broadcast`,
+              tournament: conductTitle,
+              streamUrl: bVal.normalizedUrl,
+              organizerName: displayName,
+              creator: displayName,
+              channel: `${displayName} Official Live`,
+              requestedSlot: 'Tournament Match Broadcast',
+              language: 'Hindi / English',
+              organizerClan: currentUser?.clan || 'CLAN',
+              clan: currentUser?.clan || 'CLAN',
+              game: conductGame,
+              email: displayEmail,
+              status: isVipBypass ? 'APPROVED' : 'PENDING',
+              submittedAt: new Date().toISOString(),
+              isUserSubmitted: true
+            };
+            const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
+            localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
+            localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+            localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+            try {
+              const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
+              if (rawDeclined) {
+                const parsed = JSON.parse(rawDeclined);
+                if (Array.isArray(parsed)) {
+                  localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
+                }
+              }
+            } catch (e) {}
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new Event('lt_broadcast_requested'));
+            emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
+            submitCloudBroadcastRequest(streamReq);
+          }
+        }
+      } catch (err) {}
+
+      // Record in User Payment History
+      const newTx = {
+        id: 'tx_' + Date.now(),
+        description: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 10,
+        type: 'DEBIT',
+        category: 'Tournament Room',
+        status: 'PAID',
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        reference: paymentId,
+        gateway: isVipBypass ? 'Admin VIP Clearance' : 'Razorpay Test Mode'
+      };
+      const updatedTxs = [newTx, ...transactions];
+      setTransactions(updatedTxs);
+      localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
+
+      // Dispatch Email Receipt & Room Launch Confirmation
+      await sendPaymentReceiptEmail({
+        email: displayEmail,
+        name: displayName,
+        service: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 10,
+        paymentId
+      });
+      await sendRoomConductedEmail({
+        email: displayEmail,
+        name: displayName,
+        title: conductTitle,
+        type: 'TOURNAMENT',
+        game: conductGame,
+        roomCode: conductRoomCode,
+        roomPass: conductRoomPass,
+        channelLink: conductLiveUrl,
+        amountPaid: isVipBypass ? 0 : 10,
+        paymentId
+      });
+
+      setIsConductingTournament(false);
+      showToast(isVipBypass ? '🎉 Tournament Room launched & approved instantly with VIP Clearance!' : '🎉 Tournament Room launched! Awaiting Admin approval. Confirmation email sent.');
+      
+      // Reset form fields
+      setConductTitle('');
+    };
+
+    if (hasTourneyClearance) {
+      processTournamentSuccess('VIP_CLEARANCE_WAIVER_' + Date.now(), true);
+      return;
+    }
+
     triggerRazorpayCheckout({
       amount: 10,
       description: `Tournament Room Conduct: ${conductTitle} (₹10 Single Match)`,
       onSuccess: async (paymentId) => {
-        const newRoom = {
-          id: 'host_' + Date.now(),
-          title: conductTitle,
-          tournament: conductTitle,
-          game: conductGame,
-          type: 'TOURNAMENT',
-          format: conductFormat,
-          slots: '25 Squads (100 Players)',
-          registeredSquads: 1,
-          slotCap: 25,
-          prize: conductPrize || '₹ 5,000 INR',
-          timing: conductTiming,
-          thumbnail: conductThumbnail,
-          tier: 'standard',
-          channelLink: conductLiveUrl || 'https://www.youtube.com/@livetournament_in',
-          amountPaid: 10,
-          paymentRef: paymentId,
-          roomCode: '', // Host provides custom credentials on match day
-          roomPass: '', // Host provides custom credentials on match day
-          matchDayCredentialsProvided: false,
-          status: 'PENDING',
-          whatsApp: conductWhatsApp || '9876543210',
-          createdAt: new Date().toISOString(),
-          hostUser: displayName,
-          organizer: displayName,
-          email: displayEmail,
-          isUserSubmitted: true
-        };
-
-        const updatedRooms = [newRoom, ...hostedTournaments];
-        setHostedTournaments(updatedRooms);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
-
-        // Unique Room ID and password are directly published to players without admin approval
-        try {
-          const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
-          publishedCreds[newRoom.id] = {
-            roomCode: conductRoomCode,
-            roomPass: conductRoomPass,
-            publishedAt: new Date().toISOString(),
-            directAccess: true
-          };
-          localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
-        } catch (e) {}
-
-        // Sync to Super Admin Hosting Requests Queue for Public Listing Approval
-        try {
-          const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-          localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newRoom, ...adminHostings]));
-          window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('lt_room_requested'));
-          window.dispatchEvent(new Event('lt_hosting_requested'));
-          emitRealtimeEvent('HOSTING_REQUESTED', newRoom);
-          submitCloudHostingRequest(newRoom);
-
-          // If a broadcast stream URL was provided during hosting, register it in broadcast requests
-          if (conductLiveUrl && conductLiveUrl.trim()) {
-            const bVal = validateLiveStreamUrl(conductLiveUrl);
-            if (bVal.isValid) {
-              let pendingBroadcasts = [];
-              try {
-                const b1 = localStorage.getItem('lt_broadcast_requests');
-                const b2 = localStorage.getItem('lt_admin_broadcast_requests');
-                if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
-                if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
-              } catch (e) {}
-              const streamReq = {
-                id: 'bcast_' + Date.now(),
-                title: `${conductTitle} - Tournament Live Broadcast`,
-                tournament: conductTitle,
-                streamUrl: bVal.normalizedUrl,
-                organizerName: displayName,
-                creator: displayName,
-                channel: `${displayName} Official Live`,
-                requestedSlot: 'Tournament Match Broadcast',
-                language: 'Hindi / English',
-                organizerClan: currentUser?.clan || 'CLAN',
-                clan: currentUser?.clan || 'CLAN',
-                game: conductGame,
-                email: displayEmail,
-                status: 'PENDING',
-                submittedAt: new Date().toISOString(),
-                isUserSubmitted: true
-              };
-              const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
-              localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
-              localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
-              localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
-              try {
-                const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
-                if (rawDeclined) {
-                  const parsed = JSON.parse(rawDeclined);
-                  if (Array.isArray(parsed)) {
-                    localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
-                  }
-                }
-              } catch (e) {}
-              window.dispatchEvent(new Event('storage'));
-              window.dispatchEvent(new Event('lt_broadcast_requested'));
-              emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
-              submitCloudBroadcastRequest(streamReq);
-            }
-          }
-        } catch (err) {}
-
-        // Record in User Payment History
-        const newTx = {
-          id: 'tx_' + Date.now(),
-          description: `Tournament Room Conduct: ${conductTitle}`,
-          amount: 10,
-          type: 'DEBIT',
-          category: 'Tournament Room',
-          status: 'PAID',
-          date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          reference: paymentId,
-          gateway: 'Razorpay Test Mode'
-        };
-        const updatedTxs = [newTx, ...transactions];
-        setTransactions(updatedTxs);
-        localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
-
-        // Dispatch Email Receipt & Room Launch Confirmation
-        await sendPaymentReceiptEmail({
-          email: displayEmail,
-          name: displayName,
-          service: `Tournament Room Conduct: ${conductTitle}`,
-          amount: 10,
-          paymentId
-        });
-        await sendRoomConductedEmail({
-          email: displayEmail,
-          name: displayName,
-          title: conductTitle,
-          type: 'TOURNAMENT',
-          game: conductGame,
-          roomCode: conductRoomCode,
-          roomPass: conductRoomPass,
-          channelLink: conductLiveUrl,
-          amountPaid: 10,
-          paymentId
-        });
-
-        setIsConductingTournament(false);
-        showToast(currentUser?.hasTourneyApproval ? '🎉 Tournament Room launched & approved instantly with VIP Clearance!' : '🎉 Tournament Room launched! Awaiting Admin approval. Confirmation email sent.');
-        
-        // Reset form fields
-        setConductTitle('');
+        await processTournamentSuccess(paymentId, false);
       }
     });
   };
@@ -617,157 +664,166 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       }
     }
 
+    const processScrimSuccess = async (paymentId, isVipBypass = false) => {
+      const newScrim = {
+        id: 'user_scrim_' + Date.now(),
+        title: scrimTitle,
+        tournament: scrimTitle,
+        game: scrimGame,
+        type: 'SCRIM',
+        format: 'Squad Battle Practice',
+        slots: '25 Squads (100 Players)',
+        registeredSquads: 1,
+        slotCap: 25,
+        prize: 'Tier-1 Practice Lobby',
+        timing: scrimTiming,
+        schedule: scrimTiming,
+        thumbnail: scrimThumbnail,
+        tier: isVipBypass ? 'VIP' : 'standard',
+        channelLink: scrimLiveUrl || 'https://www.youtube.com/@livetournament_in',
+        amountPaid: isVipBypass ? 0 : 50,
+        paymentRef: paymentId,
+        roomCode: '', // Host provides custom credentials on match day
+        roomPass: '', // Host provides custom credentials on match day
+        matchDayCredentialsProvided: false,
+        status: isVipBypass ? 'APPROVED' : 'PENDING',
+        whatsApp: scrimWhatsApp || '9876543210',
+        contact: scrimWhatsApp || displayEmail,
+        clan: currentUser?.clan || displayName,
+        organizer: displayName,
+        createdAt: new Date().toISOString(),
+        hostUser: displayName,
+        email: displayEmail,
+        isUserSubmitted: true
+      };
+
+      const updatedRooms = [newScrim, ...hostedTournaments];
+      setHostedTournaments(updatedRooms);
+      localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
+
+      // Unique Scrim Room ID and password are directly published to players without admin approval
+      try {
+        const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+        publishedCreds[newScrim.id] = {
+          roomCode: scrimRoomCode,
+          roomPass: scrimRoomPass,
+          publishedAt: new Date().toISOString(),
+          directAccess: true
+        };
+        localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+      } catch (e) {}
+
+      try {
+        const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+        localStorage.setItem('lt_admin_scrims_requests', JSON.stringify([newScrim, ...adminScrims]));
+        const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+        localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newScrim, ...adminHostings]));
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('lt_scrim_requested'));
+        emitRealtimeEvent('SCRIM_REQUESTED', newScrim);
+        submitCloudHostingRequest(newScrim);
+
+        // If a broadcast stream URL was provided during scrim hosting, register it in broadcast requests
+        if (scrimLiveUrl && scrimLiveUrl.trim()) {
+          const bVal = validateLiveStreamUrl(scrimLiveUrl);
+          if (bVal.isValid) {
+            let pendingBroadcasts = [];
+            try {
+              const b1 = localStorage.getItem('lt_broadcast_requests');
+              const b2 = localStorage.getItem('lt_admin_broadcast_requests');
+              if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
+              if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
+            } catch (e) {}
+            const streamReq = {
+              id: 'bcast_' + Date.now(),
+              title: `${scrimTitle} - Daily Scrim Live Broadcast`,
+              tournament: scrimTitle,
+              streamUrl: bVal.normalizedUrl,
+              organizerName: displayName,
+              creator: displayName,
+              channel: `${displayName} Official Live`,
+              requestedSlot: 'Daily Scrim Stream',
+              language: 'Hindi / English',
+              organizerClan: currentUser?.clan || 'CLAN',
+              clan: currentUser?.clan || 'CLAN',
+              game: scrimGame,
+              email: displayEmail,
+              status: isVipBypass ? 'APPROVED' : 'PENDING',
+              submittedAt: new Date().toISOString(),
+              isUserSubmitted: true
+            };
+            const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
+            localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
+            localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+            localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+            try {
+              const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
+              if (rawDeclined) {
+                const parsed = JSON.parse(rawDeclined);
+                if (Array.isArray(parsed)) {
+                  localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
+                }
+              }
+            } catch (e) {}
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new Event('lt_broadcast_requested'));
+            emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
+            submitCloudBroadcastRequest(streamReq);
+          }
+        }
+      } catch (err) {}
+
+      const newTx = {
+        id: 'tx_' + Date.now(),
+        description: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 50,
+        type: 'DEBIT',
+        category: 'Daily Scrim',
+        status: 'PAID',
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        reference: paymentId,
+        gateway: isVipBypass ? 'Admin VIP Clearance' : 'Razorpay Test Mode'
+      };
+      const updatedTxs = [newTx, ...transactions];
+      setTransactions(updatedTxs);
+      localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
+
+      await sendPaymentReceiptEmail({
+        email: displayEmail,
+        name: displayName,
+        service: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 50,
+        paymentId
+      });
+      await sendRoomConductedEmail({
+        email: displayEmail,
+        name: displayName,
+        title: scrimTitle,
+        type: 'SCRIM',
+        game: scrimGame,
+        roomCode: scrimRoomCode,
+        roomPass: scrimRoomPass,
+        channelLink: scrimLiveUrl,
+        amountPaid: isVipBypass ? 0 : 50,
+        paymentId
+      });
+
+      setIsConductingScrim(false);
+      showToast(isVipBypass ? '🎉 Daily Scrim created & approved instantly with VIP Clearance!' : '🎉 Daily Scrim created! Awaiting Admin approval. Confirmation email sent.');
+
+      setScrimTitle('');
+    };
+
+    if (hasScrimClearance) {
+      processScrimSuccess('VIP_CLEARANCE_WAIVER_' + Date.now(), true);
+      return;
+    }
+
     triggerRazorpayCheckout({
       amount: 50,
       description: `Daily Scrims Conduct: ${scrimTitle} (₹50 Base)`,
       onSuccess: async (paymentId) => {
-        const newScrim = {
-          id: 'user_scrim_' + Date.now(),
-          title: scrimTitle,
-          tournament: scrimTitle,
-          game: scrimGame,
-          type: 'SCRIM',
-          format: 'Squad Battle Practice',
-          slots: '25 Squads (100 Players)',
-          registeredSquads: 1,
-          slotCap: 25,
-          prize: 'Tier-1 Practice Lobby',
-          timing: scrimTiming,
-          schedule: scrimTiming,
-          thumbnail: scrimThumbnail,
-          tier: 'standard',
-          channelLink: scrimLiveUrl || 'https://www.youtube.com/@livetournament_in',
-          amountPaid: 50,
-          paymentRef: paymentId,
-          roomCode: '', // Host provides custom credentials on match day
-          roomPass: '', // Host provides custom credentials on match day
-          matchDayCredentialsProvided: false,
-          status: 'PENDING',
-          whatsApp: scrimWhatsApp || '9876543210',
-          contact: scrimWhatsApp || displayEmail,
-          clan: currentUser?.clan || displayName,
-          organizer: displayName,
-          createdAt: new Date().toISOString(),
-          hostUser: displayName,
-          email: displayEmail,
-          isUserSubmitted: true
-        };
-
-        const updatedRooms = [newScrim, ...hostedTournaments];
-        setHostedTournaments(updatedRooms);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
-
-        // Unique Scrim Room ID and password are directly published to players without admin approval
-        try {
-          const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
-          publishedCreds[newScrim.id] = {
-            roomCode: scrimRoomCode,
-            roomPass: scrimRoomPass,
-            publishedAt: new Date().toISOString(),
-            directAccess: true
-          };
-          localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
-        } catch (e) {}
-
-        try {
-          const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
-          localStorage.setItem('lt_admin_scrims_requests', JSON.stringify([newScrim, ...adminScrims]));
-          const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-          localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newScrim, ...adminHostings]));
-          window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('lt_scrim_requested'));
-          emitRealtimeEvent('SCRIM_REQUESTED', newScrim);
-          submitCloudHostingRequest(newScrim);
-
-          // If a broadcast stream URL was provided during scrim hosting, register it in broadcast requests
-          if (scrimLiveUrl && scrimLiveUrl.trim()) {
-            const bVal = validateLiveStreamUrl(scrimLiveUrl);
-            if (bVal.isValid) {
-              let pendingBroadcasts = [];
-              try {
-                const b1 = localStorage.getItem('lt_broadcast_requests');
-                const b2 = localStorage.getItem('lt_admin_broadcast_requests');
-                if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
-                if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
-              } catch (e) {}
-              const streamReq = {
-                id: 'bcast_' + Date.now(),
-                title: `${scrimTitle} - Daily Scrim Live Broadcast`,
-                tournament: scrimTitle,
-                streamUrl: bVal.normalizedUrl,
-                organizerName: displayName,
-                creator: displayName,
-                channel: `${displayName} Official Live`,
-                requestedSlot: 'Daily Scrim Stream',
-                language: 'Hindi / English',
-                organizerClan: currentUser?.clan || 'CLAN',
-                clan: currentUser?.clan || 'CLAN',
-                game: scrimGame,
-                email: displayEmail,
-                status: 'PENDING',
-                submittedAt: new Date().toISOString(),
-                isUserSubmitted: true
-              };
-              const updatedBcasts = [streamReq, ...pendingBroadcasts.filter(b => b.id !== streamReq.id)];
-              localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
-              localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
-              localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
-              try {
-                const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
-                if (rawDeclined) {
-                  const parsed = JSON.parse(rawDeclined);
-                  if (Array.isArray(parsed)) {
-                    localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
-                  }
-                }
-              } catch (e) {}
-              window.dispatchEvent(new Event('storage'));
-              window.dispatchEvent(new Event('lt_broadcast_requested'));
-              emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
-              submitCloudBroadcastRequest(streamReq);
-            }
-          }
-        } catch (err) {}
-
-        const newTx = {
-          id: 'tx_' + Date.now(),
-          description: `Daily Scrims Conduct: ${scrimTitle}`,
-          amount: 50,
-          type: 'DEBIT',
-          category: 'Daily Scrim',
-          status: 'PAID',
-          date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          reference: paymentId,
-          gateway: 'Razorpay Test Mode'
-        };
-        const updatedTxs = [newTx, ...transactions];
-        setTransactions(updatedTxs);
-        localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
-
-        await sendPaymentReceiptEmail({
-          email: displayEmail,
-          name: displayName,
-          service: `Daily Scrims Conduct: ${scrimTitle}`,
-          amount: 50,
-          paymentId
-        });
-        await sendRoomConductedEmail({
-          email: displayEmail,
-          name: displayName,
-          title: scrimTitle,
-          type: 'SCRIM',
-          game: scrimGame,
-          roomCode: scrimRoomCode,
-          roomPass: scrimRoomPass,
-          channelLink: scrimLiveUrl,
-          amountPaid: 50,
-          paymentId
-        });
-
-        setIsConductingScrim(false);
-        showToast(currentUser?.hasScrimsApproval ? '🎉 Daily Scrim created & approved instantly with VIP Clearance!' : '🎉 Daily Scrim created! Awaiting Admin approval. Confirmation email sent.');
-
-        setScrimTitle('');
+        await processScrimSuccess(paymentId, false);
       }
     });
   };
@@ -777,59 +833,68 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     e.preventDefault();
     const targetTitle = featuredSelectedEvent || (hostedTournaments[0]?.title || 'BGMI Masters Championship');
 
+    const processFeaturedSuccess = async (paymentId, isVipBypass = false) => {
+      const featEntry = {
+        id: 'user_feat_' + Date.now(),
+        title: targetTitle,
+        tournament: targetTitle,
+        organizer: displayName,
+        organizerName: displayName,
+        game: 'BGMI',
+        placement: 'Homepage Top Carousel Banner Boost',
+        budget: isVipBypass ? '₹ 0.00 INR (VIP Pass)' : '₹ 49.00 INR (Boost Pass)',
+        amountPaid: isVipBypass ? 0 : 49,
+        paymentRef: paymentId,
+        status: isVipBypass ? 'APPROVED' : 'PENDING',
+        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        isUserSubmitted: true
+      };
+      setFeaturedSuccess(featEntry);
+
+      try {
+        const adminFeats = JSON.parse(localStorage.getItem('lt_admin_featured_requests') || '[]');
+        localStorage.setItem('lt_admin_featured_requests', JSON.stringify([featEntry, ...adminFeats]));
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('lt_featured_requested'));
+        emitRealtimeEvent('FEATURED_REQUESTED', featEntry);
+      } catch (e) {}
+
+      const newTx = {
+        id: 'tx_' + Date.now(),
+        description: `Featured Tournament Top-Line Boost: ${targetTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 49,
+        type: 'DEBIT',
+        category: 'Featured Boost',
+        status: 'PAID',
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        reference: paymentId,
+        gateway: isVipBypass ? 'Admin VIP Clearance' : 'Razorpay Test Mode'
+      };
+      const updatedTxs = [newTx, ...transactions];
+      setTransactions(updatedTxs);
+      localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
+
+      await sendPaymentReceiptEmail({
+        email: displayEmail,
+        name: displayName,
+        service: `Featured Tournament Boost: ${targetTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+        amount: isVipBypass ? 0 : 49,
+        paymentId
+      });
+
+      showToast(isVipBypass ? '🌟 Tournament featured on Top-Line Carousel instantly with VIP Clearance!' : '🌟 Tournament featured on Top-Line Carousel! Confirmation email sent.');
+    };
+
+    if (hasFeaturedClearance) {
+      processFeaturedSuccess('VIP_CLEARANCE_WAIVER_' + Date.now(), true);
+      return;
+    }
+
     triggerRazorpayCheckout({
       amount: 49,
       description: `Featured Tournament Top-Line Boost: ${targetTitle}`,
       onSuccess: async (paymentId) => {
-        const featEntry = {
-          id: 'user_feat_' + Date.now(),
-          title: targetTitle,
-          tournament: targetTitle,
-          organizer: displayName,
-          organizerName: displayName,
-          game: 'BGMI',
-          placement: 'Homepage Top Carousel Banner Boost',
-          budget: '₹ 49.00 INR (Boost Pass)',
-          amountPaid: 49,
-          paymentRef: paymentId,
-          status: 'PENDING',
-          date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
-          isUserSubmitted: true
-        };
-        setFeaturedSuccess(featEntry);
-
-        try {
-          const adminFeats = JSON.parse(localStorage.getItem('lt_admin_featured_requests') || '[]');
-          localStorage.setItem('lt_admin_featured_requests', JSON.stringify([featEntry, ...adminFeats]));
-          window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('lt_featured_requested'));
-          emitRealtimeEvent('FEATURED_REQUESTED', featEntry);
-        } catch (e) {}
-
-        const newTx = {
-          id: 'tx_' + Date.now(),
-          description: `Featured Tournament Top-Line Boost: ${targetTitle}`,
-          amount: 49,
-          type: 'DEBIT',
-          category: 'Featured Boost',
-          status: 'PAID',
-          date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          reference: paymentId,
-          gateway: 'Razorpay Test Mode'
-        };
-        const updatedTxs = [newTx, ...transactions];
-        setTransactions(updatedTxs);
-        localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
-
-        await sendPaymentReceiptEmail({
-          email: displayEmail,
-          name: displayName,
-          service: `Featured Tournament Boost: ${targetTitle}`,
-          amount: 49,
-          paymentId
-        });
-
-        showToast('🌟 Tournament featured on Top-Line Carousel! Confirmation email sent.');
+        await processFeaturedSuccess(paymentId, false);
       }
     });
   };
@@ -1673,14 +1738,22 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 <div className="p-4 rounded-2xl bg-gray-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold block">Tournament Room Fee</span>
-                    <span className="text-2xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
+                    {hasTourneyClearance ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 10 INR</span>
+                        <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
+                    )}
                   </div>
                   <button
                     type="submit"
                     disabled={isProcessingPayment}
                     className="px-8 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50"
                   >
-                    {isProcessingPayment ? 'Connecting...' : 'Pay ₹10 & Register Tournament Room'}
+                    {isProcessingPayment ? 'Connecting...' : (hasTourneyClearance ? '🚀 Launch Room Instantly (VIP Clearance - ₹0)' : 'Pay ₹10 & Register Tournament Room')}
                   </button>
                 </div>
               </form>
@@ -2197,14 +2270,22 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 <div className="p-4 rounded-2xl bg-blue-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <span className="text-[10px] text-blue-300 uppercase font-bold block">Daily Scrim Fee</span>
-                    <span className="text-2xl font-black font-mono text-white">₹ 50 INR</span>
+                    {hasScrimClearance ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 50 INR</span>
+                        <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-black font-mono text-white">₹ 50 INR</span>
+                    )}
                   </div>
                   <button
                     type="submit"
                     disabled={isProcessingPayment}
                     className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50"
                   >
-                    {isProcessingPayment ? 'Connecting...' : 'Pay ₹50 & Launch Scrim'}
+                    {isProcessingPayment ? 'Connecting...' : (hasScrimClearance ? '🚀 Launch Scrim Instantly (VIP Clearance - ₹0)' : 'Pay ₹50 & Launch Scrim')}
                   </button>
                 </div>
               </form>
@@ -2735,11 +2816,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-gray-900 block">Total Due:</span>
-                      <span className="text-gray-500">Secured via Razorpay Test Mode &bull; Flat Price</span>
+                      <span className="text-gray-500">{hasFeaturedClearance ? 'VIP Clearance Waiver Applied' : 'Secured via Razorpay Test Mode • Flat Price'}</span>
                     </div>
-                    <span className="text-2xl font-black font-mono text-gray-900">
-                      ₹ 49 INR
-                    </span>
+                    {hasFeaturedClearance ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 49 INR</span>
+                        <span className="text-2xl font-black font-mono text-emerald-600">FREE</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 border border-emerald-400/30 text-[9px] font-bold uppercase">VIP Clearance</span>
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-black font-mono text-gray-900">
+                        ₹ 49 INR
+                      </span>
+                    )}
                   </div>
 
                   <button
@@ -2748,7 +2837,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     className="w-full py-3.5 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-[16px]">bolt</span>
-                    <span>{isProcessingPayment ? 'Processing with Razorpay...' : 'Pay ₹ 49 with Razorpay Test Mode & Feature Tournament'}</span>
+                    <span>{isProcessingPayment ? 'Processing...' : (hasFeaturedClearance ? '🚀 Feature Tournament Instantly (VIP Clearance - ₹0)' : 'Pay ₹ 49 with Razorpay Test Mode & Feature Tournament')}</span>
                   </button>
 
                 </form>
@@ -3342,6 +3431,110 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         </div>
       )}
 
+
+      {/* ========================================================
+          CONGRATULATIONS: SUPER ADMIN VIP & CLEARANCE MODAL
+          ======================================================== */}
+      {showVipCongratsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#18181B] via-black to-[#09090B] border-2 border-[#DFBD78]/70 p-6 sm:p-8 text-white shadow-2xl shadow-gold-primary/20 space-y-6">
+            {/* Top Badge & Close */}
+            <div className="flex items-center justify-between">
+              <span className="px-3 py-1 rounded-full bg-[#DFBD78]/20 border border-[#DFBD78]/40 text-[#DFBD78] text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                <span className="size-2 rounded-full bg-[#DFBD78] animate-ping"></span>
+                <span>ADMINISTRATOR CLEARANCE GRANTED</span>
+              </span>
+              <button
+                onClick={() => handleDismissVipCongrats()}
+                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Header Content */}
+            <div className="space-y-2 text-center sm:text-left">
+              <div className="flex items-center gap-3 justify-center sm:justify-start">
+                <div className="size-12 rounded-2xl bg-gradient-to-br from-[#DFBD78] to-[#99793D] flex items-center justify-center text-black shadow-lg">
+                  <span className="material-symbols-outlined text-3xl font-black">verified</span>
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                    Congratulations, <span className="text-[#DFBD78]">{currentUser?.name || currentUser?.username || 'Competitor'}</span>!
+                  </h2>
+                  <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider">
+                    You have been selected &amp; upgraded by Super Administrator
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pt-1">
+                Super Administrator has granted your account direct VIP clearances and creator privileges across LiveTournaments.in. Your account now bypasses standard limits:
+              </p>
+            </div>
+
+            {/* Privileges Unlocked Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px]">
+                  <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                  <span>VIP Live Stream Pass</span>
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  Unlimited stream broadcasting unlocked with direct 4-slot Homepage priority ingestion.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-400 font-bold text-[11px]">
+                  <span className="material-symbols-outlined text-[16px]">sports_esports</span>
+                  <span>Tournament Clearance</span>
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  ₹0 100% Fee Waiver (bypasses ₹10 standard charge) with instant automatic room approval.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="flex items-center gap-1.5 text-blue-400 font-bold text-[11px]">
+                  <span className="material-symbols-outlined text-[16px]">swords</span>
+                  <span>Daily Scrims Clearance</span>
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  ₹0 Fee Waiver with instant Tier-1 competitive scrim scheduling without admin queue.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                <div className="flex items-center gap-1.5 text-purple-400 font-bold text-[11px]">
+                  <span className="material-symbols-outlined text-[16px]">stars</span>
+                  <span>Verified Creator Badge</span>
+                </div>
+                <p className="text-[10px] text-gray-300">
+                  Official VIP partner badge displayed on all your hosted lobbies, clan profile, and matches.
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Action Navigation */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+              <button
+                onClick={() => handleDismissVipCongrats('broadcast')}
+                className="w-full sm:flex-1 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                <span>Open Broadcast Console</span>
+              </button>
+              <button
+                onClick={() => handleDismissVipCongrats('rooms')}
+                className="w-full sm:flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border border-white/20 flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                <span>Host Tournament (₹0 Free)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
