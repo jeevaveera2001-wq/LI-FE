@@ -3,7 +3,7 @@ import { connectToDatabase } from '../../lib/mongodb.js';
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PATCH');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PATCH,DELETE');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
@@ -115,6 +115,72 @@ export default async function handler(req, res) {
         success: true,
         message: `Status updated to ${newStatus}`,
         modifiedCount: result.modifiedCount
+      });
+    }
+
+    // DELETE /api/admin/users - Permanently delete user and cascade clean their events
+    if (req.method === 'DELETE') {
+      const { userId, email, username } = req.body || req.query || {};
+      if (!userId && !email && !username) {
+        return res.status(400).json({ success: false, error: 'userId, email, or username is required' });
+      }
+
+      const filter = {};
+      if (userId) filter.id = userId;
+      else if (email) filter.email = email.toLowerCase().trim();
+      else if (username) filter.username = username;
+
+      // Find user before deletion to get their email/id/name for cascading cleanup
+      const userDoc = await db.collection('users').findOne(filter);
+      const userEmail = userDoc?.email || email;
+      const userName = userDoc?.name || userDoc?.username || username || 'Competitor';
+      const uid = userDoc?.id || userId;
+
+      // 1. Delete user record
+      const delUserResult = await db.collection('users').deleteOne(filter);
+
+      // 2. Cascade delete all hosting requests and tournaments created by this user
+      if (userEmail || uid || userName) {
+        const hostConditions = [];
+        if (userEmail) {
+          hostConditions.push({ email: userEmail });
+          hostConditions.push({ contact: userEmail });
+        }
+        if (uid) {
+          hostConditions.push({ hostUserId: uid });
+          hostConditions.push({ userId: uid });
+        }
+        if (userName) {
+          hostConditions.push({ organizer: userName });
+          hostConditions.push({ hostUser: userName });
+        }
+        if (hostConditions.length > 0) {
+          await db.collection('hosting_requests').deleteMany({ $or: hostConditions });
+          await db.collection('tournaments').deleteMany({ $or: hostConditions });
+        }
+      }
+
+      // 3. Log administrative deletion
+      const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '103.211.54.12').split(',')[0].trim();
+      await db.collection('activity_logs').insertOne({
+        id: 'act_' + Date.now(),
+        userId: uid || 'ADMIN',
+        userName,
+        userEmail: userEmail || '',
+        action: `Super Admin Permanently Deleted User [${userName}] (${userEmail || uid})`,
+        ip: clientIp,
+        location: 'Super Admin Command HQ',
+        agreements: 'Administrative Cascade Account Purge',
+        device: 'Super Admin HQ Console',
+        time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
+        date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
+        timestamp: new Date().toISOString()
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: `User ${userName} deleted and all associated events purged.`,
+        deletedCount: delUserResult.deletedCount
       });
     }
 

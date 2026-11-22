@@ -123,6 +123,42 @@ export default function App() {
     return () => clearInterval(pollInterval);
   }, [currentUser?.email]);
 
+  // Synchronize deleted user revocation (force logout if deleted by Super Admin)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const checkUserDeletion = () => {
+      try {
+        const deletedRaw = localStorage.getItem('lt_deleted_user_identifiers');
+        if (deletedRaw) {
+          const list = JSON.parse(deletedRaw);
+          if (Array.isArray(list)) {
+            const uId = currentUser.id || currentUser.userId;
+            const uEmail = currentUser.email ? currentUser.email.toLowerCase() : '';
+            const uName = currentUser.username ? currentUser.username.toLowerCase() : '';
+            if (
+              (uId && list.includes(uId)) ||
+              (uEmail && list.includes(uEmail)) ||
+              (uName && list.includes(uName))
+            ) {
+              localStorage.removeItem('lt_user');
+              setCurrentUser(null);
+              navigateTo('home');
+            }
+          }
+        }
+      } catch (e) {}
+    };
+
+    checkUserDeletion();
+    window.addEventListener('storage', checkUserDeletion);
+    window.addEventListener('lt_refresh_dashboard', checkUserDeletion);
+    return () => {
+      window.removeEventListener('storage', checkUserDeletion);
+      window.removeEventListener('lt_refresh_dashboard', checkUserDeletion);
+    };
+  }, [currentUser]);
+
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();

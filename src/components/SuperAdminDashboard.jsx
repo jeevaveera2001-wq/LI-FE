@@ -17,6 +17,7 @@ import {
   deleteCloudContactTicket,
   updateCloudContactTicket,
   updateCloudUserVip,
+  deleteCloudUser,
   fetchCloudPlatformSettings,
   saveCloudPlatformSettings,
   fetchCloudSuspiciousReports,
@@ -1142,6 +1143,152 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     } catch (err) {
       console.warn('[SuperAdmin] Status update API warning:', err);
     }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    const targetUser = userDatabase.find(u => u.userId === userId || u.email === userId);
+    const userDisplayName = targetUser?.name || targetUser?.ign || 'Competitor';
+    const userEmail = targetUser?.email || '';
+    const userIgn = targetUser?.ign || '';
+
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE user "${userDisplayName}" (${userEmail || userId})?\n\nThis will completely purge the account, wipe any tournaments or scrims conducted by this user, revoke broadcast clearances, and remove their records across the entire platform.`)) {
+      return;
+    }
+
+    // 1. Remove from local userDatabase state & storage
+    setUserDatabase(prev => {
+      const updated = prev.filter(u => u.userId !== userId && u.email !== userEmail);
+      try {
+        localStorage.setItem('lt_user_database', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 2. Remove from blocked users if present
+    setBlockedUsers(prev => prev.filter(b => b.id !== userId && b.email !== userEmail));
+
+    // 3. Add to persistent blacklist of deleted users
+    try {
+      const deletedUsersRaw = localStorage.getItem('lt_deleted_user_identifiers');
+      const deletedUsersList = deletedUsersRaw ? JSON.parse(deletedUsersRaw) : [];
+      if (userId && !deletedUsersList.includes(userId)) deletedUsersList.push(userId);
+      if (userEmail && !deletedUsersList.includes(userEmail.toLowerCase())) deletedUsersList.push(userEmail.toLowerCase());
+      if (userIgn && !deletedUsersList.includes(userIgn.toLowerCase())) deletedUsersList.push(userIgn.toLowerCase());
+      localStorage.setItem('lt_deleted_user_identifiers', JSON.stringify(deletedUsersList));
+    } catch (e) {}
+
+    // 4. Force logout if this user is currently active in localStorage
+    try {
+      const cur = JSON.parse(localStorage.getItem('lt_user') || 'null');
+      if (cur && (cur.id === userId || cur.userId === userId || cur.email === userEmail || cur.username === userIgn)) {
+        localStorage.removeItem('lt_user');
+      }
+    } catch (e) {}
+
+    // 5. CASCADING PURGE of all tournaments and scrims hosted by this user
+    try {
+      const userMatchesToDelete = [];
+      hostingRequests.forEach(r => {
+        if (
+          r.hostUserId === userId ||
+          r.userId === userId ||
+          (userEmail && (r.email === userEmail || r.contact === userEmail)) ||
+          (userDisplayName && (r.organizer === userDisplayName || r.hostUser === userDisplayName))
+        ) {
+          userMatchesToDelete.push({ id: r.id, title: r.title });
+        }
+      });
+      scrimsRequests.forEach(s => {
+        if (
+          s.hostUserId === userId ||
+          s.userId === userId ||
+          (userEmail && (s.email === userEmail || s.contact === userEmail)) ||
+          (userDisplayName && (s.organizer === userDisplayName || s.hostUser === userDisplayName))
+        ) {
+          userMatchesToDelete.push({ id: s.id, title: s.title });
+        }
+      });
+
+      userMatchesToDelete.forEach(m => {
+        purgeEventGlobally(m.id, m.title);
+      });
+
+      setHostingRequests(prev => prev.filter(r =>
+        r.hostUserId !== userId &&
+        r.userId !== userId &&
+        (!userEmail || (r.email !== userEmail && r.contact !== userEmail)) &&
+        (!userDisplayName || (r.organizer !== userDisplayName && r.hostUser !== userDisplayName))
+      ));
+
+      setScrimsRequests(prev => prev.filter(s =>
+        s.hostUserId !== userId &&
+        s.userId !== userId &&
+        (!userEmail || (s.email !== userEmail && s.contact !== userEmail)) &&
+        (!userDisplayName || (s.organizer !== userDisplayName && s.hostUser !== userDisplayName))
+      ));
+
+      setAllTournamentsList(prev => prev.filter(t =>
+        t.hostUserId !== userId &&
+        (!userEmail || t.contact !== userEmail) &&
+        (!userDisplayName || t.organizer !== userDisplayName)
+      ));
+
+      setActiveMatchRooms(prev => prev.filter(r =>
+        r.hostUserId !== userId &&
+        (!userDisplayName || !r.organizer?.includes(userDisplayName))
+      ));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const filteredHostings = userHostings.filter(h =>
+          h.hostUserId !== userId &&
+          h.userId !== userId &&
+          (!userEmail || (h.email !== userEmail && h.contact !== userEmail)) &&
+          (!userDisplayName || (h.organizer !== userDisplayName && h.hostUser !== userDisplayName))
+        );
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(filteredHostings));
+      }
+
+      const userJoinedRaw = localStorage.getItem('lt_user_joined_tourneys');
+      if (userJoinedRaw) {
+        const userJoined = JSON.parse(userJoinedRaw);
+        const filteredJoined = userJoined.filter(j =>
+          j.userId !== userId &&
+          (!userEmail || j.email !== userEmail)
+        );
+        localStorage.setItem('lt_user_joined_tourneys', JSON.stringify(filteredJoined));
+      }
+
+      const broadcastRaw = localStorage.getItem('lt_broadcast_requests');
+      if (broadcastRaw) {
+        const broadcasts = JSON.parse(broadcastRaw);
+        const filteredBcast = broadcasts.filter(b =>
+          b.userId !== userId &&
+          (!userEmail || b.email !== userEmail) &&
+          (!userDisplayName || b.clan !== userDisplayName)
+        );
+        localStorage.setItem('lt_broadcast_requests', JSON.stringify(filteredBcast));
+        setBroadcastRequests(filteredBcast);
+      }
+    } catch (e) {
+      console.warn('Cascade user events purge warning:', e);
+    }
+
+    // 6. Delete from MongoDB via CloudSync API
+    try {
+      await deleteCloudUser(userId, userEmail, userIgn);
+    } catch (err) {
+      console.warn('[SuperAdmin] Delete user API warning:', err);
+    }
+
+    // 7. Dispatch global sync events
+    window.dispatchEvent(new Event('lt_refresh_dashboard'));
+    window.dispatchEvent(new Event('lt_hosting_approved'));
+    window.dispatchEvent(new Event('lt_stream_updated'));
+    window.dispatchEvent(new Event('storage'));
+
+    showToast(`🗑️ User "${userDisplayName}" & all conducted tournaments permanently deleted.`);
   };
 
   // 4. BROADCAST STREAMS & REQUESTS (Dynamic from localStorage)
@@ -4579,6 +4726,16 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                                 🚫 Block
                               </button>
                             )}
+
+                            {/* Permanent Cascade Account Deletion */}
+                            <button
+                              onClick={() => handleDeleteUser(user.userId)}
+                              className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 font-bold text-[10px] border border-rose-200 cursor-pointer flex items-center gap-1 transition-colors"
+                              title="Permanently delete user account and wipe all conducted tournaments"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">delete</span>
+                              <span>Delete</span>
+                            </button>
                           </div>
                         </td>
                       </tr>

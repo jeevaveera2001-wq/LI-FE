@@ -262,6 +262,21 @@ export async function updateCloudUserVip(userId, email, vipClearances) {
   }
 }
 
+// User Deletion Sync
+export async function deleteCloudUser(userId, email, username) {
+  try {
+    const res = await fetch('/api/admin/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, email, username })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] deleteCloudUser failed:', err);
+    return false;
+  }
+}
+
 // Platform Settings & Pricing Sync
 export async function fetchCloudPlatformSettings() {
   try {
