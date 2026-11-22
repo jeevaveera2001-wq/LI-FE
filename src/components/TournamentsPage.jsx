@@ -2,171 +2,26 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
 import PreviousFinishedMatchesSection from './PreviousFinishedMatchesSection';
-
-const ALL_TOURNAMENTS_CATALOG = [
-  {
-    id: 'bgmi-showdown-reg',
-    title: 'BGMI SHOWDOWN TOURNAMENT',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '🔥 REGISTRATION OPEN',
-    badgeColor: 'bg-amber-500 text-black font-extrabold',
-    schedule: 'Starts Today • 7:00 PM IST',
-    prizePool: '₹ 1,50,000 INR',
-    squadType: 'Squad',
-    format: 'Squad (Erangel + Miramar)',
-    map: 'Erangel / Miramar',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg'
-  },
-  {
-    id: 'bgmi-tier1-daily-scrims',
-    title: 'BGMI TIER-1 PRO DAILY SCRIMS',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'SCRIMS',
-    badge: '⚔️ DAILY SCRIMS LIVE',
-    badgeColor: 'bg-orange-500 text-white font-extrabold',
-    schedule: 'Starts Today • 9:00 PM IST',
-    prizePool: '₹ 25,000 INR',
-    squadType: 'Squad',
-    format: 'Squad (Tier-1 Practice)',
-    map: 'Erangel / Miramar',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Scrims Registration',
-    image: '/assets/tournament_bgmi_scrims_tier1_4k.jpg'
-  },
-  {
-    id: 'pubg-mobile-global-reg',
-    title: 'PUBG MOBILE GLOBAL CHAMPIONSHIP',
-    game: 'PUBG MOBILE',
-    category: 'PUBG',
-    badge: '⭐ PREMIER REGISTRATION',
-    badgeColor: 'bg-[#DFBD78] text-black font-extrabold shadow-sm',
-    schedule: 'Starts in 2 Days • 8:00 PM IST',
-    prizePool: '₹ 5,00,000 INR',
-    squadType: 'Squad',
-    format: 'Squad Global Series',
-    map: 'Erangel / Sanhok',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_pubg_mobile_4k.jpg'
-  },
-  {
-    id: 'pubg-night-grind-scrims',
-    title: 'PUBG NIGHT GRIND CUSTOM SCRIMS',
-    game: 'PUBG MOBILE',
-    category: 'SCRIMS',
-    badge: '⚡ VERIFIED SCRIMS',
-    badgeColor: 'bg-amber-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 10:00 PM IST',
-    prizePool: '₹ 15,000 INR',
-    squadType: 'Squad',
-    format: 'Squad Custom Scrim',
-    map: 'Sanhok / Erangel',
-    entryFee: '₹ 50 / Slot (Paid Entry)',
-    slots: 'Open Scrims Registration',
-    image: '/assets/tournament_pubg_night_grind_4k.jpg'
-  },
-  {
-    id: 'bgmi-lan-warriors-reg',
-    title: 'BGMI LAN WARRIORS CHALLENGE',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '⚡ SQUAD MATCH OPEN',
-    badgeColor: 'bg-emerald-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 5:00 PM IST',
-    prizePool: '₹ 75,000 INR',
-    squadType: 'Duo',
-    format: 'Duo Tactical Showdown',
-    map: 'Miramar',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg'
-  },
-  {
-    id: 'pubg-ultimate-squad-reg',
-    title: 'PUBG ULTIMATE SQUAD SERIES',
-    game: 'PUBG MOBILE',
-    category: 'PUBG',
-    badge: '🎯 SQUAD ENTRY LIVE',
-    badgeColor: 'bg-blue-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 6:00 PM IST',
-    prizePool: '₹ 30,000 INR',
-    squadType: 'Solo',
-    format: 'Solo Survival Battle',
-    map: 'Erangel',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
-  },
-  {
-    id: 'freefire-clutch-cup-reg',
-    title: 'FREE FIRE MAX CLUTCH MASTERS',
-    game: 'FREE FIRE MAX',
-    category: 'FREEFIRE',
-    badge: '🎯 OPEN REGISTRATION',
-    badgeColor: 'bg-indigo-600 text-white font-extrabold',
-    schedule: 'Starts Saturday • 4:00 PM IST',
-    prizePool: '₹ 50,000 INR',
-    squadType: 'Squad',
-    format: 'Squad Clash Royale',
-    map: 'Bermuda',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_freefire_clutch_4k.jpg'
-  },
-  {
-    id: 'valorant-spike-masters-reg',
-    title: 'VALORANT MUMBAI SPIKE LEAGUE',
-    game: 'VALORANT',
-    category: 'OTHER',
-    badge: '🏆 5v5 SQUAD OPEN',
-    badgeColor: 'bg-purple-600 text-white font-extrabold',
-    schedule: 'Starts Sunday • 6:00 PM IST',
-    prizePool: '₹ 1,00,000 INR',
-    squadType: '5v5 Squad',
-    format: '5v5 Competitive Tactical',
-    map: 'Ascent / Bind',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_valorant_mumbai_4k.jpg'
-  },
-  {
-    id: 'codm-battle-royale-reg',
-    title: 'COD MOBILE BATTLE ROYALE CUP',
-    game: 'CALL OF DUTY: MOBILE',
-    category: 'OTHER',
-    badge: '🔥 REGISTRATION OPEN',
-    badgeColor: 'bg-amber-600 text-white font-extrabold',
-    schedule: 'Starts Sunday • 8:00 PM IST',
-    prizePool: '₹ 40,000 INR',
-    squadType: 'Solo',
-    format: 'Isolated Map BR',
-    map: 'Isolated',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_codm_battle_royale_4k.jpg'
-  },
-  {
-    id: 'bgmi-underdog-pro-reg',
-    title: 'BGMI UNDERDOG PRO RUMBLE',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '⭐ VERIFIED SQUAD CUP',
-    badgeColor: 'bg-[#DFBD78] text-black font-extrabold',
-    schedule: 'Starts Monday • 7:30 PM IST',
-    prizePool: '₹ 60,000 INR',
-    squadType: 'Squad',
-    format: 'Underdog Squad Qualifier',
-    map: 'Erangel / Vikendi',
-    entryFee: 'FREE ENTRY',
-    slots: 'Open Registration',
-    image: '/assets/tournament_bgmi_underdog_rumble_4k.jpg'
-  }
-];
+import { loadLiveTournaments } from './FeaturedTournamentsSection';
 
 export default function TournamentsPage({ onNavigate, currentUser }) {
+  const [liveTournaments, setLiveTournaments] = useState(() => loadLiveTournaments());
+
+  useEffect(() => {
+    const handleSync = () => {
+      setLiveTournaments(loadLiveTournaments());
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('lt_hosting_requested', handleSync);
+    window.addEventListener('lt_room_requested', handleSync);
+    window.addEventListener('lt_scrim_requested', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('lt_hosting_requested', handleSync);
+      window.removeEventListener('lt_room_requested', handleSync);
+      window.removeEventListener('lt_scrim_requested', handleSync);
+    };
+  }, []);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeSquadType, setActiveSquadType] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -339,7 +194,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
 
   // Filtered Tournaments
   const filteredTournaments = useMemo(() => {
-    return ALL_TOURNAMENTS_CATALOG.filter((tourney) => {
+    return liveTournaments.filter((tourney) => {
       // Category filter
       if (activeCategory !== 'ALL') {
         if (tourney.category !== activeCategory) return false;
@@ -364,7 +219,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
 
       return true;
     });
-  }, [activeCategory, activeSquadType, searchQuery]);
+  }, [liveTournaments, activeCategory, activeSquadType, searchQuery]);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-neutral-900 pb-20">
@@ -493,7 +348,7 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
               }`}
             >
               <span>All Matches</span>
-              <span className="text-[10px] opacity-75 font-mono">({ALL_TOURNAMENTS_CATALOG.length})</span>
+              <span className="text-[10px] opacity-75 font-mono">({liveTournaments.length})</span>
             </button>
 
             <button
@@ -574,22 +429,44 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
         {isFiltering ? (
           <SkeletonLoader variant="tournament-card" count={4} />
         ) : filteredTournaments.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-gray-200/80 shadow-xs space-y-3">
-            <span className="material-symbols-outlined text-gray-400 text-5xl">sports_esports</span>
-            <h3 className="text-lg font-bold text-gray-800">No Tournaments Match Your Filter</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              Try adjusting your game category, squad format, or search keywords to find open competitive lobbies.
-            </p>
-            <button
-              onClick={() => {
-                setActiveCategory('ALL');
-                setActiveSquadType('ALL');
-                setSearchQuery('');
-              }}
-              className="mt-2 px-4 py-2 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-gold-primary hover:text-black transition-all cursor-pointer"
-            >
-              Reset All Filters
-            </button>
+          <div className="bg-white rounded-2xl p-12 text-center border border-gray-200/80 shadow-xs space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-500">
+              <span className="material-symbols-outlined text-3xl">sports_esports</span>
+            </div>
+            {liveTournaments.length === 0 ? (
+              <>
+                <h3 className="text-lg font-black uppercase tracking-wider text-black">No Live Tournaments or Scrims Active Right Now</h3>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
+                  Only authentic organizer-hosted tournaments appear here. Organize and host your own BGMI, PUBG, or Free Fire tournament room with real custom match-day keys &amp; instant live brackets!
+                </p>
+                <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={() => onNavigate && onNavigate('user-dashboard')}
+                    className="px-5 py-2.5 rounded-xl bg-gold-primary text-black text-xs font-black uppercase tracking-wider hover:bg-gold-secondary shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                    <span>Host Tournament Room (₹10)</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-800">No Tournaments Match Your Filter</h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  Try adjusting your game category, squad format, or search keywords to find open competitive lobbies.
+                </p>
+                <button
+                  onClick={() => {
+                    setActiveCategory('ALL');
+                    setActiveSquadType('ALL');
+                    setSearchQuery('');
+                  }}
+                  className="mt-2 px-4 py-2 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-gold-primary hover:text-black transition-all cursor-pointer"
+                >
+                  Reset All Filters
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 pt-2 pb-6">

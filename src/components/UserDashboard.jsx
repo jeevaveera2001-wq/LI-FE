@@ -120,8 +120,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     return [];
   });
 
-  // In-Page Modal State for Tournament Room Conducting (₹10)
-  const [isConductModalOpen, setIsConductModalOpen] = useState(false);
+  // Full-Page Registration State for Tournament Room Conducting (₹10)
+  const [isConductingTournament, setIsConductingTournament] = useState(false);
   const [conductTitle, setConductTitle] = useState('');
   const [conductGame, setConductGame] = useState('Battlegrounds Mobile India');
   const [conductFormat, setConductFormat] = useState('Squad (Erangel + Miramar)');
@@ -131,19 +131,20 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [conductWhatsApp, setConductWhatsApp] = useState('');
   const [conductLiveUrl, setConductLiveUrl] = useState('');
   const [conductThumbnail, setConductThumbnail] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
-  const [conductRoomCode, setConductRoomCode] = useState(() => 'LT-' + Math.floor(100000 + Math.random() * 900000));
-  const [conductRoomPass, setConductRoomPass] = useState(() => String(Math.floor(1000 + Math.random() * 9000)));
 
-  // In-Page Modal State for Daily Scrims Conducting (₹50)
-  const [isConductScrimModalOpen, setIsConductScrimModalOpen] = useState(false);
+  // Full-Page Registration State for Daily Scrims Conducting (₹50)
+  const [isConductingScrim, setIsConductingScrim] = useState(false);
   const [scrimTitle, setScrimTitle] = useState('');
   const [scrimGame, setScrimGame] = useState('Battlegrounds Mobile India');
   const [scrimTiming, setScrimTiming] = useState('Daily at 7:00 PM IST');
   const [scrimWhatsApp, setScrimWhatsApp] = useState('');
   const [scrimLiveUrl, setScrimLiveUrl] = useState('');
   const [scrimThumbnail, setScrimThumbnail] = useState('/assets/tournament_bgmi_lan_warriors_4k.jpg');
-  const [scrimRoomCode, setScrimRoomCode] = useState(() => 'SCRIM-' + Math.floor(10000 + Math.random() * 90000));
-  const [scrimRoomPass, setScrimRoomPass] = useState(() => String(Math.floor(1000 + Math.random() * 9000)));
+
+  // Match Day Custom Credentials Editing State (Host enters custom Room ID & Password on match day)
+  const [credentialsModalRoom, setCredentialsModalRoom] = useState(null);
+  const [customRoomCode, setCustomRoomCode] = useState('');
+  const [customRoomPass, setCustomRoomPass] = useState('');
 
   // Digital Payment Receipt Modal State
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -159,16 +160,83 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [liveStreamClan, setLiveStreamClan] = useState(() => currentUser?.clan || '');
   const [liveStreamTournamentType, setLiveStreamTournamentType] = useState('Pro Championship League');
   const [activeBroadcastPass, setActiveBroadcastPass] = useState(() => {
-    return localStorage.getItem('lt_user_broadcast_pass') || 'Weekly Pass (7 Days)';
+    const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
+    if (isPurchased) {
+      return localStorage.getItem('lt_user_broadcast_pass') || null;
+    }
+    return currentUser?.hasBroadcastVip ? 'VIP Broadcast Pass' : null;
   });
   const [broadcastExpiresAt, setBroadcastExpiresAt] = useState(() => {
-    const saved = localStorage.getItem('lt_user_broadcast_expiry');
-    if (saved) return saved;
-    const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
-      month: 'short', day: 'numeric', year: 'numeric'
-    });
-    return exp;
+    const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
+    if (isPurchased) {
+      return localStorage.getItem('lt_user_broadcast_expiry') || null;
+    }
+    return currentUser?.hasBroadcastVip ? 'Unlimited VIP' : null;
   });
+
+  // Banner file upload handler for custom image selection from PC or Mobile device
+  const handleBannerFileUpload = (e, target = 'tournament') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('⚠️ Please upload a valid image file (PNG, JPG, WebP)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('⚠️ Image size exceeds 5MB. Please choose a smaller image.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (typeof dataUrl === 'string') {
+        if (target === 'tournament') {
+          setConductThumbnail(dataUrl);
+        } else {
+          setScrimThumbnail(dataUrl);
+        }
+        showToast('✓ Custom banner image uploaded successfully from your device!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Host saves custom Room ID and Password on Match Day
+  const handleSaveMatchDayCredentials = (e) => {
+    e.preventDefault();
+    if (!credentialsModalRoom) return;
+    if (!customRoomCode.trim() || !customRoomPass.trim()) {
+      showToast('⚠️ Please enter both Room ID and Room Password.');
+      return;
+    }
+    const updatedRooms = hostedTournaments.map(r => {
+      if (r.id === credentialsModalRoom.id) {
+        return {
+          ...r,
+          roomCode: customRoomCode.trim(),
+          roomPass: customRoomPass.trim(),
+          matchDayCredentialsProvided: true,
+          credentialsUpdatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    });
+    setHostedTournaments(updatedRooms);
+    localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
+    try {
+      const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+      publishedCreds[credentialsModalRoom.id] = {
+        roomCode: customRoomCode.trim(),
+        roomPass: customRoomPass.trim(),
+        publishedAt: new Date().toISOString(),
+        directAccess: true
+      };
+      localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+    } catch (err) {}
+    window.dispatchEvent(new Event('storage'));
+    showToast(`✓ Room credentials saved! Room ID: ${customRoomCode.trim()} & Pass published to players.`);
+    setCredentialsModalRoom(null);
+  };
 
   // Featured Tournament State (Flat ₹ 49)
   const [featuredSelectedEvent, setFeaturedSelectedEvent] = useState('');
@@ -392,8 +460,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           channelLink: conductLiveUrl || 'https://www.youtube.com/@livetournament_in',
           amountPaid: 10,
           paymentRef: paymentId,
-          roomCode: conductRoomCode,
-          roomPass: conductRoomPass,
+          roomCode: '', // Host provides custom credentials on match day
+          roomPass: '', // Host provides custom credentials on match day
+          matchDayCredentialsProvided: false,
           status: 'PENDING',
           whatsApp: conductWhatsApp || '9876543210',
           createdAt: new Date().toISOString(),
@@ -516,13 +585,11 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           paymentId
         });
 
-        setIsConductModalOpen(false);
+        setIsConductingTournament(false);
         showToast(currentUser?.hasTourneyApproval ? '🎉 Tournament Room launched & approved instantly with VIP Clearance!' : '🎉 Tournament Room launched! Awaiting Admin approval. Confirmation email sent.');
         
         // Reset form fields
         setConductTitle('');
-        setConductRoomCode('LT-' + Math.floor(100000 + Math.random() * 900000));
-        setConductRoomPass(String(Math.floor(1000 + Math.random() * 9000)));
       }
     });
   };
@@ -565,8 +632,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           channelLink: scrimLiveUrl || 'https://www.youtube.com/@livetournament_in',
           amountPaid: 50,
           paymentRef: paymentId,
-          roomCode: scrimRoomCode,
-          roomPass: scrimRoomPass,
+          roomCode: '', // Host provides custom credentials on match day
+          roomPass: '', // Host provides custom credentials on match day
+          matchDayCredentialsProvided: false,
           status: 'PENDING',
           whatsApp: scrimWhatsApp || '9876543210',
           contact: scrimWhatsApp || displayEmail,
@@ -689,12 +757,10 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           paymentId
         });
 
-        setIsConductScrimModalOpen(false);
+        setIsConductingScrim(false);
         showToast(currentUser?.hasScrimsApproval ? '🎉 Daily Scrim created & approved instantly with VIP Clearance!' : '🎉 Daily Scrim created! Awaiting Admin approval. Confirmation email sent.');
 
         setScrimTitle('');
-        setScrimRoomCode('SCRIM-' + Math.floor(10000 + Math.random() * 90000));
-        setScrimRoomPass(String(Math.floor(1000 + Math.random() * 9000)));
       }
     });
   };
@@ -774,6 +840,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         setBroadcastExpiresAt(expiryDate);
         localStorage.setItem('lt_user_broadcast_pass', `${tierName} (${days} Days)`);
         localStorage.setItem('lt_user_broadcast_expiry', expiryDate);
+        localStorage.setItem('lt_user_broadcast_pass_purchased', 'true');
 
         const newTx = {
           id: 'tx_' + Date.now(),
@@ -1167,7 +1234,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
             {/* Host Tournament CTA Button (SINGLE PLUS ICON ONLY) */}
             <button
-              onClick={() => { setActiveTab('rooms'); setIsConductModalOpen(true); }}
+              onClick={() => { setActiveTab('rooms'); setIsConductingTournament(true); }}
               style={{ backgroundColor: '#1F2937', color: '#ffffff' }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-full !bg-[#1F2937] hover:!bg-black !text-white text-[11px] font-bold tracking-wide shadow-sm transition-all cursor-pointer"
             >
@@ -1249,13 +1316,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <button
-                    onClick={() => { setActiveTab('rooms'); setIsConductModalOpen(true); }}
+                    onClick={() => { setActiveTab('rooms'); setIsConductingTournament(true); }}
                     className="px-4 py-2.5 rounded-lg bg-[#DFBD78] hover:bg-[#C5A059] text-black text-xs font-bold transition-colors cursor-pointer"
                   >
                     Conduct Room (₹10)
                   </button>
                   <button
-                    onClick={() => { setActiveTab('scrims'); setIsConductScrimModalOpen(true); }}
+                    onClick={() => { setActiveTab('scrims'); setIsConductingScrim(true); }}
                     className="px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
                   >
                     Host Scrim (₹50)
@@ -1382,7 +1449,250 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           {/* ========================================================
               VIEW 3: ROOMS (CONDUCTED TOURNAMENT ROOMS ONLY + HISTORY)
               ======================================================== */}
-          {activeTab === 'rooms' && (
+          {activeTab === 'rooms' && isConductingTournament && (
+            <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+              <div className="bg-white rounded-[16px] p-6 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsConductingTournament(false)}
+                    className="size-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                    title="Back to Conducted Rooms"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-[#1F2937] text-white text-[10px] font-bold uppercase tracking-wider">
+                        FULL REGISTRATION LAYOUT
+                      </span>
+                      <span className="text-xs text-gray-400 font-mono">₹10 Single Match Fee</span>
+                    </div>
+                    <h2 className="text-xl font-black text-gray-900 mt-0.5">Conduct New Tournament Room</h2>
+                    <p className="text-xs text-gray-500">
+                      Standard Capacity: 25 Squads (100 Players). Upload your custom banner and submit.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsConductingTournament(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer self-start sm:self-center"
+                >
+                  Cancel &amp; Return
+                </button>
+              </div>
+
+              <form onSubmit={handleConductTournamentSubmit} className="bg-white rounded-[16px] p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6 text-xs">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <span className="material-symbols-outlined text-base text-[#C5A059]">assignment</span>
+                    <span>1. Tournament Details</span>
+                  </h3>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Tournament Heading / Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={conductTitle}
+                      onChange={(e) => setConductTitle(e.target.value)}
+                      placeholder="e.g. BGMI Masters Pro Clan Cup Season 2"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Game Category
+                      </label>
+                      <select
+                        value={conductGame}
+                        onChange={(e) => setConductGame(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white cursor-pointer transition-colors"
+                      >
+                        <option>Battlegrounds Mobile India</option>
+                        <option>Free Fire MAX</option>
+                        <option>Call of Duty: Mobile</option>
+                        <option>Valorant Mobile</option>
+                        <option>PUBG Mobile</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Match Schedule / Timing *
+                      </label>
+                      <input
+                        type="text"
+                        value={conductTiming}
+                        onChange={(e) => setConductTiming(e.target.value)}
+                        placeholder="e.g. Today at 8:00 PM IST"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Prize Pool
+                      </label>
+                      <input
+                        type="text"
+                        value={conductPrize}
+                        onChange={(e) => setConductPrize(e.target.value)}
+                        placeholder="e.g. ₹ 5,000 INR"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Host WhatsApp Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={conductWhatsApp}
+                        onChange={(e) => setConductWhatsApp(e.target.value)}
+                        placeholder="e.g. 9840192831"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Live Stream URL (Where you will broadcast match)
+                    </label>
+                    <input
+                      type="url"
+                      value={conductLiveUrl}
+                      onChange={(e) => setConductLiveUrl(e.target.value)}
+                      placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">Must start with <strong>www.</strong> or <strong>https://</strong> and contain <strong>youtube</strong></p>
+                  </div>
+                </div>
+
+                {/* Banner Poster Selection & Device Upload */}
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-900">
+                        2. Tournament Banner Poster *
+                      </label>
+                      <p className="text-[11px] text-gray-500">
+                        Upload custom poster from phone / PC or select a preset
+                      </p>
+                    </div>
+                    <label
+                      htmlFor="custom-tournament-banner-upload"
+                      className="px-4 py-2 rounded-xl bg-[#C5A059] hover:bg-[#b08e4c] text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs w-fit"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                      <span>Choose File from Device (Mobile / PC)</span>
+                    </label>
+                    <input
+                      id="custom-tournament-banner-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleBannerFileUpload(e, 'tournament')}
+                      className="hidden"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <div className="md:col-span-2">
+                      <div className="aspect-video w-full rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 relative bg-gray-50 group hover:border-[#C5A059] transition-all flex items-center justify-center">
+                        {conductThumbnail ? (
+                          <div className="relative size-full">
+                            <img
+                              src={conductThumbnail}
+                              alt="Tournament Banner Preview"
+                              className="size-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <label
+                                htmlFor="custom-tournament-banner-upload"
+                                className="px-3.5 py-2 rounded-lg bg-white text-black text-xs font-bold cursor-pointer hover:bg-gray-100 shadow"
+                              >
+                                Replace Banner
+                              </label>
+                            </div>
+                          </div>
+                        ) : (
+                          <label
+                            htmlFor="custom-tournament-banner-upload"
+                            className="flex flex-col items-center justify-center p-6 text-center cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-gray-400 text-4xl mb-2">add_photo_alternate</span>
+                            <span className="text-xs font-bold text-gray-700">Click to upload custom banner image</span>
+                            <span className="text-[10px] text-gray-400 mt-1">Supports PNG, JPG, JPEG, WebP up to 5MB</span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-gray-500 block">
+                        Or Quick-Select Preset
+                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {presetThumbnails.slice(0, 6).map((p) => (
+                          <div
+                            key={p.name}
+                            onClick={() => setConductThumbnail(p.url)}
+                            className={`p-1.5 rounded-lg border cursor-pointer text-center text-[9px] transition-all ${
+                              conductThumbnail === p.url ? 'border-[#C5A059] bg-[#DFBD78]/10 font-bold scale-102 ring-2 ring-[#C5A059]/40' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <img src={p.url} alt="" className="aspect-video w-full object-cover rounded mb-1" />
+                            <span className="truncate block text-gray-700">{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Match Day Credentials Info Note (Pre-generated credentials removed) */}
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">verified_user</span>
+                  <div className="text-xs">
+                    <span className="font-bold block text-blue-950">Room ID &amp; Password Management</span>
+                    <p className="text-blue-800 text-[11.5px] mt-0.5">
+                      Pre-generated credentials have been removed so you can supply your own custom Room ID and Password directly on match day. Once your match date arrives, enter your credentials in your conducted rooms dashboard to notify all registered players.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Total & Checkout Action */}
+                <div className="p-4 rounded-2xl bg-gray-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Tournament Room Fee</span>
+                    <span className="text-2xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment}
+                    className="px-8 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    {isProcessingPayment ? 'Connecting...' : 'Pay ₹10 & Register Tournament Room'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ========================================================
+              VIEW 3: ROOMS (CONDUCTED TOURNAMENT ROOMS LIST)
+              ======================================================== */}
+          {activeTab === 'rooms' && !isConductingTournament && (
             <div className="space-y-6">
               
               {/* Header with SINGLE PLUS ICON BUTTON */}
@@ -1395,7 +1705,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 </div>
                 {/* SINGLE PLUS ICON - NO DOUBLE PLUS */}
                 <button
-                  onClick={() => setIsConductModalOpen(true)}
+                  onClick={() => setIsConductingTournament(true)}
                   className="px-4 py-2 rounded-[8px] bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-1.5 shadow-sm"
                 >
                   <span className="material-symbols-outlined text-[16px]">add</span>
@@ -1412,7 +1722,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     You haven't conducted any tournament rooms yet. Launch your first tournament room for just ₹10!
                   </p>
                   <button
-                    onClick={() => setIsConductModalOpen(true)}
+                    onClick={() => setIsConductingTournament(true)}
                     className="px-4 py-2 rounded-xl bg-[#1F2937] text-white text-xs font-bold hover:bg-black transition-colors cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[15px]">add</span>
@@ -1555,10 +1865,44 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                         {/* Room Credentials Management & Automated Email Triggers */}
                         <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-4 font-mono">
-                            <span>Room ID: <strong className="text-gray-900">{h.roomCode || 'LT-98214'}</strong></span>
-                            <span>Pass: <strong className="text-gray-900">{h.roomPass || '8831'}</strong></span>
-                          </div>
+                          {h.roomCode && h.roomPass ? (
+                            <div className="flex items-center gap-3 font-mono">
+                              <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                                Room ID: {h.roomCode}
+                              </span>
+                              <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                                Pass: {h.roomPass}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setCredentialsModalRoom(h);
+                                  setCustomRoomCode(h.roomCode || '');
+                                  setCustomRoomPass(h.roomPass || '');
+                                }}
+                                className="px-2.5 py-1 rounded border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold font-sans cursor-pointer text-[11px]"
+                              >
+                                Edit Key
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[14px] text-amber-600">event</span>
+                                <span>Credentials: Set on Match Day</span>
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setCredentialsModalRoom(h);
+                                  setCustomRoomCode('');
+                                  setCustomRoomPass('');
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-[#1F2937] hover:bg-black text-white text-xs font-bold cursor-pointer flex items-center gap-1"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">key</span>
+                                <span>Set Match Day Key</span>
+                              </button>
+                            </div>
+                          )}
 
                           <div className="flex items-center gap-2">
                             {/* Send 24h Reminder to all squads */}
@@ -1592,20 +1936,6 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                             >
                               <span className="material-symbols-outlined text-[14px]">fact_check</span>
                               <span>Submit Results to Admin</span>
-                            </button>
-
-                            {/* Edit Room Key */}
-                            <button
-                              onClick={() => {
-                                const newPass = prompt('Update Room Password for Squads:', h.roomPass || '8831');
-                                if (newPass) {
-                                  h.roomPass = newPass;
-                                  showToast('✓ Room password updated & synced to player lobbies');
-                                }
-                              }}
-                              className="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold transition-colors cursor-pointer"
-                            >
-                              Edit Key
                             </button>
                           </div>
                         </div>
@@ -1665,9 +1995,237 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           )}
 
           {/* ========================================================
+              VIEW 4: DAILY SCRIMS HUB (FULL REGISTRATION LAYOUT)
+              ======================================================== */}
+          {activeTab === 'scrims' && isConductingScrim && (
+            <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+              <div className="bg-white rounded-[16px] p-6 border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsConductingScrim(false)}
+                    className="size-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                    title="Back to Scrims Hub"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                        FULL REGISTRATION LAYOUT
+                      </span>
+                      <span className="text-xs text-gray-400 font-mono">₹50 Practice Lobby Fee</span>
+                    </div>
+                    <h2 className="text-xl font-black text-gray-900 mt-0.5">Conduct Daily Practice Scrim</h2>
+                    <p className="text-xs text-gray-500">
+                      Standard Capacity: 25 Squads (100 Players). Upload your scrim banner and publish your lobby.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsConductingScrim(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer self-start sm:self-center"
+                >
+                  Cancel &amp; Return
+                </button>
+              </div>
+
+              <form onSubmit={handleConductScrimSubmit} className="bg-white rounded-[16px] p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6 text-xs">
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <span className="material-symbols-outlined text-base text-blue-600">sports_esports</span>
+                    <span>1. Scrim Details</span>
+                  </h3>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Scrims Heading / Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={scrimTitle}
+                      onChange={(e) => setScrimTitle(e.target.value)}
+                      placeholder="e.g. BGMI Tier-1 Pro Daily Practice Scrims"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Game Category
+                      </label>
+                      <select
+                        value={scrimGame}
+                        onChange={(e) => setScrimGame(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white cursor-pointer transition-colors"
+                      >
+                        <option>Battlegrounds Mobile India</option>
+                        <option>Free Fire MAX</option>
+                        <option>Call of Duty: Mobile</option>
+                        <option>Valorant Mobile</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Match Schedule / Timing *
+                      </label>
+                      <input
+                        type="text"
+                        value={scrimTiming}
+                        onChange={(e) => setScrimTiming(e.target.value)}
+                        placeholder="e.g. Daily at 7:00 PM IST"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Host WhatsApp Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={scrimWhatsApp}
+                        onChange={(e) => setScrimWhatsApp(e.target.value)}
+                        placeholder="e.g. 9840192831"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Live Stream Link (YouTube)
+                      </label>
+                      <input
+                        type="url"
+                        value={scrimLiveUrl}
+                        onChange={(e) => setScrimLiveUrl(e.target.value)}
+                        placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scrim Banner Upload & Selection */}
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-900">
+                        2. Scrim Banner Poster *
+                      </label>
+                      <p className="text-[11px] text-gray-500">
+                        Upload custom poster from phone / PC or select a preset
+                      </p>
+                    </div>
+                    <label
+                      htmlFor="custom-scrim-banner-upload"
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs w-fit"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                      <span>Choose File from Device (Mobile / PC)</span>
+                    </label>
+                    <input
+                      id="custom-scrim-banner-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleBannerFileUpload(e, 'scrim')}
+                      className="hidden"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <div className="md:col-span-2">
+                      <div className="aspect-video w-full rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 relative bg-gray-50 group hover:border-blue-500 transition-all flex items-center justify-center">
+                        {scrimThumbnail ? (
+                          <div className="relative size-full">
+                            <img
+                              src={scrimThumbnail}
+                              alt="Scrim Banner Preview"
+                              className="size-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <label
+                                htmlFor="custom-scrim-banner-upload"
+                                className="px-3.5 py-2 rounded-lg bg-white text-black text-xs font-bold cursor-pointer hover:bg-gray-100 shadow"
+                              >
+                                Replace Banner
+                              </label>
+                            </div>
+                          </div>
+                        ) : (
+                          <label
+                            htmlFor="custom-scrim-banner-upload"
+                            className="flex flex-col items-center justify-center p-6 text-center cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-gray-400 text-4xl mb-2">add_photo_alternate</span>
+                            <span className="text-xs font-bold text-gray-700">Click to upload custom scrim banner</span>
+                            <span className="text-[10px] text-gray-400 mt-1">Supports PNG, JPG, JPEG, WebP up to 5MB</span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-gray-500 block">
+                        Or Quick-Select Preset
+                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {presetThumbnails.slice(0, 6).map((p) => (
+                          <div
+                            key={p.name}
+                            onClick={() => setScrimThumbnail(p.url)}
+                            className={`p-1.5 rounded-lg border cursor-pointer text-center text-[9px] transition-all ${
+                              scrimThumbnail === p.url ? 'border-blue-600 bg-blue-50 font-bold scale-102 ring-2 ring-blue-500/40' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <img src={p.url} alt="" className="aspect-video w-full object-cover rounded mb-1" />
+                            <span className="truncate block text-gray-700">{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Match Day Credentials Info Note */}
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">verified_user</span>
+                  <div className="text-xs">
+                    <span className="font-bold block text-blue-950">Room ID &amp; Password Management</span>
+                    <p className="text-blue-800 text-[11.5px] mt-0.5">
+                      Pre-generated credentials have been removed so you can supply your own custom Room ID and Password directly on match day. Once your match date arrives, enter your credentials in your conducted scrims hub to notify all registered players.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Total & Checkout Action */}
+                <div className="p-4 rounded-2xl bg-blue-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] text-blue-300 uppercase font-bold block">Daily Scrim Fee</span>
+                    <span className="text-2xl font-black font-mono text-white">₹ 50 INR</span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment}
+                    className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    {isProcessingPayment ? 'Connecting...' : 'Pay ₹50 & Launch Scrim'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ========================================================
               VIEW 4: DAILY SCRIMS HUB (REGISTERED & CONDUCTED SCRIMS)
               ======================================================== */}
-          {activeTab === 'scrims' && (
+          {activeTab === 'scrims' && !isConductingScrim && (
             <div className="space-y-6">
               
               {/* Top Banner with SINGLE PLUS ICON BUTTON */}
@@ -1680,7 +2238,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 </div>
                 {/* SINGLE PLUS ICON - NO DOUBLE PLUS */}
                 <button
-                  onClick={() => setIsConductScrimModalOpen(true)}
+                  onClick={() => setIsConductingScrim(true)}
                   className="px-4 py-2 rounded-[8px] bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shadow-sm"
                 >
                   <span className="material-symbols-outlined text-[16px]">add</span>
@@ -1712,9 +2270,9 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         <h4 className="font-bold text-base text-[#1F2937]">{s.title}</h4>
                         <p className="text-xs text-gray-600">{s.timing} &bull; Capacity: {s.slots}</p>
                         <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                          <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode}</span>
+                          <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode || 'Match Day'}</span>
                           <button
-                            onClick={() => showToast(`Room credentials: ${s.roomCode} / Pass: ${s.roomPass}`)}
+                            onClick={() => showToast(s.roomCode ? `Room credentials: ${s.roomCode} / Pass: ${s.roomPass}` : 'Credentials releasing on match day.')}
                             className="px-3 py-1 rounded bg-black text-white text-xs font-bold hover:bg-gold-primary hover:text-black cursor-pointer"
                           >
                             Copy Credentials
@@ -1754,9 +2312,37 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         <h4 className="font-bold text-base text-[#1F2937]">{s.title}</h4>
                         <p className="text-xs text-gray-600">{s.timing} &bull; 25 Squads Standard Cap &bull; WhatsApp: {s.whatsApp || 'Active'}</p>
                         <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
-                          <span className="text-xs font-mono font-bold text-gray-800">Room: {s.roomCode} / {s.roomPass}</span>
+                          {s.roomCode && s.roomPass ? (
+                            <div className="flex items-center gap-2 font-mono text-xs">
+                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                                {s.roomCode} / {s.roomPass}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setCredentialsModalRoom(s);
+                                  setCustomRoomCode(s.roomCode || '');
+                                  setCustomRoomPass(s.roomPass || '');
+                                }}
+                                className="text-xs text-blue-600 underline font-sans font-bold hover:text-blue-800 cursor-pointer"
+                              >
+                                Edit Key
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setCredentialsModalRoom(s);
+                                setCustomRoomCode('');
+                                setCustomRoomPass('');
+                              }}
+                              className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black cursor-pointer flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">key</span>
+                              <span>Set Match Day Key</span>
+                            </button>
+                          )}
                           <button
-                            onClick={() => showToast('Dispatched room credentials to all registered squads')}
+                            onClick={() => showToast(s.roomCode ? `Dispatched room credentials to registered squads: ${s.roomCode} / ${s.roomPass}` : '⚠️ Please set room credentials first.')}
                             className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black cursor-pointer"
                           >
                             Broadcast Key
@@ -1772,252 +2358,324 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           )}
 
           {/* ========================================================
-              VIEW 5: BROADCAST & STREAMS (ABOVE FEATURED TOURNAMENTS)
+              VIEW 5: BROADCAST & STREAMS (STATIC NON-SCROLLABLE SUITE)
               ======================================================== */}
           {activeTab === 'broadcast' && (
-            <div className="space-y-6">
+            <div className="space-y-4 max-w-7xl mx-auto animate-fade-in">
               
-              <div className="bg-white rounded-[12px] p-5 border border-[#D1D1D1]/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {/* Top Header Card */}
+              <div className="bg-white rounded-[14px] p-4 sm:p-5 border border-gray-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold uppercase tracking-wider">
                       LIVE MEDIA BROADCAST
                     </span>
-                    <span className="text-xs font-mono text-gray-500">Auto-expires upon duration completion</span>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      {activeBroadcastPass ? 'Active Broadcaster License' : 'Pass Required for Caster Access'}
+                    </span>
                   </div>
-                  <h2 className="text-lg font-bold text-[#1F2937] mt-1">Broadcast &amp; Live Stream Production Feed</h2>
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    Live matches stream directly right on this page! Enter your exact YouTube Live link to host and broadcast to all viewers.
+                  <h2 className="text-lg font-bold text-[#1F2937] mt-0.5">Broadcast &amp; Live Stream Production Feed</h2>
+                  <p className="text-xs text-[#6B7280]">
+                    Stream matches directly right on LiveTournaments.in. Enter your YouTube Live link to broadcast to all arena viewers.
                   </p>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-[10px] font-bold uppercase text-gray-400 block">Active Status</span>
-                  <span className="text-xs font-bold text-emerald-600 font-mono">
-                    {activeBroadcastPass} &bull; Valid until {broadcastExpiresAt}
-                  </span>
+                <div className="text-left sm:text-right shrink-0">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 block">Current Status</span>
+                  {activeBroadcastPass ? (
+                    <span className="text-xs font-bold text-emerald-600 font-mono flex items-center sm:justify-end gap-1">
+                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>ACTIVE &bull; {activeBroadcastPass}</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-600 font-mono">
+                      NO ACTIVE PASS
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Exact Live Stream URL & Caster Submission Console */}
-              <div className="bg-white rounded-[16px] p-4 sm:p-5 border border-gray-200 shadow-xs space-y-4">
-                <div className="pb-3 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-red-600 text-[18px]">sensors</span>
-                      <span>Broadcast Submission Console • 4-Slot Ready</span>
-                    </h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">
-                      Submit your live match stream with contact email, YouTube URL, and clan metadata for direct Admin slot assignment.
-                    </p>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-red-50 text-red-600 font-bold text-[9.5px] uppercase border border-red-200 w-fit">
-                    🔴 Live Stream Ingestion
-                  </span>
-                </div>
-
-                <form onSubmit={handleUpdateLiveStream} className="space-y-3.5 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Exact Live Stream URL * (YouTube Live Only)
-                      </label>
-                      <input
-                        type="url"
-                        required
-                        value={liveStreamInput}
-                        onChange={(e) => setLiveStreamInput(e.target.value)}
-                        placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-mono"
-                      />
-                      <p className="text-[10px] text-gray-400 mt-1">
-                        Must contain <strong>youtube</strong> and valid video ID
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Caster Contact Email * (Required for Verification)
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={liveStreamEmail}
-                        onChange={(e) => setLiveStreamEmail(e.target.value)}
-                        placeholder="caster@domain.com"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-medium"
-                      />
-                      <p className="text-[10px] text-gray-400 mt-1">
-                        Admin slot assignment alerts are sent to this address
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Stream Title / Match Heading
-                      </label>
-                      <input
-                        type="text"
-                        value={liveStreamTitle}
-                        onChange={(e) => setLiveStreamTitle(e.target.value)}
-                        placeholder="e.g. BGMI Pro Winter Cup Finals"
-                        className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Clan / Team Tag
-                      </label>
-                      <input
-                        type="text"
-                        value={liveStreamClan}
-                        onChange={(e) => setLiveStreamClan(e.target.value)}
-                        placeholder="e.g. SOUL / GODL"
-                        className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Esports Game Title
-                      </label>
-                      <select
-                        value={liveStreamGame}
-                        onChange={(e) => setLiveStreamGame(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
-                      >
-                        <option value="BATTLEGROUNDS MOBILE INDIA">Battlegrounds Mobile India (BGMI)</option>
-                        <option value="FREE FIRE MAX">Free Fire MAX</option>
-                        <option value="VALORANT">Valorant</option>
-                        <option value="CALL OF DUTY: MOBILE">Call of Duty: Mobile</option>
-                        <option value="PUBG MOBILE">PUBG Mobile</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <span className="text-[10.5px] text-amber-700 font-semibold flex items-center gap-1.5 self-start sm:self-center">
-                      <span className="size-1.5 rounded-full bg-red-600 animate-ping"></span>
-                      <span>Real-time Socket Sync Active • Arrives instantly in Admin Console</span>
-                    </span>
-
-                    <button
-                      type="submit"
-                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-95"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">sensors</span>
-                      <span>Submit Live Broadcast Stream</span>
-                    </button>
-                  </div>
-                </form>
-
-                {/* Direct Live Stream Embedded Player */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                      <span className="size-2 rounded-full bg-red-600 animate-pulse"></span>
-                      <span>Live Tournament Stream Player (Embedded)</span>
-                    </span>
-                    <a
-                      href={liveStreamUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 font-bold hover:underline"
-                    >
-                      Open on YouTube ↗
-                    </a>
-                  </div>
-
-                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl relative">
-                    {getEmbedYouTubeUrl(liveStreamUrl) ? (
-                      <iframe
-                        src={getEmbedYouTubeUrl(liveStreamUrl)}
-                        title="Live Tournaments Broadcast"
-                        className="size-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <div className="size-full flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
-                        <span className="text-4xl">📺</span>
-                        <h4 className="text-base font-bold">Match Live Stream Ready</h4>
-                        <p className="text-xs text-gray-400 max-w-md">
-                          Paste your YouTube Live URL above to broadcast live on this page. Viewers will watch matches right here without leaving!
+              {/* CONDITIONAL BRANCH 1: USER HAS PURCHASED A PASS */}
+              {activeBroadcastPass ? (
+                <div className="space-y-4">
+                  {/* Dedicated Purchased Pass Banner */}
+                  <div className="bg-gradient-to-r from-emerald-950 via-gray-900 to-black rounded-2xl p-4 sm:p-5 border border-emerald-500/40 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3.5">
+                      <div className="size-11 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
+                        <span className="material-symbols-outlined text-emerald-400 text-2xl">verified</span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-bold uppercase tracking-wider border border-emerald-400/30">
+                            VERIFIED BROADCASTER
+                          </span>
+                          <span className="text-xs text-gray-400 font-mono">4-Slot Priority Caster Ingestion</span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                          You have purchased this pass: <span className="text-[#DFBD78] font-black">{activeBroadcastPass}</span>
+                        </h3>
+                        <p className="text-[11px] text-gray-300 mt-0.5">
+                          Valid until <strong className="text-white">{broadcastExpiresAt || 'Active Duration'}</strong> &bull; Priority Admin Slot Assignment Active
                         </p>
                       </div>
-                    )}
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                        <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Console Unlocked</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Static Side-by-Side Ingestion Console & Embedded Live Player */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                    
+                    {/* Caster Submission Form */}
+                    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="pb-3 border-b border-gray-100 flex items-center justify-between gap-2">
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-red-600 text-[18px]">sensors</span>
+                              <span>Broadcast Submission Console</span>
+                            </h4>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              Dispatch your live match stream directly to Admin for 4-slot homepage placement.
+                            </p>
+                          </div>
+                          <span className="px-2 py-0.5 rounded bg-red-50 text-red-600 font-bold text-[9px] uppercase border border-red-200">
+                            🔴 Live Ingestion
+                          </span>
+                        </div>
+
+                        <form onSubmit={handleUpdateLiveStream} className="space-y-3 pt-3 text-xs">
+                          <div>
+                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                              Exact Live Stream URL * (YouTube Live Only)
+                            </label>
+                            <input
+                              type="url"
+                              required
+                              value={liveStreamInput}
+                              onChange={(e) => setLiveStreamInput(e.target.value)}
+                              placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                              className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-mono"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Caster Contact Email *
+                              </label>
+                              <input
+                                type="email"
+                                required
+                                value={liveStreamEmail}
+                                onChange={(e) => setLiveStreamEmail(e.target.value)}
+                                placeholder="caster@domain.com"
+                                className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Stream Title / Match Heading
+                              </label>
+                              <input
+                                type="text"
+                                value={liveStreamTitle}
+                                onChange={(e) => setLiveStreamTitle(e.target.value)}
+                                placeholder="e.g. BGMI Pro Winter Cup Finals"
+                                className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Clan / Team Tag
+                              </label>
+                              <input
+                                type="text"
+                                value={liveStreamClan}
+                                onChange={(e) => setLiveStreamClan(e.target.value)}
+                                placeholder="e.g. SOUL / GODL"
+                                className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Esports Game Title
+                              </label>
+                              <select
+                                value={liveStreamGame}
+                                onChange={(e) => setLiveStreamGame(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden bg-white"
+                              >
+                                <option value="BATTLEGROUNDS MOBILE INDIA">Battlegrounds Mobile India (BGMI)</option>
+                                <option value="FREE FIRE MAX">Free Fire MAX</option>
+                                <option value="VALORANT">Valorant</option>
+                                <option value="CALL OF DUTY: MOBILE">Call of Duty: Mobile</option>
+                                <option value="PUBG MOBILE">PUBG Mobile</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1.5">
+                              <span className="size-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+                              <span>Real-Time Universal Cloud Sync Active</span>
+                            </span>
+
+                            <button
+                              type="submit"
+                              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">sensors</span>
+                              <span>Submit Live Stream</span>
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+
+                    {/* Direct Live Stream Embedded Player */}
+                    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                        <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-red-600 animate-pulse"></span>
+                          <span>Live Tournament Stream Player (Embedded)</span>
+                        </span>
+                        <a
+                          href={liveStreamUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 font-bold hover:underline"
+                        >
+                          Open on YouTube ↗
+                        </a>
+                      </div>
+
+                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner relative flex-1 flex items-center justify-center">
+                        {getEmbedYouTubeUrl(liveStreamUrl) ? (
+                          <iframe
+                            src={getEmbedYouTubeUrl(liveStreamUrl)}
+                            title="Live Tournaments Broadcast"
+                            className="size-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <div className="size-full flex flex-col items-center justify-center text-white p-6 text-center space-y-2">
+                            <span className="text-3xl">📺</span>
+                            <h4 className="text-sm font-bold">Match Live Stream Ready</h4>
+                            <p className="text-[11px] text-gray-400 max-w-sm">
+                              Submit your YouTube Live link to stream directly right on this page!
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 </div>
-              </div>
-
-              {/* Stream Production Passes (Cleaned descriptions - no multiple camera overlays / full HD plus) */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-wider">
-                  Available Stream Production Passes (Host Everyday &bull; 1st Free of Cost)
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Weekly Pass */}
-                  <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Weekly Package</span>
-                      <h3 className="font-bold text-base text-gray-900 mt-0.5">Weekly Stream Pass</h3>
-                      <span className="text-2xl font-black font-mono text-gray-900 mt-2 block">₹ 249</span>
-                      <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                        7 Days streaming access. Channel link showcased across match lobbies. Auto-expires in 7 days.
-                      </p>
+              ) : (
+                /* CONDITIONAL BRANCH 2: USER DOES NOT HAVE A PASS -> SHOW AVAILABLE PASSES */
+                <div className="space-y-4">
+                  {/* Locked Banner */}
+                  <div className="bg-gradient-to-r from-amber-950/70 via-gray-900 to-black rounded-2xl p-5 border border-amber-500/40 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3.5">
+                      <div className="size-11 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
+                        <span className="material-symbols-outlined text-2xl">lock</span>
+                      </div>
+                      <div>
+                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold uppercase tracking-wider border border-amber-400/30">
+                          BROADCASTER PASS REQUIRED
+                        </span>
+                        <h3 className="text-base sm:text-lg font-bold text-white mt-1">
+                          Broadcast Submission Console Locked
+                        </h3>
+                        <p className="text-xs text-gray-300 mt-0.5">
+                          Purchase an official stream production pass below to unlock real-time YouTube live broadcasting and caster slot assignment.
+                        </p>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handlePurchaseBroadcastPass('Weekly Pass', 249, 7)}
-                      disabled={isProcessingPayment}
-                      className="mt-4 w-full py-2.5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors"
-                    >
-                      Purchase ₹249 (7 Days)
-                    </button>
+                    <span className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold uppercase shrink-0">
+                      No Active Pass
+                    </span>
                   </div>
 
-                  {/* Pro Pass */}
-                  <div className="bg-white rounded-2xl p-5 border-2 border-gold-primary shadow-sm flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gold-primary">15 Days &bull; Recommended</span>
-                      <h3 className="font-bold text-base text-gray-900 mt-0.5">Pro Production Pass</h3>
-                      <span className="text-2xl font-black font-mono text-gold-primary mt-2 block">₹ 549</span>
-                      <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                        15 Days streaming access. Pinned live player showcase + channel link. Auto-expires in 15 days.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handlePurchaseBroadcastPass('Pro Pass', 549, 15)}
-                      disabled={isProcessingPayment}
-                      className="mt-4 w-full py-2.5 rounded-lg bg-gold-primary hover:bg-gold-light text-black text-xs font-bold cursor-pointer transition-colors"
-                    >
-                      Purchase ₹549 (15 Days)
-                    </button>
-                  </div>
+                  {/* Available Stream Production Passes */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-bold text-[#1F2937] uppercase tracking-wider">
+                      Available Stream Production Passes (Host Everyday &bull; 1st Free of Cost)
+                    </h3>
 
-                  {/* Monthly Pass */}
-                  <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Monthly 30 Days</span>
-                      <h3 className="font-bold text-base text-gray-900 mt-0.5">Monthly Elite Pass</h3>
-                      <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ 999</span>
-                      <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                        30 Days full monthly live match streaming. Verified host status &amp; direct embed player. Auto-expires in 30 days.
-                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Weekly Pass */}
+                      <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between hover:border-gray-400 transition-all">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Weekly Package</span>
+                          <h3 className="font-bold text-base text-gray-900 mt-0.5">Weekly Stream Pass</h3>
+                          <span className="text-2xl font-black font-mono text-gray-900 mt-2 block">₹ 249</span>
+                          <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                            7 Days streaming access. Channel link showcased across match lobbies. Auto-expires in 7 days.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handlePurchaseBroadcastPass('Weekly Pass', 249, 7)}
+                          disabled={isProcessingPayment}
+                          className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                        >
+                          Purchase ₹249 (7 Days)
+                        </button>
+                      </div>
+
+                      {/* Pro Pass */}
+                      <div className="bg-white rounded-2xl p-5 border-2 border-gold-primary shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gold-primary">15 Days &bull; Recommended</span>
+                          <h3 className="font-bold text-base text-gray-900 mt-0.5">Pro Production Pass</h3>
+                          <span className="text-2xl font-black font-mono text-gold-primary mt-2 block">₹ 549</span>
+                          <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                            15 Days streaming access. Pinned live player showcase + channel link. Auto-expires in 15 days.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handlePurchaseBroadcastPass('Pro Pass', 549, 15)}
+                          disabled={isProcessingPayment}
+                          className="mt-4 w-full py-2.5 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                        >
+                          Purchase ₹549 (15 Days)
+                        </button>
+                      </div>
+
+                      {/* Monthly Pass */}
+                      <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between hover:border-purple-300 transition-all">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Monthly 30 Days</span>
+                          <h3 className="font-bold text-base text-gray-900 mt-0.5">Monthly Elite Pass</h3>
+                          <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ 999</span>
+                          <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                            30 Days full monthly live match streaming. Verified host status &amp; direct embed player. Auto-expires in 30 days.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handlePurchaseBroadcastPass('Monthly Pass', 999, 30)}
+                          disabled={isProcessingPayment}
+                          className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                        >
+                          Purchase ₹999 (30 Days)
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handlePurchaseBroadcastPass('Monthly Pass', 999, 30)}
-                      disabled={isProcessingPayment}
-                      className="mt-4 w-full py-2.5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors"
-                    >
-                      Purchase ₹999 (30 Days)
-                    </button>
                   </div>
                 </div>
-              </div>
+              )}
 
             </div>
           )}
@@ -2221,302 +2879,77 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       </div>
 
       {/* ========================================================
-          IN-PAGE MODAL 1: CONDUCT TOURNAMENT ROOM (₹ 10)
-          STAYS RIGHT ON ROOMS PAGE!
+          MODAL: SET / UPDATE MATCH DAY ROOM ID & PASSWORD
+          Host types custom Room ID and custom Passcode
           ======================================================== */}
-      {isConductModalOpen && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 border border-[#DFBD78]/40 shadow-2xl my-8 animate-fade-in">
+      {credentialsModalRoom && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-[#DFBD78]/40 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <span className="size-7 rounded-full bg-[#1F2937] text-white flex items-center justify-center text-xs font-bold">
-                  ₹10
-                </span>
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-lg bg-gray-900 text-[#DFBD78] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Conduct New Tournament Room</h3>
-                  <p className="text-[11px] text-gray-500">Collect ₹10 &bull; Standard Capacity: 25 Squads (100 Players)</p>
+                  <h3 className="text-sm font-bold text-gray-900">Match Day Credentials</h3>
+                  <p className="text-[11px] text-gray-500 truncate max-w-[240px]">{credentialsModalRoom.title}</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsConductModalOpen(false)}
-                className="text-gray-400 hover:text-gray-700 text-lg p-1"
+                onClick={() => setCredentialsModalRoom(null)}
+                className="text-gray-400 hover:text-gray-700 text-lg p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleConductTournamentSubmit} className="space-y-3.5 text-xs">
-              
+            <form onSubmit={handleSaveMatchDayCredentials} className="space-y-4 text-xs">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Tournament Heading / Title *
+                  Custom Room ID *
                 </label>
                 <input
                   type="text"
-                  value={conductTitle}
-                  onChange={(e) => setConductTitle(e.target.value)}
-                  placeholder="e.g. BGMI Masters Pro Clan Cup Season 2"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs"
                   required
+                  value={customRoomCode}
+                  onChange={(e) => setCustomRoomCode(e.target.value)}
+                  placeholder="e.g. 5829104 or ROOM-ALPHA"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden font-mono font-bold text-gray-900"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">Enter your in-game custom room ID</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Game Category
-                  </label>
-                  <select
-                    value={conductGame}
-                    onChange={(e) => setConductGame(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-white"
-                  >
-                    <option>Battlegrounds Mobile India</option>
-                    <option>Free Fire MAX</option>
-                    <option>Call of Duty: Mobile</option>
-                    <option>Valorant Mobile</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Match Schedule / Timing *
-                  </label>
-                  <input
-                    type="text"
-                    value={conductTiming}
-                    onChange={(e) => setConductTiming(e.target.value)}
-                    placeholder="e.g. Today at 8:00 PM IST"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Prize Pool
-                  </label>
-                  <input
-                    type="text"
-                    value={conductPrize}
-                    onChange={(e) => setConductPrize(e.target.value)}
-                    placeholder="e.g. ₹ 5,000 INR"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Host WhatsApp Number *
-                  </label>
-                  <input
-                    type="tel"
-                    value={conductWhatsApp}
-                    onChange={(e) => setConductWhatsApp(e.target.value)}
-                    placeholder="e.g. 9840192831"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Exact Live Stream Link */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Live Stream URL (Where you will broadcast match)
-                </label>
-                <input
-                  type="url"
-                  value={conductLiveUrl}
-                  onChange={(e) => setConductLiveUrl(e.target.value)}
-                  placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono"
-                />
-                <p className="text-[10px] text-gray-500 mt-1 font-medium">Must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</p>
-              </div>
-
-              {/* Banner Poster Selection */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Choose Banner Poster
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {presetThumbnails.slice(0, 3).map((p) => (
-                    <div
-                      key={p.name}
-                      onClick={() => setConductThumbnail(p.url)}
-                      className={`p-1.5 rounded-lg border cursor-pointer text-center text-[10px] ${
-                        conductThumbnail === p.url ? 'border-[#C5A059] bg-[#DFBD78]/10 font-bold' : 'border-gray-200'
-                      }`}
-                    >
-                      <img src={p.url} alt="" className="aspect-video w-full object-cover rounded mb-1" />
-                      <span className="truncate block">{p.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Room ID and Password */}
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-gray-500 block">Generated Room ID</span>
-                  <span className="font-mono font-bold text-gray-900">{conductRoomCode}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-gray-500 block">Room Passcode</span>
-                  <span className="font-mono font-bold text-gray-900">{conductRoomPass}</span>
-                </div>
-              </div>
-
-              {/* Total & Checkout Action */}
-              <div className="p-3 rounded-xl bg-gray-900 text-white flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-gray-400 uppercase font-bold block">Tournament Room Fee</span>
-                  <span className="text-xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isProcessingPayment}
-                  className="px-5 py-2.5 rounded-lg bg-[#DFBD78] hover:bg-[#C5A059] text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isProcessingPayment ? 'Connecting...' : 'Pay ₹10 & Launch Room'}
-                </button>
-              </div>
-
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================
-          IN-PAGE MODAL 2: CONDUCT DAILY SCRIM (₹ 50)
-          STAYS RIGHT ON SCRIMS PAGE!
-          ======================================================== */}
-      {isConductScrimModalOpen && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 border border-blue-400 shadow-2xl my-8 animate-fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <span className="size-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
-                  ₹50
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-gray-900">Conduct Daily Practice Scrim</h3>
-                  <p className="text-[11px] text-gray-500">Collect ₹50 &bull; Standard Capacity: 25 Squads (100 Players)</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsConductScrimModalOpen(false)}
-                className="text-gray-400 hover:text-gray-700 text-lg p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleConductScrimSubmit} className="space-y-3.5 text-xs">
-              
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Scrims Heading / Tier *
+                  Room Password / Passcode *
                 </label>
                 <input
                   type="text"
-                  value={scrimTitle}
-                  onChange={(e) => setScrimTitle(e.target.value)}
-                  placeholder="e.g. BGMI Tier-1 Daily Practice Scrims"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs"
                   required
+                  value={customRoomPass}
+                  onChange={(e) => setCustomRoomPass(e.target.value)}
+                  placeholder="e.g. 1234 or LT@99"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden font-mono font-bold text-gray-900"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">Secret password shared with registered squads</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Game Category
-                  </label>
-                  <select
-                    value={scrimGame}
-                    onChange={(e) => setScrimGame(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs bg-white"
-                  >
-                    <option>Battlegrounds Mobile India</option>
-                    <option>Free Fire MAX</option>
-                    <option>Call of Duty: Mobile</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Match Schedule / Timing *
-                  </label>
-                  <input
-                    type="text"
-                    value={scrimTiming}
-                    onChange={(e) => setScrimTiming(e.target.value)}
-                    placeholder="e.g. Daily at 7:00 PM IST"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Host WhatsApp Number *
-                  </label>
-                  <input
-                    type="tel"
-                    value={scrimWhatsApp}
-                    onChange={(e) => setScrimWhatsApp(e.target.value)}
-                    placeholder="e.g. 9840192831"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Live Stream Link (YouTube)
-                  </label>
-                  <input
-                    type="url"
-                    value={scrimLiveUrl}
-                    onChange={(e) => setScrimLiveUrl(e.target.value)}
-                    placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-blue-500 outline-hidden text-xs font-mono"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-1 font-medium">Must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-gray-500 block">Assigned Scrim ID</span>
-                  <span className="font-mono font-bold text-gray-900">{scrimRoomCode}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-gray-500 block">Passcode</span>
-                  <span className="font-mono font-bold text-gray-900">{scrimRoomPass}</span>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-blue-900 text-white flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-blue-200 uppercase font-bold block">Daily Scrim Fee</span>
-                  <span className="text-xl font-black font-mono text-white">₹ 50 INR</span>
-                </div>
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setCredentialsModalRoom(null)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  disabled={isProcessingPayment}
-                  className="px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-lg bg-[#1F2937] hover:bg-black text-white font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
-                  {isProcessingPayment ? 'Connecting...' : 'Pay ₹50 & Launch Scrim'}
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  <span>Save &amp; Publish to Players</span>
                 </button>
               </div>
-
             </form>
           </div>
         </div>

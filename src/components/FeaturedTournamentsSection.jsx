@@ -2,148 +2,67 @@ import React, { useState, useEffect } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
 
-const INITIAL_TOURNAMENTS = [
-  {
-    id: 'bgmi-showdown-reg',
-    title: 'BGMI SHOWDOWN TOURNAMENT',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '🔥 REGISTRATION OPEN',
-    badgeColor: 'bg-amber-500 text-black font-extrabold',
-    schedule: 'Starts Today • 7:00 PM IST',
-    prizePool: '₹ 1,50,000 INR',
-    squadType: 'Squad',
-    format: 'Squad',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg'
-  },
-  {
-    id: 'bgmi-tier1-daily-scrims',
-    title: 'BGMI TIER-1 PRO DAILY SCRIMS',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'SCRIMS',
-    badge: '⚔️ DAILY SCRIMS LIVE',
-    badgeColor: 'bg-orange-500 text-white font-extrabold',
-    schedule: 'Starts Today • 9:00 PM IST',
-    prizePool: '₹ 25,000 INR',
-    squadType: 'Squad',
-    format: 'Squad (Tier-1 Practice)',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_scrims_tier1_4k.jpg'
-  },
-  {
-    id: 'pubg-mobile-global-reg',
-    title: 'PUBG MOBILE GLOBAL CHAMPIONSHIP',
-    game: 'PUBG MOBILE',
-    category: 'PUBG',
-    badge: '⭐ PREMIER REGISTRATION',
-    badgeColor: 'bg-[#DFBD78] text-black font-extrabold shadow-sm',
-    schedule: 'Starts in 2 Days • 8:00 PM IST',
-    prizePool: '₹ 5,00,000 INR',
-    squadType: 'Squad',
-    format: 'Squad',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_mobile_4k.jpg'
-  },
-  {
-    id: 'pubg-night-grind-scrims',
-    title: 'PUBG NIGHT GRIND CUSTOM SCRIMS',
-    game: 'PUBG MOBILE',
-    category: 'SCRIMS',
-    badge: '⚡ VERIFIED SCRIMS',
-    badgeColor: 'bg-amber-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 10:00 PM IST',
-    prizePool: '₹ 15,000 INR',
-    squadType: 'Squad',
-    format: 'Squad Custom Scrim',
-    entryFee: '₹ 50 / Slot (Paid Entry)',
-    image: '/assets/tournament_pubg_night_grind_4k.jpg'
-  },
-  {
-    id: 'bgmi-lan-warriors-reg',
-    title: 'BGMI LAN WARRIORS CHALLENGE',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '⚡ SQUAD MATCH OPEN',
-    badgeColor: 'bg-emerald-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 5:00 PM IST',
-    prizePool: '₹ 75,000 INR',
-    squadType: 'Duo',
-    format: 'Duo',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_bgmi_lan_warriors_4k.jpg'
-  },
-  {
-    id: 'pubg-ultimate-squad-reg',
-    title: 'PUBG ULTIMATE SQUAD SERIES',
-    game: 'PUBG MOBILE',
-    category: 'PUBG',
-    badge: '🎯 SQUAD ENTRY LIVE',
-    badgeColor: 'bg-blue-600 text-white font-extrabold',
-    schedule: 'Starts Tomorrow • 6:00 PM IST',
-    prizePool: '₹ 30,000 INR',
-    squadType: 'Solo',
-    format: 'Solo',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_pubg_ultimate_squad_4k.jpg'
-  },
-  {
-    id: 'freefire-clutch-cup-reg',
-    title: 'FREE FIRE MAX CLUTCH MASTERS',
-    game: 'FREE FIRE MAX',
-    category: 'FREEFIRE',
-    badge: '🎯 OPEN REGISTRATION',
-    badgeColor: 'bg-indigo-600 text-white font-extrabold',
-    schedule: 'Starts Saturday • 4:00 PM IST',
-    prizePool: '₹ 50,000 INR',
-    squadType: 'Squad',
-    format: 'Squad',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_freefire_clutch_4k.jpg'
-  },
-  {
-    id: 'valorant-spike-masters-reg',
-    title: 'VALORANT MUMBAI SPIKE LEAGUE',
-    game: 'VALORANT',
-    category: 'OTHER',
-    badge: '🏆 5v5 SQUAD OPEN',
-    badgeColor: 'bg-purple-600 text-white font-extrabold',
-    schedule: 'Starts Sunday • 6:00 PM IST',
-    prizePool: '₹ 1,00,000 INR',
-    squadType: '5v5 Squad',
-    format: '5v5 Squad',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_valorant_mumbai_4k.jpg'
-  },
-  {
-    id: 'codm-battle-royale-reg',
-    title: 'COD MOBILE BATTLE ROYALE CUP',
-    game: 'CALL OF DUTY: MOBILE',
-    category: 'OTHER',
-    badge: '🔥 REGISTRATION OPEN',
-    badgeColor: 'bg-amber-600 text-white font-extrabold',
-    schedule: 'Starts Sunday • 8:00 PM IST',
-    prizePool: '₹ 40,000 INR',
-    squadType: 'Solo',
-    format: 'Solo',
-    entryFee: 'FREE ENTRY',
-    image: '/assets/tournament_codm_battle_royale_4k.jpg'
-  },
-  {
-    id: 'bgmi-underdog-pro-reg',
-    title: 'BGMI UNDERDOG PRO RUMBLE',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    badge: '⭐ VERIFIED SQUAD CUP',
-    badgeColor: 'bg-[#DFBD78] text-black font-extrabold',
-    schedule: 'Starts Monday • 7:30 PM IST',
-    prizePool: '₹ 60,000 INR',
-    squadType: 'Squad',
-    format: 'Squad',
-    entryFee: '₹ 100 / Squad (Paid Entry)',
-    image: '/assets/tournament_bgmi_underdog_rumble_4k.jpg'
-  }
-];
+export function loadLiveTournaments() {
+  if (typeof window === 'undefined') return [];
+  const list = [];
+  const seenIds = new Set();
+
+  const addUnique = (item) => {
+    if (!item) return;
+    const id = item.id || item._id;
+    if (!id || seenIds.has(id)) return;
+    seenIds.add(id);
+
+    const gameStr = (item.game || '').toUpperCase();
+    let cat = 'BGMI';
+    if (item.type === 'SCRIM') cat = 'SCRIMS';
+    else if (gameStr.includes('PUBG')) cat = 'PUBG';
+    else if (gameStr.includes('FREE')) cat = 'FREEFIRE';
+    else if (gameStr.includes('VALORANT') || gameStr.includes('COD')) cat = 'OTHER';
+
+    list.push({
+      id: id,
+      title: item.title || item.tournament || 'Live Tournament Match',
+      game: item.game || 'BATTLEGROUNDS MOBILE INDIA',
+      category: cat,
+      badge: item.type === 'SCRIM' ? '⚔️ DAILY SCRIMS LIVE' : (item.status === 'APPROVED' ? '🔥 VERIFIED TOURNAMENT' : '⚡ REGISTRATION OPEN'),
+      badgeColor: item.type === 'SCRIM' ? 'bg-orange-500 text-white font-extrabold' : 'bg-amber-500 text-black font-extrabold',
+      schedule: item.timing || item.schedule || 'Scheduled Match',
+      prizePool: item.prize || '₹ 5,000 INR',
+      squadType: item.format || 'Squad',
+      format: item.format || 'Squad',
+      map: item.map || 'Erangel / Miramar',
+      entryFee: item.type === 'SCRIM' ? '₹ 50 Entry' : (item.amountPaid ? `₹ ${item.amountPaid} Entry` : 'FREE ENTRY'),
+      slots: `${item.registeredSquads || 1} / ${item.slotCap || 25} Squads`,
+      image: item.thumbnail || '/assets/tournament_bgmi_showdown_4k.jpg',
+      organizer: item.organizer || item.hostUser || 'Verified Organizer',
+      channelLink: item.channelLink || '',
+      isLive: true
+    });
+  };
+
+  try {
+    const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+    if (Array.isArray(adminReqs)) adminReqs.forEach(addUnique);
+  } catch (e) {}
+
+  try {
+    const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+    if (Array.isArray(adminScrims)) adminScrims.forEach(addUnique);
+  } catch (e) {}
+
+  try {
+    const userHostings = JSON.parse(localStorage.getItem('lt_user_hosted_tourneys') || '[]');
+    if (Array.isArray(userHostings)) userHostings.forEach(addUnique);
+  } catch (e) {}
+
+  try {
+    const feats = JSON.parse(localStorage.getItem('lt_featured_tournaments') || '[]');
+    if (Array.isArray(feats)) feats.forEach(addUnique);
+  } catch (e) {}
+
+  return list;
+}
 
 export default function FeaturedTournamentsSection({ onNavigate, currentUser }) {
   const [activeFilter, setActiveFilter] = useState('ALL'); // ALL, BGMI, SCRIMS, PUBG, FREEFIRE, OTHER
@@ -152,6 +71,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const [isFiltering, setIsFiltering] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [spotlightTourney, setSpotlightTourney] = useState(null);
+  const [liveTournaments, setLiveTournaments] = useState(() => loadLiveTournaments());
 
   const handleFilterChange = (filter) => {
     setIsFiltering(true);
@@ -215,7 +135,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const [regSuccessData, setRegSuccessData] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Sync registered tournaments dynamically
+  // Sync registered tournaments dynamically & live tournament records
   useEffect(() => {
     const syncJoined = () => {
       try {
@@ -227,9 +147,19 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
           }
         }
       } catch (e) {}
+      setLiveTournaments(loadLiveTournaments());
     };
     window.addEventListener('storage', syncJoined);
-    return () => window.removeEventListener('storage', syncJoined);
+    window.addEventListener('lt_hosting_requested', syncJoined);
+    window.addEventListener('lt_room_requested', syncJoined);
+    window.addEventListener('lt_scrim_requested', syncJoined);
+
+    return () => {
+      window.removeEventListener('storage', syncJoined);
+      window.removeEventListener('lt_hosting_requested', syncJoined);
+      window.removeEventListener('lt_room_requested', syncJoined);
+      window.removeEventListener('lt_scrim_requested', syncJoined);
+    };
   }, []);
 
   const showToast = (msg) => {
@@ -363,8 +293,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     }
   };
 
-  // Filter tournaments
-  const filteredTournaments = INITIAL_TOURNAMENTS.filter(t => {
+  // Filter tournaments from authentic live database
+  const filteredTournaments = liveTournaments.filter(t => {
     // Search query matching
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -467,7 +397,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">app_registration</span>
-                <span>All Open Matches ({INITIAL_TOURNAMENTS.length})</span>
+                <span>All Open Matches ({liveTournaments.length})</span>
               </button>
 
               <button
@@ -557,7 +487,26 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
             <SkeletonLoader variant="tournament-card" count={4} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 pt-2 pb-6">
-            {displayedTournaments.map((tourney) => {
+            {displayedTournaments.length === 0 ? (
+              <div className="col-span-full py-12 px-6 rounded-3xl bg-white border border-gray-200/80 shadow-xs text-center max-w-lg mx-auto space-y-3">
+                <span className="text-4xl block">🏆</span>
+                <h4 className="text-base font-bold text-gray-900">No Live Tournaments Currently Active</h4>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  All placeholder entries have been purged. Only live tournaments hosted by registered organizers appear here. Launch your own tournament room for just ₹10!
+                </p>
+                <button
+                  onClick={() => {
+                    if (!activeUser) { if (onNavigate) onNavigate('login'); }
+                    else { if (onNavigate) onNavigate('user-dashboard', 'rooms'); }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add</span>
+                  <span>Conduct Tournament Room (₹10)</span>
+                </button>
+              </div>
+            ) : (
+            displayedTournaments.map((tourney) => {
               const isRegistered = joinedTourneyIds.has(tourney.id) || joinedTourneyIds.has(tourney.title);
 
               return (
@@ -641,7 +590,8 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                   </div>
                 </div>
               );
-            })}
+            })
+            )}
           </div>
           )}
 

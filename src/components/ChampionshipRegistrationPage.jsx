@@ -16,18 +16,25 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
   const [player4, setPlayer4] = useState('');
   const [substitute, setSubstitute] = useState('');
 
-  // Selected Banner
-  const [selectedBanner, setSelectedBanner] = useState('/assets/lt_championship_trophy_card_4k.png');
+  // Clan Logo
+  const [clanLogo, setClanLogo] = useState('');
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [preRegSuccess, setPreRegSuccess] = useState(null);
 
-  const bannerPresets = [
-    { name: 'Championship Gold Stage', url: '/assets/lt_championship_trophy_card_4k.png' },
-    { name: 'BGMI Showdown 4K', url: '/assets/tournament_bgmi_showdown_4k.jpg' },
-    { name: 'LAN Warriors Arena', url: '/assets/tournament_bgmi_lan_warriors_4k.jpg' },
-    { name: 'PUBG Ultimate Squad', url: '/assets/tournament_pubg_ultimate_squad_4k.jpg' }
-  ];
+  const handleClanLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file (PNG, JPG, WebP)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setClanLogo(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleRazorpayCheckout = async (e) => {
     e.preventDefault();
@@ -117,7 +124,7 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
         ],
         amount: 199,
         paymentRef: payId,
-        banner: selectedBanner,
+        clanLogo: clanLogo || null,
         date: new Date().toLocaleDateString('en-IN', {
           timeZone: 'Asia/Kolkata',
           month: 'short',
@@ -209,9 +216,17 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
             <div className="relative rounded-2xl overflow-hidden border border-[#C5A059]/40 bg-gray-50 p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="size-12 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/40 flex items-center justify-center text-[#C5A059] font-black text-base">
-                    {preRegSuccess.clanTag || 'VIP'}
-                  </div>
+                  {preRegSuccess.clanLogo ? (
+                    <img
+                      src={preRegSuccess.clanLogo}
+                      alt={preRegSuccess.clanName}
+                      className="size-14 rounded-xl object-cover border border-[#C5A059] shadow-md shrink-0"
+                    />
+                  ) : (
+                    <div className="size-14 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/40 flex items-center justify-center text-[#C5A059] font-black text-base shrink-0">
+                      {preRegSuccess.clanTag || 'VIP'}
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-lg font-black text-gray-900 uppercase">{preRegSuccess.clanName}</h3>
                     <p className="text-xs text-gray-500 font-mono">{preRegSuccess.game}</p>
@@ -333,8 +348,47 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
                       type="text"
                       value={clanTag}
                       onChange={(e) => setClanTag(e.target.value)}
-                      placeholder="Clan Tag"
+                      placeholder="Clan Tag (e.g. SOUL)"
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs font-mono uppercase transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Clan Logo Upload (Mobile / PC) */}
+                <div className="mt-4 p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    {clanLogo ? (
+                      <div className="relative size-14 rounded-xl overflow-hidden border border-[#C5A059] shadow-sm shrink-0">
+                        <img src={clanLogo} alt="Clan Logo" className="size-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="size-14 rounded-xl bg-gray-200 border border-gray-300 flex items-center justify-center text-gray-400 shrink-0">
+                        <span className="material-symbols-outlined text-2xl">shield</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-[11px] font-bold uppercase tracking-wider text-gray-800">
+                        Clan Logo *
+                      </span>
+                      <p className="text-[10px] text-gray-500">
+                        Upload your clan logo from your device (PNG, JPG, WebP)
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="clan-logo-input"
+                      className="px-4 py-2 rounded-xl bg-[#1F2937] hover:bg-black text-white font-bold text-xs cursor-pointer flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                      <span>{clanLogo ? 'Change Clan Logo' : 'Upload Clan Logo (Mobile / PC)'}</span>
+                    </label>
+                    <input
+                      id="clan-logo-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleClanLogoUpload}
+                      className="hidden"
                     />
                   </div>
                 </div>
@@ -489,27 +543,6 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
                     placeholder="Substitute Username (Optional)"
                     className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs transition-colors"
                   />
-                </div>
-              </div>
-
-              {/* SECTION 4: BANNER PRESET */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-2">
-                  Select Official Championship Pass Artwork
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {bannerPresets.map((b) => (
-                    <div
-                      key={b.name}
-                      onClick={() => setSelectedBanner(b.url)}
-                      className={`rounded-xl border p-2 cursor-pointer transition-all ${
-                        selectedBanner === b.url ? 'border-[#C5A059] bg-[#C5A059]/10 shadow-sm' : 'border-gray-200 bg-gray-50'
-                      }`}
-                    >
-                      <img src={b.url} alt={b.name} className="w-full aspect-video object-cover rounded-lg mb-1.5" />
-                      <span className="text-[10px] font-bold text-gray-700 block truncate text-center">{b.name}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
 
