@@ -460,8 +460,18 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+              try {
+                const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
+                if (rawDeclined) {
+                  const parsed = JSON.parse(rawDeclined);
+                  if (Array.isArray(parsed)) {
+                    localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
+                  }
+                }
+              } catch (e) {}
               window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
+              emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
             }
           }
         } catch (err) {}
@@ -623,8 +633,18 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
               localStorage.setItem('lt_user_live_stream_url', bVal.normalizedUrl);
+              try {
+                const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
+                if (rawDeclined) {
+                  const parsed = JSON.parse(rawDeclined);
+                  if (Array.isArray(parsed)) {
+                    localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== bVal.normalizedUrl)));
+                  }
+                }
+              } catch (e) {}
               window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
+              emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
             }
           }
         } catch (err) {}
@@ -849,7 +869,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         clan: liveStreamClan.trim() || currentUser?.clan || 'CLAN',
         game: liveStreamGame,
         email: emailToUse,
-        status: 'LIVE ON AIR',
+        status: 'PENDING',
         submittedAt: new Date().toISOString(),
         isUserSubmitted: true,
         isLive: true
@@ -858,6 +878,15 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       const updatedBcasts = [newReq, ...pendingBroadcasts.filter(b => b.id !== newReq.id)];
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
+      try {
+        const rawDeclined = localStorage.getItem('lt_admin_declined_broadcast_ids');
+        if (rawDeclined) {
+          const parsed = JSON.parse(rawDeclined);
+          if (Array.isArray(parsed)) {
+            localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(parsed.filter(d => d !== 'bcast_user_active' && d !== val.normalizedUrl)));
+          }
+        }
+      } catch (e) {}
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('lt_broadcast_requested'));
       emitRealtimeEvent('BROADCAST_REQUESTED', newReq);

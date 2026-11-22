@@ -259,13 +259,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
       // Also ensure live stream URL submitted from User Dashboard is captured
       const userStreamUrl = localStorage.getItem('lt_user_live_stream_url');
-      if (userStreamUrl && userStreamUrl.trim() && !declinedIds.has('bcast_user_active')) {
+      if (userStreamUrl && userStreamUrl.trim()) {
         const val = validateLiveStreamUrl(userStreamUrl);
         if (val.isValid && !declinedIds.has(val.normalizedUrl)) {
           const alreadyExists = Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl);
           if (!alreadyExists) {
             map.set('user_live_stream_active', {
-              id: 'bcast_user_active',
+              id: 'bcast_user_active_' + Date.now(),
               title: 'Competitor Match Live Broadcast',
               tournament: 'Live Stream Arena Feed',
               streamUrl: val.normalizedUrl,
@@ -590,19 +590,114 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
       if (msg.eventName === 'BROADCAST_REQUESTED') {
         playAdminChime('broadcast');
-        showToast(`🔴 [LIVE SOCKET] New Live Stream Request: ${msg.payload?.title || msg.payload?.creator || 'Competitor'}!`);
+        const req = msg.payload;
+        showToast(`🔴 [LIVE SOCKET] New Live Stream Request: ${req?.title || req?.creator || 'Competitor'}!`);
+        if (req && (req.id || req.streamUrl)) {
+          setBroadcastRequests(prev => {
+            const filtered = prev.filter(b => b.id !== req.id && b.streamUrl !== req.streamUrl);
+            return [req, ...filtered];
+          });
+          try {
+            const raw = localStorage.getItem('lt_admin_broadcast_requests');
+            let list = [];
+            if (raw) { try { list = JSON.parse(raw); } catch (e) {} }
+            if (!Array.isArray(list)) list = [];
+            if (!list.some(b => b.id === req.id || (b.streamUrl && b.streamUrl === req.streamUrl))) {
+              localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify([req, ...list]));
+              localStorage.setItem('lt_broadcast_requests', JSON.stringify([req, ...list]));
+            }
+          } catch (e) {}
+        }
       } else if (msg.eventName === 'HOSTING_REQUESTED') {
         playAdminChime('default');
-        showToast(`🏆 [LIVE SOCKET] New Tournament Room Hosting Request: ${msg.payload?.title || 'Tournament'}!`);
+        const req = msg.payload;
+        showToast(`🏆 [LIVE SOCKET] New Tournament Room Hosting Request: ${req?.title || 'Tournament'}!`);
+        if (req && req.id) {
+          setHostingRequests(prev => {
+            const filtered = prev.filter(r => r.id !== req.id);
+            return [req, ...filtered];
+          });
+        }
+        const sUrl = req?.channelLink || req?.liveUrl || req?.streamUrl;
+        if (sUrl && sUrl.trim()) {
+          const val = validateLiveStreamUrl(sUrl);
+          if (val.isValid) {
+            const bReq = {
+              id: 'bcast_host_' + req.id,
+              title: `${req.title || 'Tournament'} - Match Broadcast`,
+              tournament: req.title || 'Tournament Match',
+              streamUrl: val.normalizedUrl,
+              organizerName: req.organizerName || req.creator || 'Host',
+              creator: req.organizerName || req.creator || 'Host',
+              channel: `${req.organizerName || 'Host'} Official Live`,
+              requestedSlot: 'Tournament Match Broadcast',
+              game: req.game || 'BGMI',
+              email: req.email || 'host@livetournaments.in',
+              status: 'PENDING',
+              submittedAt: new Date().toISOString(),
+              isUserSubmitted: true
+            };
+            setBroadcastRequests(prev => {
+              const filtered = prev.filter(b => b.id !== bReq.id && b.streamUrl !== bReq.streamUrl);
+              return [bReq, ...filtered];
+            });
+          }
+        }
       } else if (msg.eventName === 'SCRIM_REQUESTED') {
         playAdminChime('default');
-        showToast(`⚔️ [LIVE SOCKET] New Daily Scrim Request: ${msg.payload?.title || 'Scrim Lobby'}!`);
+        const req = msg.payload;
+        showToast(`⚔️ [LIVE SOCKET] New Daily Scrim Request: ${req?.title || 'Scrim Lobby'}!`);
+        if (req && req.id) {
+          setScrimsRequests(prev => {
+            const filtered = prev.filter(r => r.id !== req.id);
+            return [req, ...filtered];
+          });
+        }
+        const sUrl = req?.channelLink || req?.liveUrl || req?.streamUrl;
+        if (sUrl && sUrl.trim()) {
+          const val = validateLiveStreamUrl(sUrl);
+          if (val.isValid) {
+            const bReq = {
+              id: 'bcast_scrim_' + req.id,
+              title: `${req.title || 'Daily Scrim'} - Scrim Broadcast`,
+              tournament: req.title || 'Daily Scrim',
+              streamUrl: val.normalizedUrl,
+              organizerName: req.organizerName || req.creator || 'Host',
+              creator: req.organizerName || req.creator || 'Host',
+              channel: `${req.organizerName || 'Host'} Official Live`,
+              requestedSlot: 'Daily Scrim Stream',
+              game: req.game || 'BGMI',
+              email: req.email || 'scrim@livetournaments.in',
+              status: 'PENDING',
+              submittedAt: new Date().toISOString(),
+              isUserSubmitted: true
+            };
+            setBroadcastRequests(prev => {
+              const filtered = prev.filter(b => b.id !== bReq.id && b.streamUrl !== bReq.streamUrl);
+              return [bReq, ...filtered];
+            });
+          }
+        }
       } else if (msg.eventName === 'FEATURED_REQUESTED') {
         playAdminChime('default');
+        const req = msg.payload;
         showToast(`⭐ [LIVE SOCKET] New Featured Tournament Boost Request Received!`);
+        if (req && req.id) {
+          setFeaturedRequests(prev => {
+            const filtered = prev.filter(r => r.id !== req.id);
+            return [req, ...filtered];
+          });
+        }
       } else if (msg.eventName === 'RESULTS_SUBMITTED') {
         playAdminChime('default');
+        const req = msg.payload;
         showToast(`📋 [LIVE SOCKET] Match Results Submitted for Admin Verification!`);
+        if (req && req.id) {
+          setResultVerifications(prev => {
+            const filtered = prev.filter(r => r.id !== req.id);
+            return [req, ...filtered];
+          });
+        }
       } else if (msg.eventName === 'REGISTRATION_SUBMITTED') {
         showToast(`🎮 [LIVE SOCKET] Competitor Registered for Match!`);
       }
@@ -4203,7 +4298,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
                         <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5">
                           <span className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider">Assign to Homepage Card Slot:</span>
-                          <div className="grid grid-cols-3 gap-1.5">
+                          <div className="grid grid-cols-4 gap-1.5">
                             <button
                               onClick={() => handleAssignBroadcastToSlot(br.id, 1)}
                               className="py-1 px-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
@@ -4224,6 +4319,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                               title="Assign to Homepage Slot 3"
                             >
                               Slot 3 ➔
+                            </button>
+                            <button
+                              onClick={() => handleAssignBroadcastToSlot(br.id, 4)}
+                              className="py-1 px-1 rounded bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold transition-colors cursor-pointer text-center"
+                              title="Assign to Homepage Slot 4"
+                            >
+                              Slot 4 ➔
                             </button>
                           </div>
                           <button

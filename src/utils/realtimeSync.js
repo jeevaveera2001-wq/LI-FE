@@ -78,6 +78,7 @@ export function emitRealtimeEvent(eventName, payload = {}) {
       localStorage.setItem('lt_socket_pulse', JSON.stringify({
         eventName,
         seq: Date.now(),
+        payload,
         payloadSummary: payload?.id || payload?.title || eventName
       }));
     }
@@ -130,7 +131,7 @@ export function subscribeRealtimeEvents(callback) {
         const parsed = JSON.parse(e.newValue);
         callback({
           eventName: parsed.eventName || 'STORAGE_UPDATE',
-          payload: parsed,
+          payload: parsed.payload || parsed,
           timestamp: parsed.seq || Date.now()
         });
       } catch (err) {}
@@ -150,7 +151,7 @@ export function subscribeRealtimeEvents(callback) {
   };
   window.addEventListener('storage', handleStorageEvent);
 
-  // 4. Reactive polling heartbeat (1000ms) to ensure guaranteed updates even in background tabs
+  // 4. Reactive polling heartbeat (500ms) to ensure guaranteed updates even in background tabs
   let lastPulseSeq = null;
   const intervalId = setInterval(() => {
     try {
@@ -161,13 +162,13 @@ export function subscribeRealtimeEvents(callback) {
           lastPulseSeq = parsed.seq;
           callback({
             eventName: parsed.eventName || 'HEARTBEAT_PULSE',
-            payload: parsed,
+            payload: parsed.payload || parsed,
             timestamp: parsed.seq
           });
         }
       }
     } catch (e) {}
-  }, 1000);
+  }, 500);
 
   // Cleanup handler
   return () => {

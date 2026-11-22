@@ -22,6 +22,19 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
   });
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem('lt_finished_matches');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(m => m && m.id && !m.id.startsWith('finished-bgmi-') && !m.id.startsWith('finished-pubg-') && !m.id.startsWith('finished-ff-'));
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('lt_finished_matches', JSON.stringify(clean));
+          }
+        }
+      }
+    } catch (e) {}
+
     const handleUpdate = () => {
       try {
         const saved = localStorage.getItem('lt_finished_matches');
