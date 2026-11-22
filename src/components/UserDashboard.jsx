@@ -1331,6 +1331,50 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         {/* MAIN BODY VIEWS */}
         <main className="p-4 sm:p-6 lg:p-8 flex-1 overflow-y-auto">
 
+          {/* Persistent VIP Clearance Top Banner */}
+          {(hasTourneyClearance || hasScrimClearance || hasBroadcastClearance) && (
+            <div className="mb-6 rounded-2xl bg-gradient-to-r from-[#171821] via-[#111218] to-[#0A0B0E] border border-[#DFBD78]/40 p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl shadow-black/40 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-full bg-[#DFBD78]/5 blur-2xl pointer-events-none"></div>
+              <div className="flex items-center gap-3.5 relative">
+                <div className="size-11 rounded-2xl bg-gradient-to-br from-[#DFBD78] via-[#B89647] to-[#8C6D2D] p-[1.5px] shadow-lg shrink-0">
+                  <div className="w-full h-full rounded-[14px] bg-[#0E0F14] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-2xl text-[#DFBD78]">military_tech</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#DFBD78]/15 border border-[#DFBD78]/40 text-[#DFBD78] text-[9.5px] font-black uppercase tracking-wider">
+                      SUPER ADMIN VIP CLEARANCE ACTIVE
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1 font-mono">
+                      <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      100% FEE WAIVER UNLOCKED
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-300 mt-1">
+                    Your account has active administrator clearances: <strong className="text-white">₹0 Tournament Rooms</strong>, <strong className="text-white">₹0 Daily Scrims</strong>, and <strong className="text-white">Unlimited Live Stream Broadcasting</strong> with instant approval.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 w-full md:w-auto relative">
+                <button
+                  onClick={() => setShowVipCongratsModal(true)}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white hover:text-[#DFBD78] border border-white/15 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">badge</span>
+                  <span>View Privileges</span>
+                </button>
+                <button
+                  onClick={() => { setActiveTab('rooms'); setIsConductingTournament(true); }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:brightness-110 text-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add_circle</span>
+                  <span>Host Room (₹0)</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ========================================================
               VIEW 1: PLAYER DASHBOARD (OVERVIEW)
               ======================================================== */}
@@ -3436,102 +3480,153 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           CONGRATULATIONS: SUPER ADMIN VIP & CLEARANCE MODAL
           ======================================================== */}
       {showVipCongratsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#18181B] via-black to-[#09090B] border-2 border-[#DFBD78]/70 p-6 sm:p-8 text-white shadow-2xl shadow-gold-primary/20 space-y-6">
-            {/* Top Badge & Close */}
-            <div className="flex items-center justify-between">
-              <span className="px-3 py-1 rounded-full bg-[#DFBD78]/20 border border-[#DFBD78]/40 text-[#DFBD78] text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                <span className="size-2 rounded-full bg-[#DFBD78] animate-ping"></span>
-                <span>ADMINISTRATOR CLEARANCE GRANTED</span>
-              </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-xl rounded-[24px] bg-gradient-to-b from-[#14151C] via-[#0E0F14] to-[#0A0B0E] border border-[#DFBD78]/40 p-6 sm:p-8 text-white shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_45px_rgba(223,189,120,0.12)] overflow-hidden space-y-6">
+            
+            {/* Ambient Top Glow & Highlight Line */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-[#DFBD78]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-[2px] bg-gradient-to-r from-transparent via-[#DFBD78] to-transparent"></div>
+
+            {/* Top Bar: Official Badge & Close */}
+            <div className="relative flex items-center justify-between">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#DFBD78]/10 border border-[#DFBD78]/30 text-[#DFBD78] text-[10px] font-black uppercase tracking-[0.2em] shadow-xs">
+                <span className="size-1.5 rounded-full bg-[#DFBD78] animate-pulse"></span>
+                <span>ADMINISTRATIVE CLEARANCE ACTIVE</span>
+              </div>
               <button
                 onClick={() => handleDismissVipCongrats()}
-                className="size-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="size-8 rounded-full bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center transition-all cursor-pointer"
+                title="Close"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            {/* Header Content */}
-            <div className="space-y-2 text-center sm:text-left">
-              <div className="flex items-center gap-3 justify-center sm:justify-start">
-                <div className="size-12 rounded-2xl bg-gradient-to-br from-[#DFBD78] to-[#99793D] flex items-center justify-center text-black shadow-lg">
-                  <span className="material-symbols-outlined text-3xl font-black">verified</span>
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
-                    Congratulations, <span className="text-[#DFBD78]">{currentUser?.name || currentUser?.username || 'Competitor'}</span>!
-                  </h2>
-                  <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider">
-                    You have been selected &amp; upgraded by Super Administrator
-                  </p>
+            {/* Hero Recognition Section */}
+            <div className="relative text-center space-y-2.5 pt-1">
+              <div className="relative inline-flex items-center justify-center">
+                <div className="absolute -inset-2 rounded-full bg-[#DFBD78]/25 blur-lg"></div>
+                <div className="relative size-14 rounded-2xl bg-gradient-to-br from-[#F5DE9B] via-[#DFBD78] to-[#99793D] p-[1.5px] shadow-xl">
+                  <div className="w-full h-full rounded-[14px] bg-[#0E0F14] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-2xl text-[#DFBD78]">military_tech</span>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-300 leading-relaxed pt-1">
-                Super Administrator has granted your account direct VIP clearances and creator privileges across LiveTournaments.in. Your account now bypasses standard limits:
-              </p>
+
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#DFBD78]/80 block">
+                  OFFICIAL RECOGNITION
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white mt-0.5">
+                  Congratulations, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F7E5B5] via-[#DFBD78] to-[#A38144]">{currentUser?.name || currentUser?.username || 'Creator'}</span>!
+                </h2>
+                <p className="text-xs text-gray-300 font-medium max-w-md mx-auto mt-1 leading-relaxed">
+                  Super Administrator has upgraded your account to <strong className="text-[#DFBD78]">VIP Creator Status</strong>. All standard match hosting fees and stream submission queues have been waived.
+                </p>
+              </div>
             </div>
 
             {/* Privileges Unlocked Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px]">
-                  <span className="material-symbols-outlined text-[16px]">podcasts</span>
-                  <span>VIP Live Stream Pass</span>
+            <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              
+              {/* 1. Broadcast Pass */}
+              <div className="bg-gradient-to-br from-emerald-500/10 via-white/[0.02] to-transparent border border-emerald-500/25 hover:border-emerald-500/40 transition-all rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px]">podcasts</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">VIP Stream Pass</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                    UNLIMITED
+                  </span>
                 </div>
-                <p className="text-[10px] text-gray-300">
-                  Unlimited stream broadcasting unlocked with direct 4-slot Homepage priority ingestion.
+                <p className="text-[10px] text-gray-300 leading-normal">
+                  Direct 4-slot Homepage priority stream ingestion with broadcast console unlocked.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center gap-1.5 text-amber-400 font-bold text-[11px]">
-                  <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-                  <span>Tournament Clearance</span>
+              {/* 2. Tournament Clearance */}
+              <div className="bg-gradient-to-br from-amber-500/10 via-white/[0.02] to-transparent border border-[#DFBD78]/25 hover:border-[#DFBD78]/40 transition-all rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-xl bg-[#DFBD78]/20 text-[#DFBD78] border border-[#DFBD78]/30 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px]">sports_esports</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">Tournament Rooms</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase bg-[#DFBD78]/20 text-[#DFBD78] border border-[#DFBD78]/30 font-mono">
+                    100% FREE
+                  </span>
                 </div>
-                <p className="text-[10px] text-gray-300">
-                  ₹0 100% Fee Waiver (bypasses ₹10 standard charge) with instant automatic room approval.
+                <p className="text-[10px] text-gray-300 leading-normal">
+                  ₹10 fee 100% waived with instant room creation and match day credential control.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center gap-1.5 text-blue-400 font-bold text-[11px]">
-                  <span className="material-symbols-outlined text-[16px]">swords</span>
-                  <span>Daily Scrims Clearance</span>
+              {/* 3. Daily Scrims Clearance */}
+              <div className="bg-gradient-to-br from-blue-500/10 via-white/[0.02] to-transparent border border-blue-500/25 hover:border-blue-500/40 transition-all rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px]">swords</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">Daily Scrims Hub</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono">
+                    100% FREE
+                  </span>
                 </div>
-                <p className="text-[10px] text-gray-300">
-                  ₹0 Fee Waiver with instant Tier-1 competitive scrim scheduling without admin queue.
+                <p className="text-[10px] text-gray-300 leading-normal">
+                  ₹50 fee 100% waived with direct Tier-1 practice scrim scheduling without admin queue.
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
-                <div className="flex items-center gap-1.5 text-purple-400 font-bold text-[11px]">
-                  <span className="material-symbols-outlined text-[16px]">stars</span>
-                  <span>Verified Creator Badge</span>
+              {/* 4. Verified Creator Badge */}
+              <div className="bg-gradient-to-br from-purple-500/10 via-white/[0.02] to-transparent border border-purple-500/25 hover:border-purple-500/40 transition-all rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px]">verified</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">Creator Crest</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                    VERIFIED
+                  </span>
                 </div>
-                <p className="text-[10px] text-gray-300">
-                  Official VIP partner badge displayed on all your hosted lobbies, clan profile, and matches.
+                <p className="text-[10px] text-gray-300 leading-normal">
+                  Official VIP partner badge displayed across your hosted tournaments and matches.
                 </p>
               </div>
+
             </div>
 
             {/* Quick Action Navigation */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+            <div className="relative pt-2 flex flex-col sm:flex-row items-center gap-3">
               <button
                 onClick={() => handleDismissVipCongrats('broadcast')}
-                className="w-full sm:flex-1 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg flex items-center justify-center gap-1.5"
+                className="w-full sm:flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#DFBD78] via-[#E8CD8C] to-[#C5A059] hover:from-[#EAD396] hover:to-[#DFBD78] text-black font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-lg shadow-[#DFBD78]/25 flex items-center justify-center gap-2 group hover:scale-[1.01] active:scale-[0.99]"
               >
-                <span className="material-symbols-outlined text-[16px]">podcasts</span>
+                <span className="material-symbols-outlined text-[18px]">podcasts</span>
                 <span>Open Broadcast Console</span>
               </button>
               <button
                 onClick={() => handleDismissVipCongrats('rooms')}
-                className="w-full sm:flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border border-white/20 flex items-center justify-center gap-1.5"
+                className="w-full sm:flex-1 py-3.5 px-5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white hover:text-[#DFBD78] font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer border border-white/15 hover:border-[#DFBD78]/40 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
               >
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                <span className="material-symbols-outlined text-[18px] text-[#DFBD78]">add_circle</span>
                 <span>Host Tournament (₹0 Free)</span>
               </button>
             </div>
+
+            {/* Live Sync Footer */}
+            <div className="relative pt-1 flex items-center justify-center gap-2 text-[10px] text-gray-400">
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Live Cloud Synchronized &bull; Active across all your devices</span>
+            </div>
+
           </div>
         </div>
       )}
