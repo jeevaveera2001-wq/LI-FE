@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ButtonLoader } from './loaders';
+import { emitRealtimeEvent } from '../utils/realtimeSync';
 
 export default function TournamentRegistrationPage({ tourney, onNavigate, currentUser }) {
   // Retrieve default or active tournament
@@ -201,6 +202,7 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
       // 4. Dispatch storage and real-time event for live tabs
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('lt_registration_submitted'));
+      emitRealtimeEvent('REGISTRATION_SUBMITTED', newRegistration);
 
       // 3. Post audit log
       try {

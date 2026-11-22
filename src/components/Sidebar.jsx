@@ -51,16 +51,16 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
                 </div>
               </div>
 
-              {/* Play - Represents Tournaments, Featured, Live Tournaments, Upcoming Tournaments */}
+              {/* Play - Redirects to Overall Tournaments Page per requirement */}
               <div>
                 <div className="relative">
                   <a
-                    href="#tournaments-section"
-                    onClick={handleSectionNav('tournaments-section')}
+                    href="/tournaments"
+                    onClick={handleNav('tournaments')}
                     className="cursor-pointer"
-                    title="Play - Tournaments, Featured, Live, Upcoming"
+                    title="Play - All Tournaments"
                   >
-                    <div className="lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3 transition-colors">
+                    <div className={`lg:hover:bg-white-dirty group grid h-full items-start justify-center justify-items-center gap-1 text-center sm:px-0 sm:py-1.5 lg:flex-col lg:items-center lg:justify-center lg:p-3 transition-colors ${currentPage === 'tournaments' ? 'lg:bg-white-dirty' : ''}`}>
                       <svg aria-hidden="true" className="text-dark-default group-hover:text-gold-primary transition-colors size-6 shrink-0 lg:size-6.5" fill="none" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
                         <g>
                           <path className="nJsbAG_blade nJsbAG_bA" d="M 11.2526,18.942 C 11.1678,18.8317 11.1341,18.6996 11.173599999999999,18.575499999999998 C 11.2098,18.4603 11.2732,18.3725 11.4066,18.3161 L 17.543999999999997,15.6949 C 17.6946,15.630399999999998 17.7934,15.5458 17.8256,15.408100000000001 C 17.865099999999998,15.238900000000001 17.7967,15.1294 17.6913,15.005299999999998 L 14.206,10.8881 C 14.077599999999999,10.735899999999999 14.1204,10.516 14.2349,10.3919 C 14.3567,10.2606 14.5823,10.1873 14.7462,10.3017 L 23.3923,16.3409 C 23.5298,16.436799999999998 23.5858,16.5914 23.5537,16.749299999999998 C 23.528999999999996,16.8702 23.426899999999996,17.0305 23.261400000000002,17.0595 L 11.655199999999999,19.0838 C 11.4955,19.112 11.346499999999999,19.0661 11.2518,18.9428 L 11.2526,18.942" fill="currentColor"></path>
@@ -179,10 +179,10 @@ export default function Sidebar({ onNavigate, currentPage = 'home', currentUser 
             <span className="text-[10px] uppercase font-bold tracking-tight">Home</span>
           </button>
 
-          {/* Play - Tournaments */}
+          {/* Play - Redirects to Overall Tournaments Page */}
           <button
-            onClick={handleSectionNav('tournaments-section')}
-            className="flex flex-col items-center gap-0.5 px-2 py-1 text-gray-600 hover:text-gold-primary transition-colors"
+            onClick={handleNav('tournaments')}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1 text-gray-600 hover:text-gold-primary transition-colors ${currentPage === 'tournaments' ? 'text-gold-primary font-bold' : ''}`}
           >
             <span className="material-symbols-outlined text-[22px]">sports_esports</span>
             <span className="text-[10px] uppercase font-bold tracking-tight">Play</span>

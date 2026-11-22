@@ -6,6 +6,7 @@ import {
   sendTournamentResultsEmail
 } from '../utils/emailService';
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
+import { emitRealtimeEvent, subscribeRealtimeEvents } from '../utils/realtimeSync';
 
 export default function UserDashboard({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
   // Navigation Tabs strictly ordered:
@@ -212,6 +213,11 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     return localStorage.getItem('lt_user_live_stream_url') || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
   });
   const [liveStreamInput, setLiveStreamInput] = useState('');
+  const [liveStreamEmail, setLiveStreamEmail] = useState(() => currentUser?.email || '');
+  const [liveStreamTitle, setLiveStreamTitle] = useState('BGMI Championship Live Broadcast');
+  const [liveStreamGame, setLiveStreamGame] = useState('BATTLEGROUNDS MOBILE INDIA');
+  const [liveStreamClan, setLiveStreamClan] = useState(() => currentUser?.clan || '');
+  const [liveStreamTournamentType, setLiveStreamTournamentType] = useState('Pro Championship League');
   const [activeBroadcastPass, setActiveBroadcastPass] = useState(() => {
     return localStorage.getItem('lt_user_broadcast_pass') || 'Weekly Pass (7 Days)';
   });
@@ -480,6 +486,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_room_requested'));
           window.dispatchEvent(new Event('lt_hosting_requested'));
+          emitRealtimeEvent('HOSTING_REQUESTED', newRoom);
 
           // If a broadcast stream URL was provided during hosting, register it in broadcast requests
           if (conductLiveUrl && conductLiveUrl.trim()) {
@@ -642,6 +649,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           localStorage.setItem('lt_admin_hosting_requests', JSON.stringify([newScrim, ...adminHostings]));
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_scrim_requested'));
+          emitRealtimeEvent('SCRIM_REQUESTED', newScrim);
 
           // If a broadcast stream URL was provided during scrim hosting, register it in broadcast requests
           if (scrimLiveUrl && scrimLiveUrl.trim()) {
@@ -758,6 +766,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           localStorage.setItem('lt_admin_featured_requests', JSON.stringify([featEntry, ...adminFeats]));
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_featured_requested'));
+          emitRealtimeEvent('FEATURED_REQUESTED', featEntry);
         } catch (e) {}
 
         const newTx = {
@@ -859,7 +868,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const handleUpdateLiveStream = (e) => {
     e.preventDefault();
     if (!liveStreamInput.trim()) {
-      showToast('⚠️ Please enter a YouTube live stream link.');
+      showToast('⚠️ Please enter a proper YouTube live stream link.');
       return;
     }
     const val = validateLiveStreamUrl(liveStreamInput);
@@ -867,10 +876,17 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       showToast(`⚠️ ${val.error}`);
       return;
     }
+
+    const emailToUse = (liveStreamEmail || displayEmail || '').trim();
+    if (!emailToUse || !emailToUse.includes('@')) {
+      showToast('⚠️ Please provide a valid caster contact email address.');
+      return;
+    }
+
     setLiveStreamUrl(val.normalizedUrl);
     localStorage.setItem('lt_user_live_stream_url', val.normalizedUrl);
 
-    // Queue in pending broadcast stream requests for Super Admin approval
+    // Queue in pending broadcast stream requests for Admin approval with all collected details
     try {
       let pendingBroadcasts = [];
       try {
@@ -879,36 +895,39 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         if (b1) { const p = JSON.parse(b1); if (Array.isArray(p)) pendingBroadcasts = p; }
         if (pendingBroadcasts.length === 0 && b2) { const p = JSON.parse(b2); if (Array.isArray(p)) pendingBroadcasts = p; }
       } catch (e) {}
+
       const newReq = {
         id: 'bcast_' + Date.now(),
-        title: `${displayName}'s Competitive Live Broadcast`,
-        tournament: 'Competitive Series Live Stream',
+        title: liveStreamTitle.trim() || `${displayName}'s Competitive Live Broadcast`,
+        tournament: liveStreamTitle.trim() || 'Competitive Series Live Stream',
         streamUrl: val.normalizedUrl,
         organizerName: displayName,
         creator: displayName,
         channel: `${displayName} Official Live`,
-        requestedSlot: 'Prime Live Stream Feed',
+        requestedSlot: 'Prime Live Stream Feed (Slot 1-4)',
         language: 'Hindi / English',
-        viewers: '16,840',
-        organizerClan: currentUser?.clan || 'CLAN',
-        clan: currentUser?.clan || 'CLAN',
-        game: 'BGMI',
-        email: displayEmail,
-        status: 'PENDING',
+        organizerClan: liveStreamClan.trim() || currentUser?.clan || 'CLAN',
+        clan: liveStreamClan.trim() || currentUser?.clan || 'CLAN',
+        game: liveStreamGame,
+        email: emailToUse,
+        status: 'LIVE ON AIR',
         submittedAt: new Date().toISOString(),
-        isUserSubmitted: true
+        isUserSubmitted: true,
+        isLive: true
       };
+
       const updatedBcasts = [newReq, ...pendingBroadcasts.filter(b => b.id !== newReq.id)];
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(updatedBcasts));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(updatedBcasts));
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('lt_broadcast_requested'));
+      emitRealtimeEvent('BROADCAST_REQUESTED', newReq);
     } catch (err) {}
 
     // Dispatch update event so Home Arena live stream reflects change immediately
     window.dispatchEvent(new Event('lt_stream_updated'));
     setLiveStreamInput('');
-    showToast(currentUser?.hasBroadcastVip ? '🌟 Broadcast VIP Active! Stream published directly to Homepage!' : '🔴 Validated! Stream URL active in player and submitted for Admin verification.');
+    showToast(currentUser?.hasBroadcastVip ? '🌟 Broadcast VIP Active! Stream published directly to Homepage!' : '🔴 Live stream submitted! Contact email and YouTube link verified for Admin slotting.');
   };
 
   // 8. Submit Results for Admin Verification
@@ -942,6 +961,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       localStorage.setItem('lt_admin_result_verifications', JSON.stringify([newSubmission, ...filtered]));
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('lt_results_submitted'));
+      emitRealtimeEvent('RESULTS_SUBMITTED', newSubmission);
     } catch (err) {}
 
     setShowResultSubmitModal(false);
@@ -1805,32 +1825,119 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 </div>
               </div>
 
-              {/* Exact Live Stream URL Input & Direct Hosting */}
-              <div className="bg-white rounded-[16px] p-5 border border-gray-200 shadow-xs space-y-4">
-                <form onSubmit={handleUpdateLiveStream} className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      Exact Live Stream URL (YouTube Live / Match Stream)
-                    </label>
-                    <input
-                      type="url"
-                      value={liveStreamInput}
-                      onChange={(e) => setLiveStreamInput(e.target.value)}
-                      placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-mono"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1 font-medium flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px] text-amber-600">info</span>
-                      <span>URL must start with <strong>www.</strong> and contain <strong>youtube</strong> (e.g. www.youtube.com/watch?v=...)</span>
+              {/* Exact Live Stream URL & Caster Submission Console */}
+              <div className="bg-white rounded-[16px] p-4 sm:p-5 border border-gray-200 shadow-xs space-y-4">
+                <div className="pb-3 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-red-600 text-[18px]">sensors</span>
+                      <span>Broadcast Submission Console • 4-Slot Ready</span>
+                    </h4>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Submit your live match stream with contact email, YouTube URL, and clan metadata for direct Admin slot assignment.
                     </p>
                   </div>
-                  <button
-                    type="submit"
-                    className="self-end px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">sensors</span>
-                    <span>Update Live Stream Link</span>
-                  </button>
+                  <span className="px-2 py-0.5 rounded bg-red-50 text-red-600 font-bold text-[9.5px] uppercase border border-red-200 w-fit">
+                    🔴 Live Stream Ingestion
+                  </span>
+                </div>
+
+                <form onSubmit={handleUpdateLiveStream} className="space-y-3.5 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Exact Live Stream URL * (YouTube Live Only)
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        value={liveStreamInput}
+                        onChange={(e) => setLiveStreamInput(e.target.value)}
+                        placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-mono"
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Must contain <strong>youtube</strong> and valid video ID
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Caster Contact Email * (Required for Verification)
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={liveStreamEmail}
+                        onChange={(e) => setLiveStreamEmail(e.target.value)}
+                        placeholder="caster@domain.com"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden font-medium"
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Admin slot assignment alerts are sent to this address
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Stream Title / Match Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={liveStreamTitle}
+                        onChange={(e) => setLiveStreamTitle(e.target.value)}
+                        placeholder="e.g. BGMI Pro Winter Cup Finals"
+                        className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Clan / Team Tag
+                      </label>
+                      <input
+                        type="text"
+                        value={liveStreamClan}
+                        onChange={(e) => setLiveStreamClan(e.target.value)}
+                        placeholder="e.g. SOUL / GODL"
+                        className="w-full px-3.5 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Esports Game Title
+                      </label>
+                      <select
+                        value={liveStreamGame}
+                        onChange={(e) => setLiveStreamGame(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs focus:border-[#C5A059] outline-hidden"
+                      >
+                        <option value="BATTLEGROUNDS MOBILE INDIA">Battlegrounds Mobile India (BGMI)</option>
+                        <option value="FREE FIRE MAX">Free Fire MAX</option>
+                        <option value="VALORANT">Valorant</option>
+                        <option value="CALL OF DUTY: MOBILE">Call of Duty: Mobile</option>
+                        <option value="PUBG MOBILE">PUBG Mobile</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <span className="text-[10.5px] text-amber-700 font-semibold flex items-center gap-1.5 self-start sm:self-center">
+                      <span className="size-1.5 rounded-full bg-red-600 animate-ping"></span>
+                      <span>Real-time Socket Sync Active • Arrives instantly in Admin Console</span>
+                    </span>
+
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">sensors</span>
+                      <span>Submit Live Broadcast Stream</span>
+                    </button>
+                  </div>
                 </form>
 
                 {/* Direct Live Stream Embedded Player */}

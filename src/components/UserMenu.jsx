@@ -18,7 +18,7 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
   const handleNav = (target) => {
     setIsOpen(false);
     if (target === 'tournaments') {
-      if (onNavigate) onNavigate('home', 'tournaments-section');
+      if (onNavigate) onNavigate('tournaments');
       return;
     }
     if (target === 'host') {
