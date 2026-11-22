@@ -1660,16 +1660,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   </div>
                 </div>
 
-                {/* Match Day Credentials Info Note (Pre-generated credentials removed) */}
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">verified_user</span>
-                  <div className="text-xs">
-                    <span className="font-bold block text-blue-950">Room ID &amp; Password Management</span>
-                    <p className="text-blue-800 text-[11.5px] mt-0.5">
-                      Pre-generated credentials have been removed so you can supply your own custom Room ID and Password directly on match day. Once your match date arrives, enter your credentials in your conducted rooms dashboard to notify all registered players.
-                    </p>
-                  </div>
-                </div>
+
 
                 {/* Total & Checkout Action */}
                 <div className="p-4 rounded-2xl bg-gray-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -2193,16 +2184,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   </div>
                 </div>
 
-                {/* Match Day Credentials Info Note */}
-                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-blue-600 text-[20px] shrink-0 mt-0.5">verified_user</span>
-                  <div className="text-xs">
-                    <span className="font-bold block text-blue-950">Room ID &amp; Password Management</span>
-                    <p className="text-blue-800 text-[11.5px] mt-0.5">
-                      Pre-generated credentials have been removed so you can supply your own custom Room ID and Password directly on match day. Once your match date arrives, enter your credentials in your conducted scrims hub to notify all registered players.
-                    </p>
-                  </div>
-                </div>
+
 
                 {/* Total & Checkout Action */}
                 <div className="p-4 rounded-2xl bg-blue-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
