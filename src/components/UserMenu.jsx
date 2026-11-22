@@ -35,6 +35,14 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
         className="flex items-center gap-2"
       >
         <button
+          onClick={() => window.dispatchEvent(new Event('lt_toggle_notifications'))}
+          className="size-9 rounded-full bg-black/60 hover:bg-white/15 border border-white/20 hover:border-gold-primary/60 backdrop-blur-xl text-white hover:text-gold-light flex items-center justify-center transition-all shadow-lg cursor-pointer"
+          title="Notifications & Match Alerts"
+          aria-label="Open Notifications"
+        >
+          <span className="material-symbols-outlined text-[18px]">notifications</span>
+        </button>
+        <button
           onClick={() => onNavigate && onNavigate('login')}
           className="px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-white/15 border border-white/20 hover:border-gold-primary/60 backdrop-blur-xl text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg cursor-pointer"
         >
@@ -57,8 +65,17 @@ export default function UserMenu({ currentUser, onNavigate, onLogout }) {
     <div
       ref={menuRef}
       style={{ position: 'fixed', top: '20px', right: '20px', left: 'auto', zIndex: 100 }}
-      className="select-none"
+      className="select-none flex items-center gap-2"
     >
+      <button
+        onClick={() => window.dispatchEvent(new Event('lt_toggle_notifications'))}
+        className="size-10 rounded-full bg-neutral-950/85 hover:bg-white/15 border border-white/20 hover:border-gold-primary/80 backdrop-blur-xl text-white hover:text-gold-light flex items-center justify-center transition-all shadow-xl cursor-pointer"
+        title="Notifications & Match Alerts"
+        aria-label="Open Notifications"
+      >
+        <span className="material-symbols-outlined text-[19px]">notifications</span>
+      </button>
+
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}

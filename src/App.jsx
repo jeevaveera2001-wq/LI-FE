@@ -21,6 +21,7 @@ import PartnershipPage from './components/PartnershipPage';
 import ChampionshipRegistrationPage from './components/ChampionshipRegistrationPage';
 import ContactUsSection from './components/ContactUsSection';
 import FloatingCommunityChat from './components/FloatingCommunityChat';
+import FloatingNotificationCenter from './components/FloatingNotificationCenter';
 import { fetchUserProfile } from './services/cloudSync';
 import { TopProgressBar, FullScreenLoader, PullToRefreshLoader, LoadersShowcaseModal } from './components/loaders';
 
@@ -390,8 +391,11 @@ export default function App() {
           onClose={() => setFullScreenLoading(false)}
         />
 
-        {/* Floating Community & Match Group Chat Box */}
-        <FloatingCommunityChat currentUser={currentUser} />
+        {/* Floating Top-Right Notifications & Match Alerts (Entire Project) */}
+        <FloatingNotificationCenter currentUser={currentUser} onNavigate={navigateTo} />
+
+        {/* Minimalist Floating Community & Match Group Chat */}
+        <FloatingCommunityChat currentUser={currentUser} onNavigate={navigateTo} />
       </div>
     </ErrorBoundary>
   );

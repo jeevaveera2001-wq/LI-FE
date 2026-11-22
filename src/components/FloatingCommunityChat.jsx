@@ -2,60 +2,163 @@ import React, { useState, useEffect, useRef } from 'react';
 import { fetchCloudChatMessages, sendCloudChatMessage } from '../services/cloudSync';
 import { subscribeRealtimeEvents, emitRealtimeEvent } from '../utils/realtimeSync';
 
-export default function FloatingCommunityChat({ currentUser }) {
+export default function FloatingCommunityChat({ currentUser, onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeChannel, setActiveChannel] = useState('global'); // 'global' | 'match' | 'host'
-  const [selectedMatchRoomId, setSelectedMatchRoomId] = useState('match_bgmi_showdown');
+  const [activeChannel, setActiveChannel] = useState('global'); // 'global' | 'match'
+  const [selectedMatchRoomId, setSelectedMatchRoomId] = useState('');
+  const [userRegisteredGroups, setUserRegisteredGroups] = useState([]);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [guestName, setGuestName] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('lt_chat_guest_name') || 'Gamer_' + Math.floor(100 + Math.random() * 900);
+      return localStorage.getItem('lt_chat_guest_name') || 'Player_' + Math.floor(100 + Math.random() * 900);
     }
-    return 'Gamer_101';
+    return 'Player_101';
   });
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
 
-  // Active match lobbies discovery (from registered tourneys, scrims, or hosted rooms)
-  const [activeMatchLobbies, setActiveMatchLobbies] = useState(() => {
-    const list = [
-      { id: 'match_bgmi_showdown', title: 'BGMI Masters Championship', type: 'TOURNAMENT', host: 'Jeeva Veeramani (VIP)' },
-      { id: 'match_scrims_daily', title: 'Daily Scrims Tier-1 Lobby', type: 'SCRIM', host: 'Admin Host' },
-      { id: 'match_masters_clutch', title: 'Masters Clutch Cup', type: 'TOURNAMENT', host: 'Shadow_Sniper' }
-    ];
+  // Discover ONLY the tournaments and matches where the user or their organization is registered
+  const syncRegisteredMatchGroups = () => {
+    const groups = [];
+    const seenIds = new Set();
 
+    // 1. Tournaments the user joined as a player or squad
     try {
-      const hosted = JSON.parse(localStorage.getItem('lt_user_hosted_tourneys') || '[]');
-      if (Array.isArray(hosted) && hosted.length > 0) {
-        hosted.forEach(h => {
-          if (!list.some(l => l.id === h.id)) {
-            list.unshift({
-              id: h.id,
-              title: h.title,
-              type: h.type || 'TOURNAMENT',
-              host: h.organizer || h.hostUser || 'Host'
-            });
-          }
-        });
+      const joinedRaw = localStorage.getItem('lt_user_joined_tourneys');
+      if (joinedRaw) {
+        const joined = JSON.parse(joinedRaw);
+        if (Array.isArray(joined)) {
+          joined.forEach(reg => {
+            const id = reg.tournamentId || reg.id;
+            if (id && !seenIds.has(id)) {
+              seenIds.add(id);
+              groups.push({
+                id: 'match_' + id,
+                tournamentId: id,
+                title: reg.tournamentTitle || reg.title || 'Registered Match Tournament',
+                game: reg.game || 'Battlegrounds Mobile India',
+                organization: reg.teamName || reg.clan || 'My Squad',
+                role: 'REGISTERED PLAYER',
+                schedule: reg.registeredTimeIST || reg.schedule || 'Scheduled Match'
+              });
+            }
+          });
+        }
       }
     } catch (e) {}
 
-    return list;
-  });
+    // 2. Pre-registrations from Championship
+    try {
+      const champRaw = localStorage.getItem('lt_championship_pre_registrations');
+      if (champRaw) {
+        const champ = JSON.parse(champRaw);
+        if (Array.isArray(champ)) {
+          champ.forEach(c => {
+            const id = c.id || 'championship_main';
+            if (!seenIds.has(id)) {
+              seenIds.add(id);
+              groups.push({
+                id: 'match_' + id,
+                tournamentId: id,
+                title: c.tournamentTitle || 'BGMI National Championship',
+                game: 'Battlegrounds Mobile India',
+                organization: c.teamName || c.clan || 'Registered Team',
+                role: 'REGISTERED SQUAD',
+                schedule: 'National Championship'
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {}
 
-  const currentRoomId = activeChannel === 'global' ? 'global' : selectedMatchRoomId;
+    // 3. Tournaments or scrims the user hosts (as organizer)
+    try {
+      const hostedRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (hostedRaw) {
+        const hosted = JSON.parse(hostedRaw);
+        if (Array.isArray(hosted)) {
+          hosted.forEach(h => {
+            if (!seenIds.has(h.id)) {
+              seenIds.add(h.id);
+              groups.push({
+                id: 'match_' + h.id,
+                tournamentId: h.id,
+                title: h.title,
+                game: h.game || 'Battlegrounds Mobile India',
+                organization: h.organizer || h.clan || 'Host Organization',
+                role: 'HOST / ORGANIZER',
+                schedule: h.timing || 'Custom Lobby'
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
+    // 4. Super Admin supervisory access to active tournament rooms
+    const isSuperAdmin = currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'admin' || currentUser?.email === 'superadmin@lt.in';
+    if (isSuperAdmin && groups.length === 0) {
+      try {
+        const adminRoomsRaw = localStorage.getItem('lt_active_match_rooms');
+        if (adminRoomsRaw) {
+          const adminRooms = JSON.parse(adminRoomsRaw);
+          if (Array.isArray(adminRooms)) {
+            adminRooms.forEach(r => {
+              if (!seenIds.has(r.id)) {
+                seenIds.add(r.id);
+                groups.push({
+                  id: 'match_' + r.id,
+                  tournamentId: r.id,
+                  title: r.title,
+                  game: r.game || 'Battlegrounds Mobile India',
+                  organization: 'Super Admin Oversight',
+                  role: 'SUPERVISOR',
+                  schedule: r.duration || 'Live Lobby'
+                });
+              }
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
+    setUserRegisteredGroups(groups);
+    if (groups.length > 0 && (!selectedMatchRoomId || selectedMatchRoomId === 'global')) {
+      setSelectedMatchRoomId(groups[0].id);
+    }
+  };
+
+  useEffect(() => {
+    syncRegisteredMatchGroups();
+    const handleStorageSync = () => syncRegisteredMatchGroups();
+    window.addEventListener('storage', handleStorageSync);
+    window.addEventListener('lt_registration_submitted', handleStorageSync);
+    window.addEventListener('lt_hosting_approved', handleStorageSync);
+    return () => {
+      window.removeEventListener('storage', handleStorageSync);
+      window.removeEventListener('lt_registration_submitted', handleStorageSync);
+      window.removeEventListener('lt_hosting_approved', handleStorageSync);
+    };
+  }, [currentUser]);
+
+  const currentRoomId = activeChannel === 'global' ? 'global' : (selectedMatchRoomId || 'none');
+  const activeSelectedGroup = userRegisteredGroups.find(m => m.id === selectedMatchRoomId);
   const currentRoomTitle = activeChannel === 'global'
     ? 'Global Arena Chat'
-    : (activeMatchLobbies.find(m => m.id === selectedMatchRoomId)?.title || 'Match Group Chat');
+    : (activeSelectedGroup ? `${activeSelectedGroup.title} [${activeSelectedGroup.organization}]` : 'Match Group Chat');
 
-  // Load messages from cloud and local cache
+  // Load messages from cloud and local storage
   const loadMessages = async () => {
+    if (currentRoomId === 'none') {
+      setMessages([]);
+      return;
+    }
     const cloudMsgs = await fetchCloudChatMessages(currentRoomId);
     if (Array.isArray(cloudMsgs) && cloudMsgs.length > 0) {
       setMessages(cloudMsgs);
     } else {
-      // Fallback local storage
       try {
         const local = JSON.parse(localStorage.getItem(`lt_chat_${currentRoomId}`) || '[]');
         if (Array.isArray(local)) setMessages(local);
@@ -88,12 +191,12 @@ export default function FloatingCommunityChat({ currentUser }) {
 
   const handleSendMessage = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || currentRoomId === 'none') return;
 
     const senderName = currentUser?.name || currentUser?.username || guestName;
     const senderRole = currentUser?.role?.toUpperCase() || (currentUser?.isVip ? 'VIP' : 'PLAYER');
-    const senderClan = currentUser?.clan || 'Competitor';
-    const isHost = activeMatchLobbies.some(m => m.id === currentRoomId && m.host.includes(senderName));
+    const senderClan = activeSelectedGroup ? activeSelectedGroup.organization : (currentUser?.clan || 'Competitor');
+    const isHost = activeSelectedGroup?.role === 'HOST / ORGANIZER';
 
     const newMsg = {
       id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -108,7 +211,6 @@ export default function FloatingCommunityChat({ currentUser }) {
       isHost
     };
 
-    // Optimistic UI update
     setMessages(prev => [...prev, newMsg]);
     setInputText('');
 
@@ -117,66 +219,66 @@ export default function FloatingCommunityChat({ currentUser }) {
       localStorage.setItem(`lt_chat_${currentRoomId}`, JSON.stringify([...local, newMsg]));
     } catch (e) {}
 
-    // Dispatch realtime & cloud sync
+    // Cloud sync and realtime broadcast
+    sendCloudChatMessage(newMsg).catch(() => {});
     emitRealtimeEvent('CHAT_MESSAGE', newMsg);
-    await sendCloudChatMessage(newMsg);
   };
 
-  const handleQuickPreset = (text) => {
-    setInputText(text);
+  const handleQuickPreset = (presetText) => {
+    setInputText(presetText);
   };
 
   return (
     <div className="fixed bottom-5 right-5 z-40 select-none font-sans">
       
-      {/* Floating Toggle Pill */}
+      {/* ========================================================
+          1. MINIMALIST FLOATING CHAT LOGO ONLY (NO TEXT)
+          ======================================================== */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-gray-950 via-[#181920] to-black border border-[#DFBD78]/40 hover:border-[#DFBD78] text-white shadow-2xl shadow-black/80 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          onClick={() => {
+            syncRegisteredMatchGroups();
+            setIsOpen(true);
+          }}
+          className="relative size-14 rounded-full bg-gradient-to-br from-[#1C1E26] via-[#101117] to-black border-2 border-[#DFBD78]/70 hover:border-[#DFBD78] text-[#DFBD78] hover:text-white shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_25px_rgba(223,189,120,0.35)] hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center cursor-pointer group"
+          title="Open Arena & Match Group Chat"
+          aria-label="Chat"
         >
-          <div className="relative">
-            <div className="size-8 rounded-full bg-gradient-to-br from-[#DFBD78] to-[#99793D] flex items-center justify-center text-black shadow-md">
-              <span className="material-symbols-outlined text-[18px]">forum</span>
-            </div>
-            <span className="absolute -top-1 -right-1 size-3 rounded-full bg-emerald-500 border-2 border-black animate-pulse"></span>
-          </div>
+          <span className="material-symbols-outlined text-[26px] group-hover:scale-110 transition-transform">
+            chat
+          </span>
 
-          <div className="text-left pr-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black uppercase tracking-wider text-white">Live Arena Chat</span>
-              <span className="size-1.5 rounded-full bg-emerald-400"></span>
-            </div>
-            <p className="text-[10px] text-[#DFBD78] font-medium leading-none mt-0.5">
-              Match Groups &bull; Talk with Hosts
-            </p>
-          </div>
+          {/* Green Online Pulsing Indicator */}
+          <span className="absolute top-1 right-1 size-3.5 rounded-full bg-emerald-500 border-2 border-[#101117] animate-pulse"></span>
 
+          {/* Unread Message Badge */}
           {unreadCount > 0 && (
-            <span className="ml-1 size-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center shadow-md animate-bounce">
-              {unreadCount}
+            <span className="absolute -top-1 -right-1 size-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center shadow-md animate-bounce">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
       )}
 
-      {/* Expanded Floating Chat Box */}
+      {/* ========================================================
+          2. EXPANDED CHAT BOX (GLOBAL ARENA + REGISTERED GROUPS)
+          ======================================================== */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[540px] max-h-[85vh] rounded-3xl bg-[#0F1015] border border-[#DFBD78]/40 shadow-2xl shadow-black/90 flex flex-col overflow-hidden text-white animate-fade-in">
+        <div className="w-[360px] sm:w-[420px] h-[550px] max-h-[85vh] rounded-3xl bg-[#0F1015]/98 border border-[#DFBD78]/50 shadow-[0_24px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(223,189,120,0.2)] flex flex-col overflow-hidden text-white animate-fade-in backdrop-blur-2xl">
           
           {/* Header */}
           <div className="p-3.5 bg-gradient-to-r from-[#171821] via-[#121319] to-black border-b border-white/10 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#99793D] flex items-center justify-center text-black shrink-0 shadow-sm">
-                <span className="material-symbols-outlined text-[18px]">sports_esports</span>
+                <span className="material-symbols-outlined text-[18px]">chat</span>
               </div>
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
-                  <span>Live Arena Chat</span>
+              <div className="min-w-0">
+                <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5 truncate">
+                  <span>{activeChannel === 'global' ? 'Global Arena Chat' : 'Registered Match Groups'}</span>
                   <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[8px] font-bold border border-emerald-500/30">ONLINE</span>
                 </h3>
-                <p className="text-[10px] text-gray-400 truncate max-w-[200px]">
-                  {currentRoomTitle}
+                <p className="text-[10px] text-gray-400 truncate max-w-[210px]">
+                  {activeChannel === 'global' ? 'Public Community Lounge' : (activeSelectedGroup?.title || 'Private Group')}
                 </p>
               </div>
             </div>
@@ -185,18 +287,18 @@ export default function FloatingCommunityChat({ currentUser }) {
               <button
                 onClick={() => setIsOpen(false)}
                 className="size-7 rounded-lg bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                title="Minimize"
+                title="Minimize Chat"
               >
                 <span className="material-symbols-outlined text-[16px]">expand_more</span>
               </button>
             </div>
           </div>
 
-          {/* Navigation Channels / Match Groups */}
+          {/* Scope Selector: Global Arena OR Registered Match Groups */}
           <div className="p-2 bg-[#090A0D] border-b border-white/10 flex items-center gap-1.5 overflow-x-auto shrink-0 text-[10.5px]">
             <button
               onClick={() => setActiveChannel('global')}
-              className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeChannel === 'global'
                   ? 'bg-[#DFBD78] text-black shadow-sm'
                   : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
@@ -207,44 +309,82 @@ export default function FloatingCommunityChat({ currentUser }) {
             </button>
 
             <button
-              onClick={() => setActiveChannel('match')}
-              className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+              onClick={() => {
+                syncRegisteredMatchGroups();
+                setActiveChannel('match');
+              }}
+              className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeChannel === 'match'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">groups</span>
-              <span>Match Room Groups</span>
+              <span>My Match Groups ({userRegisteredGroups.length})</span>
             </button>
           </div>
 
-          {/* If Match Groups Active: Select Match Lobby */}
+          {/* If Match Groups Active: Show ONLY Registered Match Tournaments */}
           {activeChannel === 'match' && (
-            <div className="px-3 py-2 bg-blue-950/20 border-b border-blue-500/20 flex items-center justify-between gap-2 shrink-0 text-xs">
-              <span className="text-[10px] font-bold text-blue-300 uppercase shrink-0">Active Match:</span>
-              <select
-                value={selectedMatchRoomId}
-                onChange={(e) => setSelectedMatchRoomId(e.target.value)}
-                className="w-full bg-[#12131A] text-white text-[11px] font-medium py-1 px-2.5 rounded-lg border border-blue-400/30 outline-hidden cursor-pointer"
-              >
-                {activeMatchLobbies.map(m => (
-                  <option key={m.id} value={m.id}>
-                    [{m.type}] {m.title}
-                  </option>
-                ))}
-              </select>
+            <div className="p-2 bg-blue-950/30 border-b border-blue-500/20 shrink-0">
+              {userRegisteredGroups.length === 0 ? (
+                <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-500/30 text-center space-y-1.5">
+                  <span className="material-symbols-outlined text-2xl text-blue-400 block">lock</span>
+                  <h4 className="text-xs font-bold text-white uppercase">Only Registered Match Groups</h4>
+                  <p className="text-[10px] text-gray-300 leading-relaxed">
+                    Tournament group chats are exclusively accessible to participants registered with their squad/organization.
+                  </p>
+                  {onNavigate && (
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        onNavigate('tournaments');
+                      }}
+                      className="mt-1 px-3 py-1 rounded-lg bg-[#DFBD78] hover:bg-[#C5A059] text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                    >
+                      Join a Tournament &rarr;
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-[9.5px] font-bold text-blue-300 uppercase shrink-0">Match Group:</span>
+                  <select
+                    value={selectedMatchRoomId}
+                    onChange={(e) => setSelectedMatchRoomId(e.target.value)}
+                    className="w-full bg-[#12131A] text-white text-[11px] font-medium py-1.5 px-2 rounded-lg border border-blue-400/40 outline-hidden cursor-pointer"
+                  >
+                    {userRegisteredGroups.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.title} &bull; Org: {m.organization} ({m.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
           {/* Messages Body */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#0B0C10]/80">
-            {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
-                <span className="material-symbols-outlined text-4xl mb-2 text-gray-600">chat_bubble_outline</span>
-                <p className="text-xs font-bold text-gray-400">No messages in this room yet.</p>
-                <p className="text-[10.5px] mt-1 max-w-[220px]">
-                  Be the first to say hi to the match host and fellow registered squads!
+            {activeChannel === 'match' && userRegisteredGroups.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 space-y-2">
+                <span className="material-symbols-outlined text-4xl text-gray-600">groups</span>
+                <p className="text-xs font-bold text-gray-400">Match Room Locked</p>
+                <p className="text-[10.5px] text-gray-500 max-w-[240px]">
+                  Register for an upcoming tournament room or scrim to unlock private messaging with your match squads and host!
+                </p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 space-y-1.5">
+                <span className="material-symbols-outlined text-4xl text-gray-600">chat_bubble_outline</span>
+                <p className="text-xs font-bold text-gray-400">
+                  {activeChannel === 'global' ? 'No messages in Global Arena yet.' : 'No messages in this match group yet.'}
+                </p>
+                <p className="text-[10.5px] text-gray-500 max-w-[240px]">
+                  {activeChannel === 'global'
+                    ? 'Say hi to the community in the public lounge!'
+                    : `Coordinate strategies with your squad and host in ${activeSelectedGroup?.title || 'this match group'}!`}
                 </p>
               </div>
             ) : (
@@ -277,7 +417,7 @@ export default function FloatingCommunityChat({ currentUser }) {
                       )}
 
                       {msg.senderClan && (
-                        <span className="text-[8.5px] text-gray-500">
+                        <span className="text-[8.5px] text-gray-400 font-semibold">
                           [{msg.senderClan}]
                         </span>
                       )}
@@ -305,68 +445,72 @@ export default function FloatingCommunityChat({ currentUser }) {
           </div>
 
           {/* Quick Preset Buttons */}
-          <div className="px-2.5 py-1.5 bg-[#090A0D] border-t border-white/5 flex items-center gap-1.5 overflow-x-auto text-[9.5px]">
-            <button
-              onClick={() => handleQuickPreset('Ready for match! ✅')}
-              className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
-            >
-              Ready for match! ✅
-            </button>
-            <button
-              onClick={() => handleQuickPreset('Room ID & Pass shared? 🔑')}
-              className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
-            >
-              Room ID &amp; Pass? 🔑
-            </button>
-            <button
-              onClick={() => handleQuickPreset('Need 1 assaulter for squad ⚔️')}
-              className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
-            >
-              Need 1 player ⚔️
-            </button>
-            <button
-              onClick={() => handleQuickPreset('GG all! 🏆')}
-              className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
-            >
-              GG all! 🏆
-            </button>
-          </div>
+          {!(activeChannel === 'match' && userRegisteredGroups.length === 0) && (
+            <div className="px-2.5 py-1.5 bg-[#090A0D] border-t border-white/5 flex items-center gap-1.5 overflow-x-auto text-[9.5px]">
+              <button
+                onClick={() => handleQuickPreset('Ready for match! ✅')}
+                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+              >
+                Ready for match! ✅
+              </button>
+              <button
+                onClick={() => handleQuickPreset('Room ID & Pass shared? 🔑')}
+                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+              >
+                Room ID &amp; Pass? 🔑
+              </button>
+              <button
+                onClick={() => handleQuickPreset('Need 1 assaulter for squad ⚔️')}
+                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+              >
+                Need 1 player ⚔️
+              </button>
+              <button
+                onClick={() => handleQuickPreset('GG all! 🏆')}
+                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+              >
+                GG all! 🏆
+              </button>
+            </div>
+          )}
 
           {/* Sender Input Field */}
-          <div className="p-3 bg-[#111218] border-t border-white/10 shrink-0">
-            {!currentUser && (
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-[10px] text-gray-400 uppercase font-bold shrink-0">Your Handle:</span>
+          {!(activeChannel === 'match' && userRegisteredGroups.length === 0) && (
+            <div className="p-3 bg-[#111218] border-t border-white/10 shrink-0">
+              {!currentUser && (
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 uppercase font-bold shrink-0">Your Handle:</span>
+                  <input
+                    type="text"
+                    value={guestName}
+                    onChange={(e) => {
+                      setGuestName(e.target.value);
+                      if (typeof window !== 'undefined') localStorage.setItem('lt_chat_guest_name', e.target.value);
+                    }}
+                    className="w-full px-2 py-1 rounded bg-[#090A0E] border border-white/15 text-[11px] text-[#DFBD78] font-bold outline-hidden focus:border-[#DFBD78]"
+                  />
+                </div>
+              )}
+
+              <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={guestName}
-                  onChange={(e) => {
-                    setGuestName(e.target.value);
-                    if (typeof window !== 'undefined') localStorage.setItem('lt_chat_guest_name', e.target.value);
-                  }}
-                  className="w-full px-2 py-1 rounded bg-[#090A0E] border border-white/15 text-[11px] text-[#DFBD78] font-bold outline-hidden focus:border-[#DFBD78]"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder={activeChannel === 'match' ? `Message ${activeSelectedGroup?.title || 'match group'}...` : 'Type message in Global Arena...'}
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#090A0E] border border-white/15 text-xs text-white placeholder:text-gray-500 outline-hidden focus:border-[#DFBD78] transition-colors"
+                  maxLength={500}
                 />
-              </div>
-            )}
-
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder={activeChannel === 'match' ? 'Message host & match squads...' : 'Type message in Arena...'}
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#090A0E] border border-white/15 text-xs text-white placeholder:text-gray-500 outline-hidden focus:border-[#DFBD78] transition-colors"
-                maxLength={500}
-              />
-              <button
-                type="submit"
-                disabled={!inputText.trim()}
-                className="size-9 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] disabled:opacity-40 text-black flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md"
-              >
-                <span className="material-symbols-outlined text-[18px]">send</span>
-              </button>
-            </form>
-          </div>
+                <button
+                  type="submit"
+                  disabled={!inputText.trim()}
+                  className="size-9 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] disabled:opacity-40 text-black flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md"
+                >
+                  <span className="material-symbols-outlined text-[18px]">send</span>
+                </button>
+              </form>
+            </div>
+          )}
 
         </div>
       )}
