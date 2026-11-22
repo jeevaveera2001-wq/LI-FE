@@ -1,141 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getYouTubeEmbedUrl } from '../utils/urlValidator';
 
-const DEFAULT_FINISHED_MATCHES = [
-  {
-    id: 'finished-bgmi-masters-s1',
-    title: 'BGMI PRO MASTERS FINALS — SEASON 1',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    format: 'Squad (Erangel + Miramar)',
-    completedAt: 'Yesterday • 9:30 PM IST',
-    prizePool: '₹ 2,00,000 INR',
-    winnerClan: 'SOUL ESPORTS',
-    winnerLeader: 'Omega_07',
-    mvpPlayer: 'Mortal_007',
-    totalKills: '42 Team Kills',
-    disbursed: '₹ 1,00,000 Disbursed to 1st Place',
-    image: '/assets/tournament_bgmi_showdown_4k.jpg',
-    resultType: 'table', // 'table' or 'image'
-    slotsData: [
-      { rank: 1, slot: 'Slot 1', clan: 'Team Soul', kills: 42, positionPts: 15, totalPts: 57, prize: '₹ 1,00,000' },
-      { rank: 2, slot: 'Slot 4', clan: 'GodLike Esports', kills: 38, positionPts: 12, totalPts: 50, prize: '₹ 60,000' },
-      { rank: 3, slot: 'Slot 7', clan: 'Blind Esports', kills: 31, positionPts: 10, totalPts: 41, prize: '₹ 40,000' },
-      { rank: 4, slot: 'Slot 12', clan: 'Team X-Spark', kills: 27, positionPts: 8, totalPts: 35, prize: 'Finalist' },
-      { rank: 5, slot: 'Slot 2', clan: 'Revenant Esports', kills: 22, positionPts: 6, totalPts: 28, prize: 'Finalist' },
-      { rank: 6, slot: 'Slot 9', clan: 'Gladiators Esports', kills: 20, positionPts: 4, totalPts: 24, prize: 'Finalist' },
-      { rank: 7, slot: 'Slot 15', clan: 'Medal Esports', kills: 18, positionPts: 2, totalPts: 20, prize: 'Finalist' },
-      { rank: 8, slot: 'Slot 3', clan: 'Enigma Gaming', kills: 16, positionPts: 1, totalPts: 17, prize: 'Finalist' },
-      { rank: 9, slot: 'Slot 18', clan: 'Orangutan Esports', kills: 15, positionPts: 1, totalPts: 16, prize: 'Finalist' },
-      { rank: 10, slot: 'Slot 6', clan: 'Marcos Gaming', kills: 14, positionPts: 1, totalPts: 15, prize: 'Finalist' },
-      { rank: 11, slot: 'Slot 21', clan: 'Entity Gaming', kills: 12, positionPts: 0, totalPts: 12, prize: 'Finalist' },
-      { rank: 12, slot: 'Slot 8', clan: 'Big Brother Esports', kills: 11, positionPts: 0, totalPts: 11, prize: 'Finalist' },
-      { rank: 13, slot: 'Slot 14', clan: 'Team Insane', kills: 10, positionPts: 0, totalPts: 10, prize: 'Finalist' },
-      { rank: 14, slot: 'Slot 19', clan: 'Gujarat Tigers', kills: 9, positionPts: 0, totalPts: 9, prize: 'Finalist' },
-      { rank: 15, slot: 'Slot 5', clan: 'Velocity Gaming', kills: 8, positionPts: 0, totalPts: 8, prize: 'Finalist' },
-      { rank: 16, slot: 'Slot 23', clan: 'Hyderabad Hydras', kills: 7, positionPts: 0, totalPts: 7, prize: 'Finalist' },
-      { rank: 17, slot: 'Slot 10', clan: 'Midwave Esports', kills: 6, positionPts: 0, totalPts: 6, prize: 'Finalist' },
-      { rank: 18, slot: 'Slot 25', clan: 'Autobotz Esports', kills: 5, positionPts: 0, totalPts: 5, prize: 'Finalist' },
-      { rank: 19, slot: 'Slot 11', clan: 'Team Mayhem', kills: 5, positionPts: 0, totalPts: 5, prize: 'Finalist' },
-      { rank: 20, slot: 'Slot 16', clan: 'Claw Esports', kills: 4, positionPts: 0, totalPts: 4, prize: 'Finalist' },
-      { rank: 21, slot: 'Slot 20', clan: 'Reckoning Esports', kills: 3, positionPts: 0, totalPts: 3, prize: 'Finalist' },
-      { rank: 22, slot: 'Slot 13', clan: 'Rivalry Squad', kills: 3, positionPts: 0, totalPts: 3, prize: 'Finalist' },
-      { rank: 23, slot: 'Slot 17', clan: '7Sea Esports', kills: 2, positionPts: 0, totalPts: 2, prize: 'Finalist' },
-      { rank: 24, slot: 'Slot 22', clan: 'Genesis Warriors', kills: 1, positionPts: 0, totalPts: 1, prize: 'Finalist' },
-      { rank: 25, slot: 'Slot 24', clan: 'Vortex Legion', kills: 0, positionPts: 0, totalPts: 0, prize: 'Finalist' }
-    ]
-  },
-  {
-    id: 'finished-pubg-pmgc-qualifier',
-    title: 'PUBG GLOBAL PRO SCRIMS SHOWDOWN',
-    game: 'PUBG MOBILE',
-    category: 'PUBG',
-    format: 'Squad (Miramar)',
-    completedAt: '2 Days Ago • 10:00 PM IST',
-    prizePool: '₹ 1,00,000 INR',
-    winnerClan: 'ALPHA REIGN',
-    winnerLeader: 'Viper_OP',
-    mvpPlayer: 'SniperKing',
-    totalKills: '36 Team Kills',
-    disbursed: '₹ 50,00,000 Disbursed to 1st Place',
-    image: '/assets/tournament_pubg_mobile_4k.jpg',
-    resultType: 'table',
-    slotsData: [
-      { rank: 1, slot: 'Slot 2', clan: 'Alpha Reign', kills: 36, positionPts: 15, totalPts: 51, prize: '₹ 50,000' },
-      { rank: 2, slot: 'Slot 5', clan: 'Team Entity', kills: 29, positionPts: 12, totalPts: 41, prize: '₹ 30,000' },
-      { rank: 3, slot: 'Slot 11', clan: 'X-Force Gaming', kills: 24, positionPts: 10, totalPts: 34, prize: '₹ 20,000' },
-      { rank: 4, slot: 'Slot 1', clan: 'Apex Predators', kills: 21, positionPts: 8, totalPts: 29, prize: 'Finalist' },
-      { rank: 5, slot: 'Slot 8', clan: 'Titanium Squad', kills: 19, positionPts: 6, totalPts: 25, prize: 'Finalist' },
-      { rank: 6, slot: 'Slot 14', clan: 'Omega Dynasty', kills: 16, positionPts: 4, totalPts: 20, prize: 'Finalist' },
-      { rank: 7, slot: 'Slot 19', clan: 'Nova Knights', kills: 14, positionPts: 2, totalPts: 16, prize: 'Finalist' },
-      { rank: 8, slot: 'Slot 3', clan: 'Redline Esports', kills: 13, positionPts: 1, totalPts: 14, prize: 'Finalist' },
-      { rank: 9, slot: 'Slot 7', clan: 'Immortal Legends', kills: 11, positionPts: 1, totalPts: 12, prize: 'Finalist' },
-      { rank: 10, slot: 'Slot 22', clan: 'Shadow Hunters', kills: 10, positionPts: 1, totalPts: 11, prize: 'Finalist' },
-      { rank: 11, slot: 'Slot 4', clan: 'Phantom Force', kills: 9, positionPts: 0, totalPts: 9, prize: 'Finalist' },
-      { rank: 12, slot: 'Slot 15', clan: 'Raptor Gaming', kills: 8, positionPts: 0, totalPts: 8, prize: 'Finalist' },
-      { rank: 13, slot: 'Slot 6', clan: 'Ironclad Crew', kills: 7, positionPts: 0, totalPts: 7, prize: 'Finalist' },
-      { rank: 14, slot: 'Slot 17', clan: 'Blaze Battalion', kills: 6, positionPts: 0, totalPts: 6, prize: 'Finalist' },
-      { rank: 15, slot: 'Slot 9', clan: 'Cyber Strike', kills: 6, positionPts: 0, totalPts: 6, prize: 'Finalist' },
-      { rank: 16, slot: 'Slot 21', clan: 'Vanguard Elite', kills: 5, positionPts: 0, totalPts: 5, prize: 'Finalist' },
-      { rank: 17, slot: 'Slot 12', clan: 'Ghost Protocol', kills: 4, positionPts: 0, totalPts: 4, prize: 'Finalist' },
-      { rank: 18, slot: 'Slot 24', clan: 'Rebel Storm', kills: 4, positionPts: 0, totalPts: 4, prize: 'Finalist' },
-      { rank: 19, slot: 'Slot 10', clan: 'Venom Syndicate', kills: 3, positionPts: 0, totalPts: 3, prize: 'Finalist' },
-      { rank: 20, slot: 'Slot 16', clan: 'Eclipse Squad', kills: 3, positionPts: 0, totalPts: 3, prize: 'Finalist' },
-      { rank: 21, slot: 'Slot 25', clan: 'Thunderbolts', kills: 2, positionPts: 0, totalPts: 2, prize: 'Finalist' },
-      { rank: 22, slot: 'Slot 18', clan: 'Wildfire Club', kills: 2, positionPts: 0, totalPts: 2, prize: 'Finalist' },
-      { rank: 23, slot: 'Slot 13', clan: 'Kraken Esports', kills: 1, positionPts: 0, totalPts: 1, prize: 'Finalist' },
-      { rank: 24, slot: 'Slot 20', clan: 'Frostbite Clan', kills: 1, positionPts: 0, totalPts: 1, prize: 'Finalist' },
-      { rank: 25, slot: 'Slot 23', clan: 'Valkyrie Unit', kills: 0, positionPts: 0, totalPts: 0, prize: 'Finalist' }
-    ]
-  },
-  {
-    id: 'finished-ff-clutch-cup',
-    title: 'FREE FIRE MAX CLUTCH CHAMPIONSHIP',
-    game: 'FREE FIRE MAX',
-    category: 'FREEFIRE',
-    format: 'Squad (Bermuda)',
-    completedAt: 'Nov 18, 2026 • 8:00 PM IST',
-    prizePool: '₹ 75,000 INR',
-    winnerClan: 'TEAM ELITE',
-    winnerLeader: 'Killer_FF',
-    mvpPlayer: 'Jahanzeb (18 Kills)',
-    totalKills: '48 Team Kills',
-    disbursed: '₹ 40,000 Disbursed to 1st Place',
-    image: '/assets/tournament_freefire_clutch_4k.jpg',
-    resultType: 'image', // direct scoreboard upload
-    scoreboardImage: '/assets/lt_championship_trophy_card_4k.png',
-    slotsData: [
-      { rank: 1, slot: 'Slot 3', clan: 'Team Elite', kills: 48, positionPts: 15, totalPts: 63, prize: '₹ 40,000' },
-      { rank: 2, slot: 'Slot 6', clan: 'Total Gaming', kills: 39, positionPts: 12, totalPts: 51, prize: '₹ 22,000' },
-      { rank: 3, slot: 'Slot 12', clan: 'Desi Gamers', kills: 27, positionPts: 10, totalPts: 37, prize: '₹ 13,000' }
-    ]
-  },
-  {
-    id: 'finished-bgmi-lan-warriors',
-    title: 'BGMI LAN WARRIORS CHALLENGE (DUO)',
-    game: 'BATTLEGROUNDS MOBILE INDIA',
-    category: 'BGMI',
-    format: 'Duo Showdown',
-    completedAt: 'Nov 17, 2026 • 7:00 PM IST',
-    prizePool: '₹ 50,000 INR',
-    winnerClan: 'DELTA DUO',
-    winnerLeader: 'Punk_God',
-    mvpPlayer: 'Punk_God (16 Kills)',
-    totalKills: '24 Team Kills',
-    disbursed: '₹ 30,000 Disbursed to 1st Place',
-    image: '/assets/tournament_bgmi_underdog_rumble_4k.jpg',
-    resultType: 'table',
-    slotsData: Array.from({ length: 25 }, (_, idx) => ({
-      rank: idx + 1,
-      slot: `Slot ${idx + 1}`,
-      clan: idx === 0 ? 'Delta Duo' : idx === 1 ? 'Sniper Squad Duo' : idx === 2 ? 'Eagle Duo' : `Competitor Duo ${idx + 1}`,
-      kills: Math.max(0, 24 - idx),
-      positionPts: idx === 0 ? 15 : idx === 1 ? 12 : idx === 2 ? 10 : Math.max(0, 8 - idx),
-      totalPts: (idx === 0 ? 15 : idx === 1 ? 12 : idx === 2 ? 10 : Math.max(0, 8 - idx)) + Math.max(0, 24 - idx),
-      prize: idx === 0 ? '₹ 30,000' : idx === 1 ? '₹ 13,000' : idx === 2 ? '₹ 7,000' : 'Participant'
-    }))
-  }
-];
+const DEFAULT_FINISHED_MATCHES = [];
 
 export default function PreviousFinishedMatchesSection({ onNavigate, currentUser }) {
   // Load finished matches from localStorage (real published matches only, zero fake data)
@@ -145,7 +11,10 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
         const saved = localStorage.getItem('lt_finished_matches');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const clean = parsed.filter(m => m && m.id && !m.id.startsWith('finished-bgmi-') && !m.id.startsWith('finished-pubg-') && !m.id.startsWith('finished-ff-'));
+            return clean;
+          }
         }
       } catch (e) {}
     }
@@ -158,8 +27,9 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
         const saved = localStorage.getItem('lt_finished_matches');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setFinishedMatches(parsed);
+          if (Array.isArray(parsed)) {
+            const clean = parsed.filter(m => m && m.id && !m.id.startsWith('finished-bgmi-') && !m.id.startsWith('finished-pubg-') && !m.id.startsWith('finished-ff-'));
+            setFinishedMatches(clean);
           }
         }
       } catch (e) {}

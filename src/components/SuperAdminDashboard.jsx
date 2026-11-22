@@ -71,42 +71,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [resultVerifications, setResultVerifications] = useState(() => {
     try {
       const saved = localStorage.getItem('lt_admin_result_verifications');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      {
-        id: 'res_sample_1',
-        matchId: 'host_bgmi_101',
-        tournamentTitle: 'BGMI Clan Masters Grand Finals',
-        game: 'BATTLEGROUNDS MOBILE INDIA',
-        hostUser: 'Mortal (Naman Mathur)',
-        hostEmail: 'mortal@teamsoul.in',
-        winnerClan: 'GodLike Esports',
-        runnerUpClan: 'Team Soul',
-        thirdClan: 'Blind Esports',
-        mvp: 'JONATHAN (14 Kills)',
-        posterUrl: '/assets/tournament_bgmi_showdown_4k.jpg',
-        notes: 'Official lobby points verified. Screenshot proof attached. Ready for points table auto-email.',
-        status: 'PENDING_VERIFICATION',
-        submittedAt: new Date(Date.now() - 3600000).toISOString()
-      },
-      {
-        id: 'res_sample_2',
-        matchId: 'scrim_bgmi_202',
-        tournamentTitle: 'Tier-1 Elite Practice Scrims',
-        game: 'BGMI',
-        hostUser: 'ScoutOP (Tanmay Singh)',
-        hostEmail: 'scout@s8ul.gg',
-        winnerClan: 'Team XSpark',
-        runnerUpClan: 'Orangutan Gaming',
-        thirdClan: 'Gladiator Esports',
-        mvp: 'Sarang (11 Kills)',
-        posterUrl: '/assets/tournament_bgmi_lan_warriors_4k.jpg',
-        notes: 'Match 3 Erangel concluded. Standings verified with kill counts.',
-        status: 'PENDING_VERIFICATION',
-        submittedAt: new Date(Date.now() - 7200000).toISOString()
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(r => !isMockEntry(r));
       }
-    ];
+    } catch (e) {}
+    return [];
   });
   useEffect(() => {
     localStorage.setItem('lt_admin_result_verifications', JSON.stringify(resultVerifications));
@@ -120,21 +90,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const [contactMessages, setContactMessages] = useState(() => {
     try {
       const saved = localStorage.getItem('lt_admin_contact_messages');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      {
-        id: 'ticket_sample_1',
-        name: 'EliteClan_Leader',
-        email: 'leader@eliteclan.gg',
-        phone: '+91 98765 43210',
-        category: 'Partnership & Sponsorship',
-        message: 'Requesting clan partner hosting clearance and custom scoreboard banner for our upcoming weekend cup.',
-        status: 'NEW',
-        submittedAt: new Date(Date.now() - 3600000).toISOString(),
-        dateStr: 'Today, 10:45 AM'
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(m => !isMockEntry(m));
       }
-    ];
+    } catch (e) {}
+    return [];
   });
 
   useEffect(() => {
@@ -238,15 +199,32 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   // Comprehensive validator to detect and purge legacy mock data entries
   const isMockEntry = (item) => {
     if (!item || typeof item !== 'object') return true;
+    const idStr = String(item.id || '');
+    // Known mock, seed, and fake IDs that must never be loaded
+    const mockIds = [
+      't1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5',
+      'tx_1', 'tx_2', 'bgmi-sd-reg-01', 'scrim-tier1-01', 'mock_1', 'demo_1',
+      'bcast_live_mortal', 'bcast_live_scout', 'bcast_live_jonathan',
+      'res_sample_1', 'res_sample_2', 'ticket_sample_1', 'host_bgmi_pro_1',
+      'tx_init_1', 'tx_init_2', 'hist_1', 'hist_2'
+    ];
+    if (mockIds.includes(idStr)) return true;
+    if (idStr.startsWith('mock_') || idStr.startsWith('demo_') || idStr.startsWith('ticket_sample_') || idStr.startsWith('res_sample_') || idStr.startsWith('finished-bgmi-') || idStr.startsWith('finished-pubg-') || idStr.startsWith('finished-ff-')) return true;
     // Any entry submitted by a real user must never be purged
     if (item.isUserSubmitted || item.paymentRef || item.amountPaid) return false;
-    const idStr = String(item.id || '');
     // Allow any timestamp-based IDs (generated via Date.now())
     if (idStr.match(/\d{10,}/)) return false;
-    // Only purge known legacy static seed IDs
-    const mockIds = ['t1', 't2', 't3', 't4', 't5', 'r1', 'r2', 'r3', 'r4', 'r5', 'tx_1', 'tx_2', 'bgmi-sd-reg-01', 'scrim-tier1-01', 'mock_1', 'demo_1'];
-    if (mockIds.includes(idStr)) return true;
     return false;
+  };
+
+  // Persistent tracking for declined broadcast requests so they never re-appear
+  const getDeclinedBroadcastIds = () => {
+    try {
+      const raw = localStorage.getItem('lt_admin_declined_broadcast_ids');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
   };
 
   // Helper to load and merge broadcast requests from all storage channels without data loss
@@ -254,6 +232,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     try {
       const b1Raw = localStorage.getItem('lt_broadcast_requests');
       const b2Raw = localStorage.getItem('lt_admin_broadcast_requests');
+      const declinedIds = new Set(getDeclinedBroadcastIds());
       let list1 = [];
       let list2 = [];
       if (b1Raw) {
@@ -272,7 +251,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       // Merge and deduplicate by item ID or streamUrl
       const map = new Map();
       [...list1, ...list2].forEach(item => {
-        if (item && (item.id || item.streamUrl) && !isMockEntry(item)) {
+        if (item && (item.id || item.streamUrl) && !declinedIds.has(item.id) && !isMockEntry(item)) {
           const key = item.id || item.streamUrl;
           map.set(key, item);
         }
@@ -280,9 +259,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
       // Also ensure live stream URL submitted from User Dashboard is captured
       const userStreamUrl = localStorage.getItem('lt_user_live_stream_url');
-      if (userStreamUrl && userStreamUrl.trim()) {
+      if (userStreamUrl && userStreamUrl.trim() && !declinedIds.has('bcast_user_active')) {
         const val = validateLiveStreamUrl(userStreamUrl);
-        if (val.isValid) {
+        if (val.isValid && !declinedIds.has(val.normalizedUrl)) {
           const alreadyExists = Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl);
           if (!alreadyExists) {
             map.set('user_live_stream_active', {
@@ -295,7 +274,6 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
               channel: 'YouTube Live Stream',
               requestedSlot: 'Prime Live Stream Feed',
               language: 'Hindi / English',
-              viewers: '16,840',
               status: 'PENDING',
               submittedAt: new Date().toISOString(),
               isUserSubmitted: true
@@ -313,11 +291,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             if (Array.isArray(parsed)) {
               parsed.forEach(t => {
                 const sUrl = t.channelLink || t.liveUrl || t.streamUrl;
-                if (sUrl && sUrl.trim() && !isMockEntry(t)) {
+                const matchBcastId = `bcast_match_${t.id}`;
+                if (sUrl && sUrl.trim() && !declinedIds.has(matchBcastId) && !isMockEntry(t)) {
                   const val = validateLiveStreamUrl(sUrl);
-                  if (val.isValid && !Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl)) {
-                    map.set(`bcast_match_${t.id}`, {
-                      id: `bcast_match_${t.id}`,
+                  if (val.isValid && !declinedIds.has(val.normalizedUrl) && !Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl)) {
+                    map.set(matchBcastId, {
+                      id: matchBcastId,
                       title: `${t.title || 'Tournament'} - Official Stream`,
                       tournament: t.title || 'Tournament Match',
                       streamUrl: val.normalizedUrl,
@@ -340,73 +319,6 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       checkTourneys('lt_admin_hosting_requests');
       checkTourneys('lt_user_hosted_tourneys');
       checkTourneys('lt_admin_scrims_requests');
-
-      // Guarantee continuous authentic live requests if no external requests pending
-      if (map.size === 0) {
-        const authenticLiveCasters = [
-          {
-            id: 'bcast_live_mortal',
-            title: 'BGMI Pro Championship Grand Finals • Cast by Mortal',
-            tournament: 'BGMI Pro Championship',
-            streamUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
-            organizerName: 'Mortal (Naman Mathur)',
-            creator: 'Mortal (Naman Mathur)',
-            channel: 'Mortal Official Live',
-            requestedSlot: 'Slot 1 Prime Arena Feed',
-            language: 'Hindi',
-            organizerClan: 'Team Soul',
-            clan: 'Team Soul',
-            game: 'Battlegrounds Mobile India',
-            tournamentType: 'Pro Championship League',
-            email: 'mortal@teamsoul.in',
-            status: 'LIVE ON AIR',
-            submittedAt: new Date(Date.now() - 2 * 60000).toISOString(),
-            isUserSubmitted: true,
-            isLive: true
-          },
-          {
-            id: 'bcast_live_scout',
-            title: 'Daily Practice Scrims Tier-1 • ScoutOP Cast Lobby',
-            tournament: 'Daily Practice Scrims Tier-1',
-            streamUrl: 'https://www.youtube.com/watch?v=7gDY0aMv2y8',
-            organizerName: 'ScoutOP (Tanmay Singh)',
-            creator: 'ScoutOP (Tanmay Singh)',
-            channel: 'ScoutOP Live',
-            requestedSlot: 'Slot 2 Scrims Arena',
-            language: 'Hindi',
-            organizerClan: 'Team XSpark',
-            clan: 'Team XSpark',
-            game: 'Battlegrounds Mobile India',
-            tournamentType: 'Tier-1 Practice Scrims',
-            email: 'scout@s8ul.gg',
-            status: 'LIVE ON AIR',
-            submittedAt: new Date(Date.now() - 8 * 60000).toISOString(),
-            isUserSubmitted: true,
-            isLive: true
-          },
-          {
-            id: 'bcast_live_jonathan',
-            title: 'Free Fire MAX Masters Clutch Cup • Jonathan Cast',
-            tournament: 'Clutch Series Masters',
-            streamUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            organizerName: 'Jonathan (Jonathan Amaral)',
-            creator: 'Jonathan (Jonathan Amaral)',
-            channel: 'Jonathan Gaming',
-            requestedSlot: 'Slot 3 Masters Arena',
-            language: 'Hindi / English',
-            organizerClan: 'GodLike Esports',
-            clan: 'GodLike Esports',
-            game: 'Free Fire MAX',
-            tournamentType: 'Squad Survival Cup',
-            email: 'jonathan@godlike.in',
-            status: 'LIVE ON AIR',
-            submittedAt: new Date(Date.now() - 15 * 60000).toISOString(),
-            isUserSubmitted: true,
-            isLive: true
-          }
-        ];
-        authenticLiveCasters.forEach(r => map.set(r.id, r));
-      }
 
       return Array.from(map.values());
     } catch (e) {
@@ -599,7 +511,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       'lt_admin_all_tournaments',
       'lt_active_match_rooms',
       'lt_admin_tournaments',
-      'lt_payments_history'
+      'lt_payments_history',
+      'lt_broadcast_requests',
+      'lt_admin_broadcast_requests',
+      'lt_admin_result_verifications',
+      'lt_admin_contact_messages',
+      'lt_finished_matches',
+      'lt_user_hosted_tourneys',
+      'lt_user_transactions',
+      'lt_user_tournament_history'
     ];
     keys.forEach(k => {
       try {
@@ -622,6 +542,9 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setTournaments(prev => prev.filter(r => !isMockEntry(r)));
     setAllTournamentsList(prev => prev.filter(r => !isMockEntry(r)));
     setActiveMatchRooms(prev => prev.filter(r => !isMockEntry(r)));
+    setBroadcastRequests(prev => prev.filter(r => !isMockEntry(r)));
+    setResultVerifications(prev => prev.filter(r => !isMockEntry(r)));
+    setContactMessages(prev => prev.filter(r => !isMockEntry(r)));
   }, []);
 
   // Sync real user submissions from competitor portal in real time across all request queues via Socket & BroadcastChannel
@@ -1096,9 +1019,17 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleDeclineBroadcastRequest = (id) => {
-    const remaining = broadcastRequests.filter(b => b.id !== id);
-    setBroadcastRequests(remaining);
     try {
+      const declined = getDeclinedBroadcastIds();
+      if (!declined.includes(id)) {
+        declined.push(id);
+        localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(declined));
+      }
+      if (id === 'bcast_user_active') {
+        localStorage.removeItem('lt_user_live_stream_url');
+      }
+      const remaining = broadcastRequests.filter(b => b.id !== id);
+      setBroadcastRequests(remaining);
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(remaining));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(remaining));
       window.dispatchEvent(new Event('storage'));

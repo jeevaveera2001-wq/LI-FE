@@ -51,7 +51,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const isUserMock = (id) => {
     if (!id) return true;
     const str = String(id);
-    return str === 'bgmi-sd-reg-01' || str === 'scrim-tier1-01' || str.startsWith('mock_') || str.startsWith('demo_');
+    return str === 'bgmi-sd-reg-01' || str === 'scrim-tier1-01' || str.startsWith('mock_') || str.startsWith('demo_') || str.startsWith('tx_init_') || str.startsWith('hist_') || str === 'host_bgmi_pro_1';
   };
 
   // Joined Tournaments (User Registrations)
@@ -78,28 +78,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         if (Array.isArray(parsed)) return parsed.filter(t => !isUserMock(t.id));
       } catch (e) {}
     }
-    return [
-      {
-        id: 'host_bgmi_pro_1',
-        title: 'BGMI Community Clan Showdown 2026',
-        game: 'Battlegrounds Mobile India',
-        type: 'TOURNAMENT',
-        format: 'Squad (Erangel + Miramar)',
-        slots: '25 Squads (100 Players)',
-        registeredSquads: 25,
-        slotCap: 25,
-        prize: '₹ 10,000 INR',
-        timing: 'Today at 8:00 PM IST',
-        thumbnail: '/assets/tournament_bgmi_showdown_4k.jpg',
-        tier: 'standard',
-        channelLink: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
-        roomCode: 'LT-882194',
-        roomPass: '9921',
-        status: 'APPROVED',
-        whatsApp: '9840192831',
-        createdAt: '2026-11-20T10:00:00.000Z'
-      }
-    ];
+    return [];
   });
 
   // User Scrims
@@ -120,64 +99,24 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('lt_user_transactions');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(t => !isUserMock(t.id));
+      } catch (e) {}
     }
-    return [
-      {
-        id: 'tx_init_1',
-        description: 'Tournament Room Launch: BGMI Showdown (Standard 25 Squads)',
-        amount: 10,
-        type: 'DEBIT',
-        category: 'Tournament Room',
-        status: 'PAID',
-        date: 'Today, 2:30 PM',
-        reference: 'RZP_TEST_9832718921',
-        gateway: 'Razorpay Test Mode'
-      },
-      {
-        id: 'tx_init_2',
-        description: 'LT Championship Trophy VIP Pre-Registration Slot',
-        amount: 199,
-        type: 'DEBIT',
-        category: 'Championship Pre-Reg',
-        status: 'PAID',
-        date: 'Yesterday, 6:15 PM',
-        reference: 'RZP_TEST_7718293012',
-        gateway: 'Razorpay Test Mode'
-      }
-    ];
+    return [];
   });
 
   // Tournament Room History (Completed past rooms)
   const [tournamentHistory, setTournamentHistory] = useState(() => {
     const saved = localStorage.getItem('lt_user_tournament_history');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(t => !isUserMock(t.id));
+      } catch (e) {}
     }
-    return [
-      {
-        id: 'hist_1',
-        title: 'Free Fire MAX Pro Clan Scrimmage - Season 4',
-        game: 'Free Fire MAX',
-        date: 'Nov 18, 2026',
-        winnerClan: 'Team Total Gaming',
-        squadsJoined: '25/25 Squads',
-        totalKills: 142,
-        prizeDistributed: '₹ 5,000 INR',
-        status: 'COMPLETED'
-      },
-      {
-        id: 'hist_2',
-        title: 'BGMI Weekend Clan Bash - Erangel Edition',
-        game: 'Battlegrounds Mobile India',
-        date: 'Nov 14, 2026',
-        winnerClan: 'GodLike Esports',
-        squadsJoined: '25/25 Squads',
-        totalKills: 188,
-        prizeDistributed: '₹ 8,000 INR',
-        status: 'COMPLETED'
-      }
-    ];
+    return [];
   });
 
   // In-Page Modal State for Tournament Room Conducting (₹10)

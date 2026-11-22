@@ -334,9 +334,9 @@ export default function App() {
                   <NewsletterSection />
                   <GamesSection />
                   <FeaturedTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
-                  <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <ChampionshipTrophySection onNavigate={navigateTo} />
                   <HostTournamentsSection onNavigate={navigateTo} currentUser={currentUser} />
+                  <PreviousFinishedMatchesSection onNavigate={navigateTo} currentUser={currentUser} />
                   <RecapsSection />
                   <PartnersSection onNavigate={navigateTo} />
                   <ContactUsSection onNavigate={navigateTo} currentUser={currentUser} />
