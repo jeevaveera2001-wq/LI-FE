@@ -153,6 +153,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [conductFormat, setConductFormat] = useState('Squad (Erangel + Miramar)');
   const [conductSlots, setConductSlots] = useState('25 Squads (100 Players)');
   const [conductPrize, setConductPrize] = useState('₹ 5,000 INR');
+  const [conductEntryFee, setConductEntryFee] = useState('₹ 50 / Squad');
   const [conductTiming, setConductTiming] = useState(() => {
     const d = new Date();
     return `${d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })} at 8:00 PM IST`;
@@ -160,6 +161,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [conductWhatsApp, setConductWhatsApp] = useState('');
   const [conductLiveUrl, setConductLiveUrl] = useState('');
   const [conductThumbnail, setConductThumbnail] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
+  const [conductRoomCode, setConductRoomCode] = useState('');
+  const [conductRoomPass, setConductRoomPass] = useState('');
 
   // Full-Page Registration State for Daily Scrims Conducting
   const [isConductingScrim, setIsConductingScrim] = useState(false);
@@ -167,6 +170,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [scrimTime, setScrimTime] = useState('19:00');
   const [scrimTitle, setScrimTitle] = useState('');
   const [scrimGame, setScrimGame] = useState('Battlegrounds Mobile India');
+  const [scrimEntryFee, setScrimEntryFee] = useState('FREE ENTRY');
   const [scrimTiming, setScrimTiming] = useState(() => {
     const d = new Date();
     return `${d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })} at 7:00 PM IST`;
@@ -174,6 +178,11 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [scrimWhatsApp, setScrimWhatsApp] = useState('');
   const [scrimLiveUrl, setScrimLiveUrl] = useState('');
   const [scrimThumbnail, setScrimThumbnail] = useState('/assets/tournament_bgmi_lan_warriors_4k.jpg');
+  const [scrimRoomCode, setScrimRoomCode] = useState('');
+  const [scrimRoomPass, setScrimRoomPass] = useState('');
+
+  // Modal State for Launched Room Success Confirmation
+  const [launchedRoomSuccess, setLaunchedRoomSuccess] = useState(null);
 
   // Dynamic Pricing from Platform Settings
   const [platformPricing, setPlatformPricing] = useState(() => {
@@ -736,6 +745,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         registeredSquads: 1,
         slotCap: 25,
         prize: conductPrize || '₹ 5,000 INR',
+        entryFee: conductEntryFee || '₹ 50 / Squad',
         timing: conductTiming,
         thumbnail: conductThumbnail,
         tier: isVipBypass ? 'VIP' : 'standard',
@@ -847,33 +857,45 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
 
       // Dispatch Email Receipt & Room Launch Confirmation
-      await sendPaymentReceiptEmail({
-        email: displayEmail,
-        name: displayName,
-        service: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : currentFee,
-        paymentId
-      });
-      await sendRoomConductedEmail({
-        email: displayEmail,
-        name: displayName,
-        title: conductTitle,
-        type: 'TOURNAMENT',
-        game: conductGame,
-        roomCode: conductRoomCode,
-        roomPass: conductRoomPass,
-        channelLink: conductLiveUrl,
-        amountPaid: isVipBypass ? 0 : currentFee,
-        paymentId
-      });
+      try {
+        await sendPaymentReceiptEmail({
+          email: displayEmail,
+          name: displayName,
+          service: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+          amount: isVipBypass ? 0 : currentFee,
+          paymentId
+        });
+      } catch (err) {
+        console.warn('Payment receipt email warning:', err);
+      }
 
+      try {
+        await sendRoomConductedEmail({
+          email: displayEmail,
+          name: displayName,
+          title: conductTitle,
+          type: 'TOURNAMENT',
+          game: conductGame,
+          roomCode: conductRoomCode || 'Credentials releasing on Match Day',
+          roomPass: conductRoomPass || 'Credentials releasing on Match Day',
+          channelLink: conductLiveUrl,
+          amountPaid: isVipBypass ? 0 : currentFee,
+          paymentId
+        });
+      } catch (err) {
+        console.warn('Room conducted email warning:', err);
+      }
+
+      setIsProcessingPayment(false);
       setIsConductingTournament(false);
+      setLaunchedRoomSuccess(newRoom);
       showToast(isVipBypass ? '🎉 Tournament Room launched & approved instantly with VIP Clearance!' : '🎉 Tournament Room launched! Awaiting Admin approval. Confirmation email sent.');
       
       // Reset form fields
       setConductTitle('');
     };
 
+    setIsProcessingPayment(true);
     if (hasTourneyClearance) {
       processTournamentSuccess('VIP_CLEARANCE_WAIVER_' + Date.now(), true);
       return;
@@ -924,6 +946,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         registeredSquads: 1,
         slotCap: 25,
         prize: 'Tier-1 Practice Lobby',
+        entryFee: scrimEntryFee || 'FREE ENTRY',
         timing: scrimTiming,
         schedule: scrimTiming,
         thumbnail: scrimThumbnail,
@@ -1036,32 +1059,44 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       setTransactions(updatedTxs);
       localStorage.setItem('lt_user_transactions', JSON.stringify(updatedTxs));
 
-      await sendPaymentReceiptEmail({
-        email: displayEmail,
-        name: displayName,
-        service: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : currentScrimFee,
-        paymentId
-      });
-      await sendRoomConductedEmail({
-        email: displayEmail,
-        name: displayName,
-        title: scrimTitle,
-        type: 'SCRIM',
-        game: scrimGame,
-        roomCode: scrimRoomCode,
-        roomPass: scrimRoomPass,
-        channelLink: scrimLiveUrl,
-        amountPaid: isVipBypass ? 0 : currentScrimFee,
-        paymentId
-      });
+      try {
+        await sendPaymentReceiptEmail({
+          email: displayEmail,
+          name: displayName,
+          service: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
+          amount: isVipBypass ? 0 : currentScrimFee,
+          paymentId
+        });
+      } catch (err) {
+        console.warn('Payment receipt email warning:', err);
+      }
 
+      try {
+        await sendRoomConductedEmail({
+          email: displayEmail,
+          name: displayName,
+          title: scrimTitle,
+          type: 'SCRIM',
+          game: scrimGame,
+          roomCode: scrimRoomCode || 'Credentials releasing on Match Day',
+          roomPass: scrimRoomPass || 'Credentials releasing on Match Day',
+          channelLink: scrimLiveUrl,
+          amountPaid: isVipBypass ? 0 : currentScrimFee,
+          paymentId
+        });
+      } catch (err) {
+        console.warn('Room conducted email warning:', err);
+      }
+
+      setIsProcessingPayment(false);
       setIsConductingScrim(false);
+      setLaunchedRoomSuccess(newScrim);
       showToast(isVipBypass ? '🎉 Daily Scrim created & approved instantly with VIP Clearance!' : '🎉 Daily Scrim created! Awaiting Admin approval. Confirmation email sent.');
 
       setScrimTitle('');
     };
 
+    setIsProcessingPayment(true);
     if (hasScrimClearance) {
       processScrimSuccess('VIP_CLEARANCE_WAIVER_' + Date.now(), true);
       return;
@@ -1541,18 +1576,6 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Sync Telemetry Button */}
-            <button
-              onClick={handleSyncLive}
-              disabled={isSyncing}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#D1D1D1]/80 text-[#4B5563] hover:bg-[#F3F4F6] text-[11px] font-semibold transition-colors cursor-pointer"
-            >
-              <span className={`material-symbols-outlined text-[14px] text-emerald-600 ${isSyncing ? 'animate-spin' : ''}`}>
-                sync
-              </span>
-              <span>{isSyncing ? 'Syncing...' : 'Live Sync'}</span>
-            </button>
-
             {/* Notification Center Trigger Bell in Dashboard Header */}
             <button
               onClick={() => window.dispatchEvent(new Event('lt_toggle_notifications'))}
@@ -1946,6 +1969,44 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     </div>
 
                     <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                          Room Entry Fee (Per Squad / Player) *
+                        </label>
+                        <span className="text-[10px] text-emerald-600 font-semibold font-mono">
+                          {conductEntryFee === 'FREE ENTRY' || conductEntryFee === 'FREE' || conductEntryFee === '0' ? 'Free for Players' : 'Paid Entry'}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        value={conductEntryFee}
+                        onChange={(e) => setConductEntryFee(e.target.value)}
+                        placeholder="e.g. ₹ 50 / Squad or FREE ENTRY"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span className="text-[10px] text-gray-400 font-medium">Presets:</span>
+                        {['FREE ENTRY', '₹ 20 / Player', '₹ 50 / Squad', '₹ 100 / Squad'].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setConductEntryFee(preset)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                              conductEntryFee === preset
+                                ? 'bg-[#1F2937] text-[#DFBD78] border-[#1F2937] shadow-xs'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
                         Host WhatsApp Number (10 Digits) *
                       </label>
@@ -1961,20 +2022,20 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       />
                       <span className="text-[10px] text-gray-400 mt-0.5 block">{conductWhatsApp.length}/10 digits</span>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      Live Stream URL (Where you will broadcast match)
-                    </label>
-                    <input
-                      type="url"
-                      value={conductLiveUrl}
-                      onChange={(e) => setConductLiveUrl(e.target.value)}
-                      placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1">Must start with <strong>www.</strong> or <strong>https://</strong> and contain <strong>youtube</strong></p>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        Live Stream URL (Where you will broadcast match)
+                      </label>
+                      <input
+                        type="url"
+                        value={conductLiveUrl}
+                        onChange={(e) => setConductLiveUrl(e.target.value)}
+                        placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                      />
+                      <p className="text-[10px] text-gray-500 mt-1">Must start with <strong>www.</strong> or <strong>https://</strong> and contain <strong>youtube</strong></p>
+                    </div>
                   </div>
                 </div>
 
@@ -2063,24 +2124,40 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                 {/* Total & Checkout Action */}
                 <div className="p-4 rounded-2xl bg-gray-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Tournament Room Fee</span>
-                    {hasTourneyClearance ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 10 INR</span>
-                        <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
-                      </div>
-                    ) : (
-                      <span className="text-2xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
-                    )}
+                  <div className="flex items-center gap-6 flex-wrap">
+                    <div>
+                      <span className="text-[10px] text-gray-400 uppercase font-bold block">Tournament Room Fee (Hosting)</span>
+                      {hasTourneyClearance ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 10 INR</span>
+                          <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
+                        </div>
+                      ) : (
+                        <span className="text-2xl font-black font-mono text-[#DFBD78]">₹ 10 INR</span>
+                      )}
+                    </div>
+
+                    <div className="border-l border-gray-700/80 pl-5">
+                      <span className="text-[10px] text-gray-400 uppercase font-bold block">Participant Room Entry Fee</span>
+                      <span className="text-base font-black font-mono text-amber-300">
+                        {conductEntryFee || '₹ 50 / Squad'}
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="submit"
                     disabled={isProcessingPayment}
-                    className="px-8 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50"
+                    className="px-8 py-3 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {isProcessingPayment ? 'Connecting...' : (hasTourneyClearance ? '🚀 Launch Room Instantly (VIP Clearance - ₹0)' : 'Pay ₹10 & Register Tournament Room')}
+                    {isProcessingPayment ? (
+                      <>
+                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                        <span>Launching Room...</span>
+                      </>
+                    ) : (
+                      hasTourneyClearance ? '🚀 Launch Room Instantly (VIP Clearance - ₹0)' : 'Pay ₹10 & Register Tournament Room'
+                    )}
                   </button>
                 </div>
               </form>
@@ -2137,9 +2214,15 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       <div key={h.id} className="bg-white rounded-[16px] p-6 border border-gray-200 shadow-sm space-y-4">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
                                 TOURNAMENT ROOM
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-50 text-amber-900 border border-amber-300 font-mono">
+                                Entry: {h.entryFee || '₹ 50 / Squad'}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono">
+                                Prize: {h.prize || '₹ 5,000 INR'}
                               </span>
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                                 h.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
@@ -2523,6 +2606,42 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                          Scrim Room Entry Fee *
+                        </label>
+                        <span className="text-[10px] text-blue-600 font-semibold font-mono">
+                          {scrimEntryFee === 'FREE ENTRY' || scrimEntryFee === 'FREE' || scrimEntryFee === '0' ? 'Free for Players' : 'Paid Scrims'}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        value={scrimEntryFee}
+                        onChange={(e) => setScrimEntryFee(e.target.value)}
+                        placeholder="e.g. FREE ENTRY or ₹ 20 / Team"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                        required
+                      />
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span className="text-[10px] text-gray-400 font-medium">Presets:</span>
+                        {['FREE ENTRY', '₹ 10 / Squad', '₹ 20 / Team', '₹ 50 / Squad'].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setScrimEntryFee(preset)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                              scrimEntryFee === preset
+                                ? 'bg-blue-900 text-white border-blue-900 shadow-xs'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
                         Host WhatsApp Number (10 Digits) *
                       </label>
@@ -2538,19 +2657,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       />
                       <span className="text-[10px] text-gray-400 mt-0.5 block">{scrimWhatsApp.length}/10 digits</span>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Live Stream Link (YouTube)
-                      </label>
-                      <input
-                        type="url"
-                        value={scrimLiveUrl}
-                        onChange={(e) => setScrimLiveUrl(e.target.value)}
-                        placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Live Stream Link (YouTube)
+                    </label>
+                    <input
+                      type="url"
+                      value={scrimLiveUrl}
+                      onChange={(e) => setScrimLiveUrl(e.target.value)}
+                      placeholder="www.youtube.com/watch?v=... or https://www.youtube.com/..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                    />
                   </div>
                 </div>
 
@@ -2639,17 +2758,26 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                 {/* Total & Checkout Action */}
                 <div className="p-4 rounded-2xl bg-blue-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] text-blue-300 uppercase font-bold block">Daily Scrim Fee</span>
-                    {hasScrimClearance ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 50 INR</span>
-                        <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
-                      </div>
-                    ) : (
-                      <span className="text-2xl font-black font-mono text-white">₹ 50 INR</span>
-                    )}
+                  <div className="flex items-center gap-6 flex-wrap">
+                    <div>
+                      <span className="text-[10px] text-blue-300 uppercase font-bold block">Daily Scrim Fee (Hosting)</span>
+                      {hasScrimClearance ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 50 INR</span>
+                          <span className="text-2xl font-black font-mono text-emerald-400">FREE</span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9px] font-bold uppercase">Admin VIP Clearance</span>
+                        </div>
+                      ) : (
+                        <span className="text-2xl font-black font-mono text-white">₹ 50 INR</span>
+                      )}
+                    </div>
+
+                    <div className="border-l border-blue-800/80 pl-5">
+                      <span className="text-[10px] text-blue-300 uppercase font-bold block">Participant Scrim Entry Fee</span>
+                      <span className="text-base font-black font-mono text-emerald-300">
+                        {scrimEntryFee || 'FREE ENTRY'}
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -2740,10 +2868,15 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {hostedTournaments.filter(h => h.type === 'SCRIM').map((s) => (
                       <div key={s.id} className="bg-white rounded-[12px] p-5 border border-purple-200 bg-purple-50/20 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
-                            SCRIM CONDUCTOR
-                          </span>
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">
+                              SCRIM CONDUCTOR
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-800 border border-blue-200 font-mono">
+                              Entry: {s.entryFee || 'FREE ENTRY'}
+                            </span>
+                          </div>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             s.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                           }`}>
@@ -4022,6 +4155,89 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               <span>Live Cloud Synchronized &bull; Active across all your devices</span>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          TOURNAMENT & SCRIM ROOM LAUNCH SUCCESS MODAL
+          ======================================================== */}
+      {launchedRoomSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-[24px] bg-white border-2 border-[#DFBD78] p-6 sm:p-8 text-gray-900 shadow-2xl overflow-hidden space-y-5 text-center">
+            {/* Top decorative gradient bar */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#DFBD78] via-[#B89647] to-[#8C6D2D]"></div>
+
+            <div className="size-16 rounded-full bg-emerald-50 border-2 border-emerald-300 flex items-center justify-center mx-auto text-emerald-600 shadow-sm">
+              <span className="material-symbols-outlined text-4xl">check_circle</span>
+            </div>
+
+            <div>
+              <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-black uppercase tracking-wider border border-emerald-300 inline-block">
+                {launchedRoomSuccess.tier === 'VIP' ? '✓ Instant VIP Clearance Active' : '✓ Room Registered & Active'}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-gray-900 mt-2.5">
+                {launchedRoomSuccess.type === 'SCRIM' ? 'Daily Scrim Launched!' : 'Tournament Room Launched!'}
+              </h3>
+              <p className="text-xs text-gray-600 mt-1">
+                Your match room is officially registered on LiveTournaments.in and available for player entry.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-4 sm:p-5 border border-gray-200 text-left space-y-2.5 text-xs">
+              <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                <span className="text-gray-500 font-medium">Match Heading</span>
+                <span className="font-bold text-gray-900 truncate max-w-[220px]">{launchedRoomSuccess.title}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                <span className="text-gray-500 font-medium">Game Category</span>
+                <span className="font-bold text-gray-800">{launchedRoomSuccess.game}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                <span className="text-gray-500 font-medium">Participant Entry Fee</span>
+                <span className="font-black font-mono text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-300">
+                  {launchedRoomSuccess.entryFee || '₹ 50 / Squad'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                <span className="text-gray-500 font-medium">Prize Pool</span>
+                <span className="font-black font-mono text-gray-900">{launchedRoomSuccess.prize}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                <span className="text-gray-500 font-medium">Schedule</span>
+                <span className="font-semibold text-amber-800">{launchedRoomSuccess.timing}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 font-medium">Host WhatsApp</span>
+                <span className="font-mono font-bold text-gray-900">{launchedRoomSuccess.whatsApp}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <button
+                onClick={() => {
+                  const targetType = launchedRoomSuccess.type;
+                  setLaunchedRoomSuccess(null);
+                  setIsConductingTournament(false);
+                  setIsConductingScrim(false);
+                  setActiveTab(targetType === 'SCRIM' ? 'scrims' : 'rooms');
+                }}
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#DFBD78] to-[#C5A059] hover:brightness-105 text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+                <span>View Conducted Rooms</span>
+              </button>
+              <button
+                onClick={() => {
+                  setLaunchedRoomSuccess(null);
+                  setIsConductingTournament(false);
+                  setIsConductingScrim(false);
+                }}
+                className="w-full sm:w-auto py-3 px-5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
