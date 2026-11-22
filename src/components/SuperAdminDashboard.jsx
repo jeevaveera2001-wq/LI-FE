@@ -4,6 +4,13 @@ import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTourname
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 import { DEFAULT_CARD_SLOTS, getCardSlotsFromStorage, saveCardSlot, resetCardSlot } from '../utils/broadcastSlots';
 import { emitRealtimeEvent, subscribeRealtimeEvents, playAdminChime } from '../utils/realtimeSync';
+import {
+  fetchCloudBroadcastRequests,
+  declineCloudBroadcastRequest,
+  assignCloudBroadcastToSlot,
+  fetchCloudCardSlots,
+  fetchCloudHostingRequests
+} from '../services/cloudSync';
 
 /**
  * LiveTournaments.in Command Center
@@ -568,6 +575,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         // 4. Broadcast Requests
         const bcasts = loadBroadcastRequestsFromStorage();
         setBroadcastRequests(bcasts);
+
+        // Active Cloud Database Sync for Broadcast Requests across all devices and sessions
+        fetchCloudBroadcastRequests().then(cloudRequests => {
+          if (Array.isArray(cloudRequests) && cloudRequests.length > 0) {
+            setBroadcastRequests(prev => {
+              const map = new Map();
+              cloudRequests.forEach(r => {
+                if (r && (r.id || r.streamUrl)) map.set(r.id || r.streamUrl, r);
+              });
+              prev.forEach(r => {
+                const k = r.id || r.streamUrl;
+                if (!map.has(k)) map.set(k, r);
+              });
+              return Array.from(map.values());
+            });
+          }
+        }).catch(() => {});
         // 5. Result Verifications
         const resRaw = localStorage.getItem('lt_admin_result_verifications');
         if (resRaw) {
@@ -716,8 +740,29 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       'lt_broadcast_approved'
     ];
     eventNames.forEach(evt => window.addEventListener(evt, syncAllUserSubmissions));
+
+    // Universal Cloud Database Polling Interval (2.5s) to guarantee real-time updates across disparate devices and browsers
+    const cloudPollInterval = setInterval(() => {
+      fetchCloudBroadcastRequests().then(cloudRequests => {
+        if (Array.isArray(cloudRequests) && cloudRequests.length > 0) {
+          setBroadcastRequests(prev => {
+            const map = new Map();
+            cloudRequests.forEach(r => {
+              if (r && (r.id || r.streamUrl)) map.set(r.id || r.streamUrl, r);
+            });
+            prev.forEach(r => {
+              const k = r.id || r.streamUrl;
+              if (!map.has(k)) map.set(k, r);
+            });
+            return Array.from(map.values());
+          });
+        }
+      }).catch(() => {});
+    }, 2500);
+
     return () => {
       unsubscribeSocket();
+      clearInterval(cloudPollInterval);
       eventNames.forEach(evt => window.removeEventListener(evt, syncAllUserSubmissions));
     };
   }, []);
@@ -1016,6 +1061,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
     saveCardSlot(targetSlot, streamData);
     setAdminCardSlots(getCardSlotsFromStorage());
+    assignCloudBroadcastToSlot(id, targetSlot, streamData);
 
     setActiveBroadcasts(prev => [
       {
@@ -1127,6 +1173,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       setBroadcastRequests(remaining);
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(remaining));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(remaining));
+      declineCloudBroadcastRequest(id);
       window.dispatchEvent(new Event('storage'));
     } catch (e) {}
     showToast(`✕ Broadcast request declined`);

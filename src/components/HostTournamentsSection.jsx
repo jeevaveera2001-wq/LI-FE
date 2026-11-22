@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { getYouTubeEmbedUrl } from '../utils/urlValidator';
 import { getCardSlotsFromStorage } from '../utils/broadcastSlots';
+import { fetchCloudCardSlots } from '../services/cloudSync';
 
 export default function HostTournamentsSection({ onNavigate, currentUser }) {
   const [cardSlots, setCardSlots] = useState(() => getCardSlotsFromStorage());
 
   useEffect(() => {
+    // Fetch slots from MongoDB cloud database
+    fetchCloudCardSlots().then(slots => {
+      if (Array.isArray(slots) && slots.length === 4) {
+        setCardSlots(slots);
+      }
+    }).catch(() => {});
+
     const handleUpdate = () => {
       setCardSlots(getCardSlotsFromStorage());
+      fetchCloudCardSlots().then(slots => {
+        if (Array.isArray(slots) && slots.length === 4) {
+          setCardSlots(slots);
+        }
+      }).catch(() => {});
     };
 
     window.addEventListener('storage', handleUpdate);

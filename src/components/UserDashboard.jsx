@@ -7,6 +7,7 @@ import {
 } from '../utils/emailService';
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 import { emitRealtimeEvent, subscribeRealtimeEvents } from '../utils/realtimeSync';
+import { submitCloudBroadcastRequest, submitCloudHostingRequest } from '../services/cloudSync';
 
 export default function UserDashboard({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
   // Navigation Tabs strictly ordered:
@@ -426,6 +427,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           window.dispatchEvent(new Event('lt_room_requested'));
           window.dispatchEvent(new Event('lt_hosting_requested'));
           emitRealtimeEvent('HOSTING_REQUESTED', newRoom);
+          submitCloudHostingRequest(newRoom);
 
           // If a broadcast stream URL was provided during hosting, register it in broadcast requests
           if (conductLiveUrl && conductLiveUrl.trim()) {
@@ -472,6 +474,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
               emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
+              submitCloudBroadcastRequest(streamReq);
             }
           }
         } catch (err) {}
@@ -599,6 +602,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new Event('lt_scrim_requested'));
           emitRealtimeEvent('SCRIM_REQUESTED', newScrim);
+          submitCloudHostingRequest(newScrim);
 
           // If a broadcast stream URL was provided during scrim hosting, register it in broadcast requests
           if (scrimLiveUrl && scrimLiveUrl.trim()) {
@@ -645,6 +649,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
               window.dispatchEvent(new Event('storage'));
               window.dispatchEvent(new Event('lt_broadcast_requested'));
               emitRealtimeEvent('BROADCAST_REQUESTED', streamReq);
+              submitCloudBroadcastRequest(streamReq);
             }
           }
         } catch (err) {}
@@ -890,6 +895,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('lt_broadcast_requested'));
       emitRealtimeEvent('BROADCAST_REQUESTED', newReq);
+      submitCloudBroadcastRequest(newReq);
     } catch (err) {}
 
     // Dispatch update event so Home Arena live stream reflects change immediately
