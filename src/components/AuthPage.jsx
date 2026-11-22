@@ -447,8 +447,9 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       setErrorMessage('Please enter a valid email address.');
       return;
     }
-    if (!regMobile || regMobile.trim().length < 7) {
-      setErrorMessage('Please enter a valid mobile number.');
+    const cleanMobile = (regMobile || '').replace(/\D/g, '');
+    if (cleanMobile.length !== 10) {
+      setErrorMessage('Mobile number must be exactly 10 digits (e.g. 9876543210).');
       return;
     }
     if (!regPassword || regPassword.length < 6) {
@@ -1191,16 +1192,19 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
 
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-white/70 mb-0.5">
-                Mobile Number
+                Mobile Number (10 Digits)
               </label>
               <input
                 type="tel"
+                maxLength={10}
+                pattern="[0-9]{10}"
                 value={regMobile}
-                onChange={(e) => setRegMobile(e.target.value)}
-                placeholder="WhatsApp / Phone"
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs outline-none transition-all"
+                onChange={(e) => setRegMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10-digit mobile number"
+                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/15 focus:border-gold-primary focus:bg-white/10 text-white placeholder-white/30 text-xs font-mono outline-none transition-all"
                 required
               />
+              <span className="text-[9px] text-white/40 mt-0.5 block">{regMobile.length}/10 digits</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">

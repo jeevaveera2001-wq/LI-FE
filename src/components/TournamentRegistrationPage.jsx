@@ -91,8 +91,9 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
       return;
     }
 
-    if (!whatsapp.trim()) {
-      setFormError('Please provide a valid WhatsApp number for room ID and password dispatch.');
+    const cleanWa = (whatsapp || '').replace(/\D/g, '');
+    if (cleanWa.length !== 10) {
+      setFormError('WhatsApp / Phone number must be exactly 10 digits (e.g. 9876543210).');
       return;
     }
 
@@ -522,16 +523,19 @@ export default function TournamentRegistrationPage({ tourney, onNavigate, curren
 
                       <div className={isSolo ? 'sm:col-span-2' : ''}>
                         <label className="block text-xs font-bold text-gray-800 mb-1">
-                          WhatsApp Contact Number (For Room ID &amp; Credentials) <span className="text-rose-500">*</span>
+                          WhatsApp Contact Number (10 Digits) <span className="text-rose-500">*</span>
                         </label>
                         <input
                           type="tel"
                           required
-                          placeholder="WhatsApp / Phone"
+                          maxLength={10}
+                          pattern="[0-9]{10}"
+                          placeholder="e.g. 9840192831"
                           value={whatsapp}
-                          onChange={(e) => setWhatsapp(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden font-medium text-gray-900"
+                          onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-300 focus:border-gold-primary focus:outline-hidden font-medium text-gray-900 font-mono"
                         />
+                        <span className="text-[10px] text-gray-400 mt-0.5 block">{whatsapp.length}/10 digits</span>
                       </div>
                     </div>
                   </div>

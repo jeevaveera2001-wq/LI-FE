@@ -42,6 +42,11 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
       alert('Please fill Clan Name, Team Leader IGN, Email, and WhatsApp number.');
       return;
     }
+    const cleanWa = (whatsapp || '').replace(/\D/g, '');
+    if (cleanWa.length !== 10) {
+      alert('⚠️ WhatsApp / Mobile number must be exactly 10 digits (e.g. 9876543210).');
+      return;
+    }
     if (!email.includes('@')) {
       alert('Please enter a valid email address for championship details.');
       return;
@@ -424,16 +429,19 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      WhatsApp / Phone *
+                      WhatsApp / Phone (10 Digits) *
                     </label>
                     <input
                       type="tel"
                       required
+                      maxLength={10}
+                      pattern="[0-9]{10}"
                       value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="WhatsApp / Phone"
+                      onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="e.g. 9840192831"
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs font-mono transition-colors"
                     />
+                    <span className="text-[10px] text-gray-400 mt-0.5 block">{whatsapp.length}/10 digits</span>
                   </div>
                 </div>
               </div>

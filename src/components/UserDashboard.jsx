@@ -122,24 +122,119 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
   // Full-Page Registration State for Tournament Room Conducting (₹10)
   const [isConductingTournament, setIsConductingTournament] = useState(false);
+  const getTodayDateStr = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatTime12h = (time24) => {
+    if (!time24) return '8:00 PM';
+    const [h, m] = time24.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+  };
+
+  const [conductDate, setConductDate] = useState(() => getTodayDateStr());
+  const [conductTime, setConductTime] = useState('20:00');
   const [conductTitle, setConductTitle] = useState('');
   const [conductGame, setConductGame] = useState('Battlegrounds Mobile India');
   const [conductFormat, setConductFormat] = useState('Squad (Erangel + Miramar)');
   const [conductSlots, setConductSlots] = useState('25 Squads (100 Players)');
   const [conductPrize, setConductPrize] = useState('₹ 5,000 INR');
-  const [conductTiming, setConductTiming] = useState('Today at 8:00 PM IST');
+  const [conductTiming, setConductTiming] = useState(() => {
+    const d = new Date();
+    return `${d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })} at 8:00 PM IST`;
+  });
   const [conductWhatsApp, setConductWhatsApp] = useState('');
   const [conductLiveUrl, setConductLiveUrl] = useState('');
   const [conductThumbnail, setConductThumbnail] = useState('/assets/tournament_bgmi_showdown_4k.jpg');
 
-  // Full-Page Registration State for Daily Scrims Conducting (₹50)
+  // Full-Page Registration State for Daily Scrims Conducting
   const [isConductingScrim, setIsConductingScrim] = useState(false);
+  const [scrimDate, setScrimDate] = useState(() => getTodayDateStr());
+  const [scrimTime, setScrimTime] = useState('19:00');
   const [scrimTitle, setScrimTitle] = useState('');
   const [scrimGame, setScrimGame] = useState('Battlegrounds Mobile India');
-  const [scrimTiming, setScrimTiming] = useState('Daily at 7:00 PM IST');
+  const [scrimTiming, setScrimTiming] = useState(() => {
+    const d = new Date();
+    return `${d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })} at 7:00 PM IST`;
+  });
   const [scrimWhatsApp, setScrimWhatsApp] = useState('');
   const [scrimLiveUrl, setScrimLiveUrl] = useState('');
   const [scrimThumbnail, setScrimThumbnail] = useState('/assets/tournament_bgmi_lan_warriors_4k.jpg');
+
+  // Dynamic Pricing from Platform Settings
+  const [platformPricing, setPlatformPricing] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_platform_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.pricing) return parsed.pricing;
+      }
+    } catch (e) {}
+    return {
+      tournamentRoomFee: 10,
+      dailyScrimsFee: 50,
+      broadcastPassWeekly: 249,
+      broadcastPassPro: 549,
+      broadcastPassMonthly: 999,
+      featuredTournamentFee: 49
+    };
+  });
+
+  useEffect(() => {
+    const handleSettingsUpdate = () => {
+      try {
+        const saved = localStorage.getItem('lt_platform_settings');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed?.pricing) setPlatformPricing(parsed.pricing);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('lt_platform_settings_updated', handleSettingsUpdate);
+    window.addEventListener('storage', handleSettingsUpdate);
+    return () => {
+      window.removeEventListener('lt_platform_settings_updated', handleSettingsUpdate);
+      window.removeEventListener('storage', handleSettingsUpdate);
+    };
+  }, []);
+
+  const handleConductDateChange = (newDate) => {
+    setConductDate(newDate);
+    const dObj = new Date(newDate + 'T00:00:00');
+    const formattedDate = isNaN(dObj.getTime()) ? newDate : dObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = formatTime12h(conductTime);
+    setConductTiming(`${formattedDate} at ${formattedTime} IST`);
+  };
+
+  const handleConductTimeChange = (newTime) => {
+    setConductTime(newTime);
+    const dObj = new Date(conductDate + 'T00:00:00');
+    const formattedDate = isNaN(dObj.getTime()) ? conductDate : dObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = formatTime12h(newTime);
+    setConductTiming(`${formattedDate} at ${formattedTime} IST`);
+  };
+
+  const handleScrimDateChange = (newDate) => {
+    setScrimDate(newDate);
+    const dObj = new Date(newDate + 'T00:00:00');
+    const formattedDate = isNaN(dObj.getTime()) ? newDate : dObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = formatTime12h(scrimTime);
+    setScrimTiming(`${formattedDate} at ${formattedTime} IST`);
+  };
+
+  const handleScrimTimeChange = (newTime) => {
+    setScrimTime(newTime);
+    const dObj = new Date(scrimDate + 'T00:00:00');
+    const formattedDate = isNaN(dObj.getTime()) ? scrimDate : dObj.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = formatTime12h(newTime);
+    setScrimTiming(`${formattedDate} at ${formattedTime} IST`);
+  };
 
   // Match Day Custom Credentials Editing State (Host enters custom Room ID & Password on match day)
   const [credentialsModalRoom, setCredentialsModalRoom] = useState(null);
@@ -468,11 +563,17 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     }
   };
 
-  // 1. Submit In-Page Conduct Tournament Room (₹ 10)
+  // 1. Submit In-Page Conduct Tournament Room
   const handleConductTournamentSubmit = (e) => {
     e.preventDefault();
     if (!conductTitle || !conductTiming) {
       alert('Please fill in tournament heading and schedule timing.');
+      return;
+    }
+
+    const cleanWa = (conductWhatsApp || '').replace(/\D/g, '');
+    if (cleanWa.length !== 10) {
+      alert('⚠️ WhatsApp number must be exactly 10 digits (e.g. 9876543210).');
       return;
     }
 
@@ -483,6 +584,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         return;
       }
     }
+
+    const currentFee = platformPricing.tournamentRoomFee ?? 10;
 
     const processTournamentSuccess = async (paymentId, isVipBypass = false) => {
       const newRoom = {
@@ -500,13 +603,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         thumbnail: conductThumbnail,
         tier: isVipBypass ? 'VIP' : 'standard',
         channelLink: conductLiveUrl || 'https://www.youtube.com/@livetournament_in',
-        amountPaid: isVipBypass ? 0 : 10,
+        amountPaid: isVipBypass ? 0 : currentFee,
         paymentRef: paymentId,
         roomCode: '', // Host provides custom credentials on match day
         roomPass: '', // Host provides custom credentials on match day
         matchDayCredentialsProvided: false,
         status: isVipBypass ? 'APPROVED' : 'PENDING',
-        whatsApp: conductWhatsApp || '9876543210',
+        whatsApp: cleanWa,
         createdAt: new Date().toISOString(),
         hostUser: displayName,
         organizer: displayName,
@@ -594,7 +697,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       const newTx = {
         id: 'tx_' + Date.now(),
         description: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 10,
+        amount: isVipBypass ? 0 : currentFee,
         type: 'DEBIT',
         category: 'Tournament Room',
         status: 'PAID',
@@ -611,7 +714,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         email: displayEmail,
         name: displayName,
         service: `Tournament Room Conduct: ${conductTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 10,
+        amount: isVipBypass ? 0 : currentFee,
         paymentId
       });
       await sendRoomConductedEmail({
@@ -623,7 +726,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         roomCode: conductRoomCode,
         roomPass: conductRoomPass,
         channelLink: conductLiveUrl,
-        amountPaid: isVipBypass ? 0 : 10,
+        amountPaid: isVipBypass ? 0 : currentFee,
         paymentId
       });
 
@@ -640,19 +743,25 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     }
 
     triggerRazorpayCheckout({
-      amount: 10,
-      description: `Tournament Room Conduct: ${conductTitle} (₹10 Single Match)`,
+      amount: currentFee,
+      description: `Tournament Room Conduct: ${conductTitle} (₹${currentFee} Single Match)`,
       onSuccess: async (paymentId) => {
         await processTournamentSuccess(paymentId, false);
       }
     });
   };
 
-  // 2. Submit In-Page Conduct Daily Scrim (₹ 50)
+  // 2. Submit In-Page Conduct Daily Scrim
   const handleConductScrimSubmit = (e) => {
     e.preventDefault();
     if (!scrimTitle || !scrimTiming) {
       alert('Please fill in scrim title and timing.');
+      return;
+    }
+
+    const cleanScrimWa = (scrimWhatsApp || '').replace(/\D/g, '');
+    if (cleanScrimWa.length !== 10) {
+      alert('⚠️ WhatsApp number must be exactly 10 digits (e.g. 9876543210).');
       return;
     }
 
@@ -663,6 +772,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         return;
       }
     }
+
+    const currentScrimFee = platformPricing.dailyScrimsFee ?? 50;
 
     const processScrimSuccess = async (paymentId, isVipBypass = false) => {
       const newScrim = {
@@ -681,14 +792,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         thumbnail: scrimThumbnail,
         tier: isVipBypass ? 'VIP' : 'standard',
         channelLink: scrimLiveUrl || 'https://www.youtube.com/@livetournament_in',
-        amountPaid: isVipBypass ? 0 : 50,
+        amountPaid: isVipBypass ? 0 : currentScrimFee,
         paymentRef: paymentId,
         roomCode: '', // Host provides custom credentials on match day
         roomPass: '', // Host provides custom credentials on match day
         matchDayCredentialsProvided: false,
         status: isVipBypass ? 'APPROVED' : 'PENDING',
-        whatsApp: scrimWhatsApp || '9876543210',
-        contact: scrimWhatsApp || displayEmail,
+        whatsApp: cleanScrimWa,
+        contact: cleanScrimWa,
         clan: currentUser?.clan || displayName,
         organizer: displayName,
         createdAt: new Date().toISOString(),
@@ -776,7 +887,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       const newTx = {
         id: 'tx_' + Date.now(),
         description: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 50,
+        amount: isVipBypass ? 0 : currentScrimFee,
         type: 'DEBIT',
         category: 'Daily Scrim',
         status: 'PAID',
@@ -792,7 +903,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         email: displayEmail,
         name: displayName,
         service: `Daily Scrims Conduct: ${scrimTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 50,
+        amount: isVipBypass ? 0 : currentScrimFee,
         paymentId
       });
       await sendRoomConductedEmail({
@@ -804,7 +915,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         roomCode: scrimRoomCode,
         roomPass: scrimRoomPass,
         channelLink: scrimLiveUrl,
-        amountPaid: isVipBypass ? 0 : 50,
+        amountPaid: isVipBypass ? 0 : currentScrimFee,
         paymentId
       });
 
@@ -820,18 +931,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     }
 
     triggerRazorpayCheckout({
-      amount: 50,
-      description: `Daily Scrims Conduct: ${scrimTitle} (₹50 Base)`,
+      amount: currentScrimFee,
+      description: `Daily Scrims Conduct: ${scrimTitle} (₹${currentScrimFee} Base)`,
       onSuccess: async (paymentId) => {
         await processScrimSuccess(paymentId, false);
       }
     });
   };
 
-  // 3. Submit Featured Tournament Boost (Flat ₹ 49)
+  // 3. Submit Featured Tournament Boost
   const handleFeaturedTournamentSubmit = (e) => {
     e.preventDefault();
     const targetTitle = featuredSelectedEvent || (hostedTournaments[0]?.title || 'BGMI Masters Championship');
+    const currentFeatFee = platformPricing.featuredTournamentFee ?? 49;
 
     const processFeaturedSuccess = async (paymentId, isVipBypass = false) => {
       const featEntry = {
@@ -842,8 +954,8 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         organizerName: displayName,
         game: 'BGMI',
         placement: 'Homepage Top Carousel Banner Boost',
-        budget: isVipBypass ? '₹ 0.00 INR (VIP Pass)' : '₹ 49.00 INR (Boost Pass)',
-        amountPaid: isVipBypass ? 0 : 49,
+        budget: isVipBypass ? '₹ 0.00 INR (VIP Pass)' : `₹ ${currentFeatFee}.00 INR (Boost Pass)`,
+        amountPaid: isVipBypass ? 0 : currentFeatFee,
         paymentRef: paymentId,
         status: isVipBypass ? 'APPROVED' : 'PENDING',
         date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -862,7 +974,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       const newTx = {
         id: 'tx_' + Date.now(),
         description: `Featured Tournament Top-Line Boost: ${targetTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 49,
+        amount: isVipBypass ? 0 : currentFeatFee,
         type: 'DEBIT',
         category: 'Featured Boost',
         status: 'PAID',
@@ -878,7 +990,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         email: displayEmail,
         name: displayName,
         service: `Featured Tournament Boost: ${targetTitle} ${isVipBypass ? '(VIP Clearance Waiver)' : ''}`,
-        amount: isVipBypass ? 0 : 49,
+        amount: isVipBypass ? 0 : currentFeatFee,
         paymentId
       });
 
@@ -891,7 +1003,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     }
 
     triggerRazorpayCheckout({
-      amount: 49,
+      amount: currentFeatFee,
       description: `Featured Tournament Top-Line Boost: ${targetTitle}`,
       onSuccess: async (paymentId) => {
         await processFeaturedSuccess(paymentId, false);
@@ -1636,18 +1748,35 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Match Schedule / Timing *
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                        Match Schedule: Date &amp; Time *
                       </label>
-                      <input
-                        type="text"
-                        value={conductTiming}
-                        onChange={(e) => setConductTiming(e.target.value)}
-                        placeholder="e.g. Today at 8:00 PM IST"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
-                        required
-                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <input
+                            type="date"
+                            value={conductDate}
+                            min={getTodayDateStr()}
+                            onChange={(e) => handleConductDateChange(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white font-mono transition-colors"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="time"
+                            value={conductTime}
+                            onChange={(e) => handleConductTimeChange(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white font-mono transition-colors"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                        <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                        <span className="font-semibold">{conductTiming}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -1667,16 +1796,19 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Host WhatsApp Number *
+                        Host WhatsApp Number (10 Digits) *
                       </label>
                       <input
                         type="tel"
+                        maxLength={10}
+                        pattern="[0-9]{10}"
                         value={conductWhatsApp}
-                        onChange={(e) => setConductWhatsApp(e.target.value)}
+                        onChange={(e) => setConductWhatsApp(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="e.g. 9840192831"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
                         required
                       />
+                      <span className="text-[10px] text-gray-400 mt-0.5 block">{conductWhatsApp.length}/10 digits</span>
                     </div>
                   </div>
 
@@ -2182,34 +2314,54 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Match Schedule / Timing *
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                        Match Schedule: Date &amp; Time *
                       </label>
-                      <input
-                        type="text"
-                        value={scrimTiming}
-                        onChange={(e) => setScrimTiming(e.target.value)}
-                        placeholder="e.g. Daily at 7:00 PM IST"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
-                        required
-                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <input
+                            type="date"
+                            value={scrimDate}
+                            min={getTodayDateStr()}
+                            onChange={(e) => handleScrimDateChange(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white font-mono transition-colors"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="time"
+                            value={scrimTime}
+                            onChange={(e) => handleScrimTimeChange(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white font-mono transition-colors"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                        <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                        <span className="font-semibold">{scrimTiming}</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        Host WhatsApp Number *
+                        Host WhatsApp Number (10 Digits) *
                       </label>
                       <input
                         type="tel"
+                        maxLength={10}
+                        pattern="[0-9]{10}"
                         value={scrimWhatsApp}
-                        onChange={(e) => setScrimWhatsApp(e.target.value)}
+                        onChange={(e) => setScrimWhatsApp(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="e.g. 9840192831"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs bg-gray-50 focus:bg-white transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
                         required
                       />
+                      <span className="text-[10px] text-gray-400 mt-0.5 block">{scrimWhatsApp.length}/10 digits</span>
                     </div>
 
                     <div>
@@ -2735,17 +2887,17 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Weekly Package</span>
                           <h3 className="font-bold text-base text-gray-900 mt-0.5">Weekly Stream Pass</h3>
-                          <span className="text-2xl font-black font-mono text-gray-900 mt-2 block">₹ 249</span>
+                          <span className="text-2xl font-black font-mono text-gray-900 mt-2 block">₹ {platformPricing.broadcastPassWeekly ?? 249}</span>
                           <p className="text-xs text-gray-600 mt-2 leading-relaxed">
                             7 Days streaming access. Channel link showcased across match lobbies. Auto-expires in 7 days.
                           </p>
                         </div>
                         <button
-                          onClick={() => handlePurchaseBroadcastPass('Weekly Pass', 249, 7)}
+                          onClick={() => handlePurchaseBroadcastPass('Weekly Pass', platformPricing.broadcastPassWeekly ?? 249, 7)}
                           disabled={isProcessingPayment}
                           className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
                         >
-                          Purchase ₹249 (7 Days)
+                          Purchase ₹{platformPricing.broadcastPassWeekly ?? 249} (7 Days)
                         </button>
                       </div>
 
@@ -2754,17 +2906,17 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-gold-primary">15 Days &bull; Recommended</span>
                           <h3 className="font-bold text-base text-gray-900 mt-0.5">Pro Production Pass</h3>
-                          <span className="text-2xl font-black font-mono text-gold-primary mt-2 block">₹ 549</span>
+                          <span className="text-2xl font-black font-mono text-gold-primary mt-2 block">₹ {platformPricing.broadcastPassPro ?? 549}</span>
                           <p className="text-xs text-gray-600 mt-2 leading-relaxed">
                             15 Days streaming access. Pinned live player showcase + channel link. Auto-expires in 15 days.
                           </p>
                         </div>
                         <button
-                          onClick={() => handlePurchaseBroadcastPass('Pro Pass', 549, 15)}
+                          onClick={() => handlePurchaseBroadcastPass('Pro Pass', platformPricing.broadcastPassPro ?? 549, 15)}
                           disabled={isProcessingPayment}
                           className="mt-4 w-full py-2.5 rounded-xl bg-gold-primary hover:bg-gold-light text-black text-xs font-bold cursor-pointer transition-colors shadow-xs"
                         >
-                          Purchase ₹549 (15 Days)
+                          Purchase ₹{platformPricing.broadcastPassPro ?? 549} (15 Days)
                         </button>
                       </div>
 
@@ -2773,17 +2925,17 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Monthly 30 Days</span>
                           <h3 className="font-bold text-base text-gray-900 mt-0.5">Monthly Elite Pass</h3>
-                          <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ 999</span>
+                          <span className="text-2xl font-black font-mono text-purple-700 mt-2 block">₹ {platformPricing.broadcastPassMonthly ?? 999}</span>
                           <p className="text-xs text-gray-600 mt-2 leading-relaxed">
                             30 Days full monthly live match streaming. Verified host status &amp; direct embed player. Auto-expires in 30 days.
                           </p>
                         </div>
                         <button
-                          onClick={() => handlePurchaseBroadcastPass('Monthly Pass', 999, 30)}
+                          onClick={() => handlePurchaseBroadcastPass('Monthly Pass', platformPricing.broadcastPassMonthly ?? 999, 30)}
                           disabled={isProcessingPayment}
                           className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
                         >
-                          Purchase ₹999 (30 Days)
+                          Purchase ₹{platformPricing.broadcastPassMonthly ?? 999} (30 Days)
                         </button>
                       </div>
                     </div>
@@ -2811,13 +2963,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   </div>
                   <h2 className="text-xl font-bold text-[#1F2937] mt-1">Featured Tournament Showcase</h2>
                   <p className="text-xs text-[#6B7280] mt-1 max-w-2xl">
-                    Showcase your tournament in the top-line banner &amp; featured carousel. Flat pricing: <strong>Just ₹ 49</strong>. That's it!
+                    Showcase your tournament in the top-line banner &amp; featured carousel. Flat pricing: <strong>Just ₹ {platformPricing.featuredTournamentFee ?? 49}</strong>. That's it!
                   </p>
                 </div>
 
                 <div className="text-right">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Flat Rate</span>
-                  <span className="text-2xl font-black font-mono text-[#C5A059]">₹ 49</span>
+                  <span className="text-2xl font-black font-mono text-[#C5A059]">₹ {platformPricing.featuredTournamentFee ?? 49}</span>
                 </div>
               </div>
 
@@ -2864,13 +3016,13 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     </div>
                     {hasFeaturedClearance ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ 49 INR</span>
+                        <span className="text-lg font-bold font-mono text-gray-400 line-through">₹ {platformPricing.featuredTournamentFee ?? 49} INR</span>
                         <span className="text-2xl font-black font-mono text-emerald-600">FREE</span>
                         <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 border border-emerald-400/30 text-[9px] font-bold uppercase">VIP Clearance</span>
                       </div>
                     ) : (
                       <span className="text-2xl font-black font-mono text-gray-900">
-                        ₹ 49 INR
+                        ₹ {platformPricing.featuredTournamentFee ?? 49} INR
                       </span>
                     )}
                   </div>
@@ -2881,7 +3033,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     className="w-full py-3.5 rounded-xl bg-black hover:bg-gold-primary hover:text-black text-white text-xs font-black uppercase tracking-wider transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-[16px]">bolt</span>
-                    <span>{isProcessingPayment ? 'Processing...' : (hasFeaturedClearance ? '🚀 Feature Tournament Instantly (VIP Clearance - ₹0)' : 'Pay ₹ 49 with Razorpay Test Mode & Feature Tournament')}</span>
+                    <span>{isProcessingPayment ? 'Processing...' : (hasFeaturedClearance ? '🚀 Feature Tournament Instantly (VIP Clearance - ₹0)' : `Pay ₹ ${platformPricing.featuredTournamentFee ?? 49} with Razorpay Test Mode & Feature Tournament`)}</span>
                   </button>
 
                 </form>

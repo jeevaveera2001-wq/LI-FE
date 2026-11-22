@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DashboardPage from './DashboardPage';
-import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTournamentResultsEmail } from '../utils/emailService';
+import { sendSuperAdminVipInviteEmail, sendTournamentReminderEmail, sendTournamentResultsEmail, sendTournamentApprovalEmail } from '../utils/emailService';
 import { validateLiveStreamUrl, getYouTubeEmbedUrl } from '../utils/urlValidator';
 import { DEFAULT_CARD_SLOTS, getCardSlotsFromStorage, saveCardSlot, resetCardSlot } from '../utils/broadcastSlots';
 import { emitRealtimeEvent, subscribeRealtimeEvents, playAdminChime } from '../utils/realtimeSync';
@@ -13,7 +13,12 @@ import {
   declineCloudHostingRequest,
   fetchCloudContactTickets,
   deleteCloudContactTicket,
-  updateCloudUserVip
+  updateCloudContactTicket,
+  updateCloudUserVip,
+  fetchCloudPlatformSettings,
+  saveCloudPlatformSettings,
+  fetchCloudSuspiciousReports,
+  updateCloudReportStatus
 } from '../services/cloudSync';
 
 /**
@@ -26,6 +31,27 @@ import {
  * - Elevation: shadow-sm, shadow-md
  */
 export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout }) {
+  // Role Verification: Super Admin exclusive privilege check
+  const isSuperAdmin = useMemo(() => {
+    if (!currentUser) return false;
+    const role = (currentUser.role || '').toUpperCase();
+    const email = (currentUser.email || '').toLowerCase().trim();
+    return role === 'SUPERADMIN' || role === 'SUPER_ADMIN' || email === 'superadmin@lt.in' || currentUser.isSuperAdmin === true;
+  }, [currentUser]);
+
+  // Suspicious Reports Queue State
+  const [suspiciousReports, setSuspiciousReports] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lt_suspicious_reports');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
+
+  const pendingReportsCount = useMemo(() => {
+    return suspiciousReports.filter(r => r.status === 'PENDING' || r.status === 'UNDER_REVIEW').length;
+  }, [suspiciousReports]);
+
   // Navigation active tab: defaults to exact LiveTournaments Dashboard ('dashboard')
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -128,11 +154,27 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     return contactMessages.filter(m => m.status !== 'RESOLVED').length;
   }, [contactMessages]);
 
-  // Platform Settings State (Real-time CMS for Home Arena)
+  // Platform Settings State (Real-time CMS & Dynamic Pricing)
   const [platformSettings, setPlatformSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('lt_platform_settings');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed) {
+          return {
+            ...parsed,
+            pricing: {
+              tournamentRoomFee: 10,
+              dailyScrimsFee: 50,
+              broadcastPassWeekly: 249,
+              broadcastPassPro: 549,
+              broadcastPassMonthly: 999,
+              featuredTournamentFee: 49,
+              ...(parsed.pricing || {})
+            }
+          };
+        }
+      }
     } catch (e) {}
     return {
       heroTitle: 'LIVE TOURNAMENTS INDIA',
@@ -140,6 +182,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       tagline: 'Join us from now to participate and host your tournaments via LT.IN.',
       marqueeText: '🔥 BGMI PRO TOURNAMENT REGISTRATIONS OPEN • ₹50,000 PRIZE POOL • DAILY SCRIMS AT 8 PM • 4K YOUTUBE LIVE PRODUCTION',
       featuredStreamUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+      pricing: {
+        tournamentRoomFee: 10,
+        dailyScrimsFee: 50,
+        broadcastPassWeekly: 249,
+        broadcastPassPro: 549,
+        broadcastPassMonthly: 999,
+        featuredTournamentFee: 49
+      },
       games: [
         { name: 'Counter-Strike 2', genre: 'Tactical FPS', logo: 'https://d3h9qea4qy4169.cloudfront.net/cs2_00be38ddd1.png', active: true },
         { name: 'Valorant', genre: 'Hero Shooter', logo: 'https://d3h9qea4qy4169.cloudfront.net/Valorant_1710f7c511.png', active: true },
@@ -802,12 +852,35 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         if (Array.isArray(cloudTickets)) {
           setContactMessages(prev => {
             const map = new Map();
-            cloudTickets.forEach(t => map.set(t.id, t));
+            cloudTickets.forEach(t => {
+              const local = prev.find(p => p.id === t.id);
+              if (local?.status === 'RESOLVED' && t.status !== 'RESOLVED') {
+                map.set(t.id, { ...t, status: 'RESOLVED' });
+              } else {
+                map.set(t.id, t);
+              }
+            });
             prev.forEach(t => {
               if (!map.has(t.id)) map.set(t.id, t);
             });
             const merged = Array.from(map.values());
             localStorage.setItem('lt_admin_contact_messages', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      }).catch(() => {});
+
+      // 4. Sync suspicious activity reports from cloud database
+      fetchCloudSuspiciousReports().then(reports => {
+        if (Array.isArray(reports)) {
+          setSuspiciousReports(prev => {
+            const map = new Map();
+            reports.forEach(r => map.set(r.id, r));
+            prev.forEach(r => {
+              if (!map.has(r.id)) map.set(r.id, r);
+            });
+            const merged = Array.from(map.values());
+            localStorage.setItem('lt_suspicious_reports', JSON.stringify(merged));
             return merged;
           });
         }
@@ -1434,10 +1507,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   }, [resultVerifications]);
 
   // Decision Handlers with Suspend & Block Options
-  const handleApproveHosting = (id) => {
+  const handleApproveHosting = async (id) => {
     const req = hostingRequests.find(r => r.id === id);
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'APPROVED' } : r));
     if (req) {
+      try {
+        await sendTournamentApprovalEmail({
+          email: req.contact || req.email || req.whatsApp,
+          organizer: req.organizer || req.hostUser || 'Tournament Organizer',
+          title: req.title,
+          type: 'Tournament Room',
+          schedule: req.timing,
+          game: req.game
+        });
+      } catch (err) {
+        console.warn('Failed to dispatch tournament approval email:', err);
+      }
+
       const newT = {
         id: 't_' + Date.now(),
         title: req.title,
@@ -1473,17 +1559,23 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       setActiveMatchRooms(prev => [newR, ...prev]);
     }
 
-    // Sync status into user's hosted tournaments
+    // Sync status into user's hosted tournaments & admin hosting requests
     try {
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      const updatedAdmin = adminReqs.map(h => (h.id === id || h.title === req?.title) ? { ...h, status: 'APPROVED' } : h);
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(updatedAdmin));
+
       const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
       if (userHostingsRaw) {
         const userHostings = JSON.parse(userHostingsRaw);
         const updated = userHostings.map(h => (h.id === id || h.title === req?.title) ? { ...h, status: 'APPROVED' } : h);
         localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
       }
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('storage'));
     } catch (e) {}
 
-    showToast('✅ Tournament Hosting Request Approved & Automated Room Generated!');
+    showToast('✅ Tournament Approved! Live users can now view it & approval email pushed to organizer.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectHosting = (id) => {
@@ -1627,9 +1719,40 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setVipName('');
   };
 
-  const handleApproveScrim = (id) => {
+  const handleApproveScrim = async (id) => {
+    const scrim = scrimsRequests.find(s => s.id === id);
     setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'APPROVED' } : s));
-    showToast('✅ Scrim Request Approved & Match Slot Scheduled!');
+    if (scrim) {
+      try {
+        await sendTournamentApprovalEmail({
+          email: scrim.contact || scrim.email || scrim.whatsApp,
+          organizer: scrim.organizer || scrim.hostUser || 'Scrims Host',
+          title: scrim.title,
+          type: 'Daily Practice Scrim',
+          schedule: scrim.timing,
+          game: scrim.game
+        });
+      } catch (err) {
+        console.warn('Failed to dispatch scrim approval email:', err);
+      }
+    }
+
+    try {
+      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+      const updatedScrims = adminScrims.map(s => (s.id === id || s.title === scrim?.title) ? { ...s, status: 'APPROVED' } : s);
+      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(updatedScrims));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id || h.title === scrim?.title) ? { ...h, status: 'APPROVED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+      window.dispatchEvent(new Event('lt_scrim_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+
+    showToast('✅ Scrim Request Approved! Approval email pushed to organizer.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectScrim = (id) => {
@@ -1766,10 +1889,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleResolveContactTicket = (id) => {
+    updateCloudContactTicket(id, 'RESOLVED');
     const updated = contactMessages.map(m => m.id === id ? { ...m, status: 'RESOLVED' } : m);
     setContactMessages(updated);
     localStorage.setItem('lt_admin_contact_messages', JSON.stringify(updated));
-    showToast('✓ Contact inquiry marked as resolved.');
+    showToast('✓ Contact inquiry marked as resolved & synced to database.');
   };
 
   const handleDeleteContactTicket = (id) => {
@@ -1780,8 +1904,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('🗑️ Ticket removed from contact inquiries & cloud database.');
   };
 
-  // Save Platform Settings & Broadcast to Home Arena
-  const handleSavePlatformSettings = (e) => {
+  // Save Platform Settings & Dynamic Pricing to MongoDB Atlas
+  const handleSavePlatformSettings = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (platformSettings.featuredStreamUrl) {
       const val = validateLiveStreamUrl(platformSettings.featuredStreamUrl);
@@ -1793,7 +1917,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         url: val.normalizedUrl,
         title: platformSettings.heroTitle || 'Live Tournament Production Feed',
         organizer: 'Official Admin Arena',
-        clan: 'ADMIN',
+        clan: 'SUPERADMIN',
         game: 'ESPORTS ARENA',
         isApproved: true,
         viewers: 18450
@@ -1803,8 +1927,26 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     }
 
     localStorage.setItem('lt_platform_settings', JSON.stringify(platformSettings));
+    try {
+      await saveCloudPlatformSettings(platformSettings);
+    } catch (err) {}
     window.dispatchEvent(new Event('lt_platform_settings_updated'));
-    showToast('✓ Platform settings saved! Home Arena titles, games & stream updated.');
+    window.dispatchEvent(new Event('storage'));
+    showToast('✓ Platform settings & dynamic pricing saved to cloud! Pricing updated across player checkout.');
+  };
+
+  const handleUpdateReportStatus = async (reportId, newStatus, notes = '') => {
+    try {
+      await updateCloudReportStatus(reportId, newStatus, notes);
+      setSuspiciousReports(prev => {
+        const updated = prev.map(r => r.id === reportId ? { ...r, status: newStatus, notes, reviewedAt: new Date().toISOString() } : r);
+        localStorage.setItem('lt_suspicious_reports', JSON.stringify(updated));
+        return updated;
+      });
+      showToast(`✓ Report marked as ${newStatus}`);
+    } catch (err) {
+      showToast('⚠️ Failed to update report status');
+    }
   };
 
   const handleCreateTournament = (e) => {
@@ -2038,14 +2180,31 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             <span className="flex-1 text-left">Payment History</span>
           </button>
 
-          {/* 9. Platform Settings */}
+          {/* 9. Suspicious Reports Queue (Admin & Super Admin) */}
           <button
-            onClick={() => { setActiveTab('platform-settings'); setSidebarOpen(false); }}
-            className={`nagulan-sidebar-btn ${activeTab === 'platform-settings' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('suspicious-reports'); setSidebarOpen(false); }}
+            className={`nagulan-sidebar-btn ${activeTab === 'suspicious-reports' ? 'active' : ''}`}
           >
-            <span className="material-symbols-outlined text-[16px]">settings</span>
-            <span className="flex-1 text-left">Platform Settings</span>
+            <span className="material-symbols-outlined text-[16px] text-rose-400">flag</span>
+            <span className="flex-1 text-left">Suspicious Reports</span>
+            {pendingReportsCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[9px] font-bold border border-rose-500/30">
+                {pendingReportsCount}
+              </span>
+            )}
           </button>
+
+          {/* 10. Platform Settings & Dynamic Pricing (SUPER ADMIN EXCLUSIVE) */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => { setActiveTab('platform-settings'); setSidebarOpen(false); }}
+              className={`nagulan-sidebar-btn ${activeTab === 'platform-settings' ? 'active' : ''}`}
+            >
+              <span className="material-symbols-outlined text-[16px] text-[#DFBD78]">tune</span>
+              <span className="flex-1 text-left">Platform Settings</span>
+              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-amber-500/20 text-[#DFBD78] border border-[#DFBD78]/30">SUPER ADMIN</span>
+            </button>
+          )}
         </div>
 
                 {/* Footer of Sidebar */}
@@ -2253,12 +2412,27 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         </button>
 
         <button
-          onClick={() => setActiveTab('platform-settings')}
-          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'platform-settings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          onClick={() => setActiveTab('suspicious-reports')}
+          className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'suspicious-reports' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
         >
-          <span className="material-symbols-outlined text-[14px]">settings</span>
-          <span>Settings</span>
+          <span className="material-symbols-outlined text-[14px] text-rose-500">flag</span>
+          <span>Reports</span>
+          {pendingReportsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 text-[9px] font-bold">
+              {pendingReportsCount}
+            </span>
+          )}
         </button>
+
+        {isSuperAdmin && (
+          <button
+            onClick={() => setActiveTab('platform-settings')}
+            className={`px-2.5 py-1.5 rounded-[6px] transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === 'platform-settings' ? 'bg-[#1F2937] text-white shadow-sm' : 'text-[#4B5563] hover:text-[#1F2937] hover:bg-[#F3F4F6]'}`}
+          >
+            <span className="material-symbols-outlined text-[14px] text-[#DFBD78]">tune</span>
+            <span>Settings</span>
+          </button>
+        )}
 
         <div className="ml-auto flex items-center gap-2 pl-3 border-l border-[#D1D1D1]/60">
           <button
@@ -5464,19 +5638,138 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         )}
 
         {/* ========================================================
-            VIEW 9: PLATFORM SETTINGS (LIVE HOME ARENA CMS)
+            VIEW: SUSPICIOUS REPORTS QUEUE (ADMIN & SUPER ADMIN EXCLUSIVE)
             ======================================================== */}
-        {(activeTab === 'platform-settings' || activeTab === 'all-in-one') && (
+        {(activeTab === 'suspicious-reports' || activeTab === 'all-in-one') && (
+          <section className="bg-white rounded-[16px] p-3.5 sm:p-5 md:p-6 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 sm:space-y-5 animate-fade-in overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-rose-600 text-[20px]">flag</span>
+                  Suspicious Activity Reports &bull; Admin Review Queue
+                </h3>
+                <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  Review reported violations, cheating allegations, fraudulent match rooms, and suspicious host behaviors submitted by competitors.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-full bg-rose-50 text-rose-700 text-[11px] font-bold border border-rose-200">
+                  {pendingReportsCount} Reports Pending Review
+                </span>
+              </div>
+            </div>
+
+            {suspiciousReports.length === 0 ? (
+              <div className="py-12 text-center text-gray-400">
+                <span className="material-symbols-outlined text-[36px] text-emerald-500 block mb-1">verified_user</span>
+                <span className="font-bold text-gray-700 block text-xs">No Suspicious Activity Reports</span>
+                <span className="text-[11px] text-gray-400">All tournaments, scrims, and broadcast channels are operating within fair-play guidelines.</span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {suspiciousReports.map((report) => (
+                  <div key={report.id} className="bg-[#F9FAFB] rounded-xl border border-gray-200 p-4 space-y-3 hover:border-rose-300 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-2.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-black uppercase tracking-wider">
+                          {report.category || 'CHEATING / FRAUD'}
+                        </span>
+                        <span className="font-bold text-gray-900 text-xs">{report.targetTitle || 'Tournament / Match'}</span>
+                        <span className="text-[10px] text-gray-400 font-mono">({report.targetType || 'Tournament'})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          report.status === 'ACTION_TAKEN' ? 'bg-emerald-100 text-emerald-800' :
+                          report.status === 'DISMISSED' ? 'bg-gray-200 text-gray-700' :
+                          report.status === 'UNDER_REVIEW' ? 'bg-amber-100 text-amber-800' :
+                          'bg-rose-100 text-rose-800 animate-pulse'
+                        }`}>
+                          {report.status || 'PENDING'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Reported Target</span>
+                        <span className="font-semibold text-gray-800">{report.targetTitle}</span>
+                        {report.targetOrganizer && <p className="text-[10px] text-gray-500">Host: {report.targetOrganizer}</p>}
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Reported By</span>
+                        <span className="text-gray-800 font-mono">{report.reporterEmail || 'Anonymous Player'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase block">Submission Time</span>
+                        <span className="text-gray-500 font-mono">{new Date(report.submittedAt || report.createdAt || Date.now()).toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-gray-200 text-xs">
+                      <span className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Reason / Player Description</span>
+                      <p className="text-gray-800 leading-relaxed font-sans">{report.reason}</p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={() => handleUpdateReportStatus(report.id, 'UNDER_REVIEW')}
+                        className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-bold transition-colors cursor-pointer"
+                      >
+                        Mark Under Review
+                      </button>
+                      <button
+                        onClick={() => handleUpdateReportStatus(report.id, 'ACTION_TAKEN', 'Match suspended and warnings issued.')}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                      >
+                        Action Taken ✓
+                      </button>
+                      <button
+                        onClick={() => handleUpdateReportStatus(report.id, 'DISMISSED', 'Verified legitimate - dismissed.')}
+                        className="px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 text-[11px] font-bold transition-colors cursor-pointer"
+                      >
+                        Dismiss Report
+                      </button>
+                      {report.targetOrganizer && (
+                        <button
+                          onClick={() => handleBlockUser(report.targetOrganizer, report.reporterEmail || '', report.targetId)}
+                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Block Host
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ========================================================
+            VIEW 9: PLATFORM SETTINGS & DYNAMIC PRICING (SUPER ADMIN ONLY)
+            ======================================================== */}
+        {(activeTab === 'platform-settings') && !isSuperAdmin && (
+          <section className="bg-white rounded-[16px] p-8 border border-rose-200 text-center space-y-3">
+            <span className="material-symbols-outlined text-4xl text-rose-500">lock</span>
+            <h3 className="text-lg font-black text-gray-900">Access Restricted &bull; Super Admin Only</h3>
+            <p className="text-xs text-gray-600 max-w-md mx-auto">
+              Platform settings and dynamic pricing controls are exclusively accessible to Super Administrators (<code className="font-mono bg-rose-50 px-1 py-0.5 rounded text-rose-700">superadmin@lt.in</code>). Regular admins do not possess clearance to view or edit these financial parameters.
+            </p>
+          </section>
+        )}
+
+        {((activeTab === 'platform-settings' && isSuperAdmin) || activeTab === 'all-in-one') && (
           <section className="bg-white rounded-[16px] p-3.5 sm:p-5 md:p-6 border border-[#D1D1D1]/60 shadow-[0_1px_2px_rgba(0,0,0,0.05)] space-y-4 sm:space-y-5 animate-fade-in overflow-hidden">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F3F4F6]">
               <div className="min-w-0">
                 <h3 className="text-sm sm:text-[15px] font-bold text-[#1F2937] tracking-tight flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px] shrink-0">settings</span>
-                  <span className="truncate">Platform Settings &amp; Live Home Arena CMS</span>
+                  <span className="material-symbols-outlined text-[#DFBD78] text-[20px] shrink-0">tune</span>
+                  <span className="truncate">Platform Settings &amp; Dynamic Pricing Engine</span>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-[#8F6B20] border border-[#DFBD78]/40">SUPER ADMIN ONLY</span>
                 </h3>
                 <p className="text-[11px] text-[#6B7280] mt-0.5 leading-relaxed">
-                  Update Home Arena titles, marketing headlines, marquee ticker announcements, featured YouTube broadcast, and manage the upcoming games catalog in real-time.
+                  Manage the live pricing of tournament rooms, daily scrims, broadcast pass subscriptions, and featured tournament boosts. All amounts update instantly across Razorpay checkouts.
                 </p>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
@@ -5492,6 +5785,176 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
             </div>
 
             <form onSubmit={handleSavePlatformSettings} className="space-y-4 sm:space-y-5">
+              {/* Dynamic Platform Pricing CMS (SUPER ADMIN EXCLUSIVE) */}
+              <div className="bg-gradient-to-br from-amber-50/70 to-white rounded-[14px] border border-amber-200/90 p-3.5 sm:p-5 space-y-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-amber-200/60">
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-[#C5A059]">payments</span>
+                      Dynamic Platform Pricing Engine &bull; Super Admin Controls
+                    </h4>
+                    <p className="text-[11px] text-amber-900/80 mt-0.5">
+                      Review and modify live entry fees and subscription prices. All changes update instantly across Razorpay checkouts, fee summaries, and competitor dashboards.
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded bg-[#C5A059]/20 text-[#8F6B20] text-[10px] font-black uppercase tracking-wider border border-[#C5A059]/40 w-fit">
+                    SUPER ADMIN EXCLUSIVE
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                  {/* 1. Tournament Room Fee */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Tournament Room Fee</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹10</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.tournamentRoomFee ?? 10}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            tournamentRoomFee: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">Charged per match room conducted by community hosts.</p>
+                  </div>
+
+                  {/* 2. Daily Practice Scrims Fee */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Daily Scrims Fee</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹50</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.dailyScrimsFee ?? 50}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            dailyScrimsFee: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">25-squad practice lobby conducting entry price.</p>
+                  </div>
+
+                  {/* 3. Featured Tournament Boost */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Featured Boost Pass</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹49</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.featuredTournamentFee ?? 49}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            featuredTournamentFee: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">Homepage carousel top-line highlight boost.</p>
+                  </div>
+
+                  {/* 4. Broadcast Pass: Weekly Pro */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Broadcast Pass: Weekly (7d)</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹249</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.broadcastPassWeekly ?? 249}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            broadcastPassWeekly: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">7-day multi-camera live broadcast subscription.</p>
+                  </div>
+
+                  {/* 5. Broadcast Pass: Streamer Pro */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Broadcast Pass: Pro (15d)</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹549</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.broadcastPassPro ?? 549}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            broadcastPassPro: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">15-day verified streamer priority slot pass.</p>
+                  </div>
+
+                  {/* 6. Broadcast Pass: Season Legend / Monthly */}
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-gray-800">Broadcast Pass: Monthly (30d)</label>
+                      <span className="text-[10px] font-mono text-gray-400">Default: ₹999</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500 text-xs">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={platformSettings.pricing?.broadcastPassMonthly ?? 999}
+                        onChange={(e) => setPlatformSettings({
+                          ...platformSettings,
+                          pricing: {
+                            ...platformSettings.pricing,
+                            broadcastPassMonthly: Number(e.target.value)
+                          }
+                        })}
+                        className="w-full pl-7 pr-3 py-2 rounded-lg bg-gray-50 border border-gray-300 text-xs font-mono font-bold text-gray-900 focus:outline-none focus:border-[#C5A059] focus:bg-white transition-all"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500">30-day VIP broadcast and premier match hub license.</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Home Arena Hero CMS */}
               <div className="bg-[#F9FAFB] rounded-[14px] border border-[#E5E7EB] p-3.5 sm:p-5 space-y-3.5">
                 <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">

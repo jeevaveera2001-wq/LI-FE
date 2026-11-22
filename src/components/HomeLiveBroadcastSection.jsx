@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getYouTubeEmbedUrl, validateLiveStreamUrl } from '../utils/urlValidator';
+import SuspiciousReportModal from './SuspiciousReportModal';
 
 export default function HomeLiveBroadcastSection({ onNavigate, currentUser }) {
   const [streamData, setStreamData] = useState(() => {
@@ -7,6 +8,7 @@ export default function HomeLiveBroadcastSection({ onNavigate, currentUser }) {
   });
 
   const [viewerCount, setViewerCount] = useState(14820);
+  const [reportingStream, setReportingStream] = useState(null);
 
   function loadActiveStream() {
     if (typeof window === 'undefined') {
@@ -158,6 +160,21 @@ export default function HomeLiveBroadcastSection({ onNavigate, currentUser }) {
               <span>Watch on YouTube</span>
               <span className="material-symbols-outlined text-sm">open_in_new</span>
             </a>
+            <button
+              onClick={() => setReportingStream({
+                id: 'stream_' + Date.now(),
+                title: streamData.title,
+                type: 'Live Stream Broadcast',
+                organizer: streamData.organizer,
+                game: streamData.game,
+                link: streamData.url
+              })}
+              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 font-bold text-xs uppercase tracking-wider border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Report suspicious broadcast stream to Admin"
+            >
+              <span className="material-symbols-outlined text-[15px]">flag</span>
+              <span>Report Stream</span>
+            </button>
           </div>
         </div>
 
@@ -227,6 +244,12 @@ export default function HomeLiveBroadcastSection({ onNavigate, currentUser }) {
           </div>
         </div>
       </div>
+      {/* Suspicious Activity Report Modal for Live Stream */}
+      <SuspiciousReportModal
+        target={reportingStream}
+        currentUser={currentUser}
+        onClose={() => setReportingStream(null)}
+      />
     </section>
   );
 }

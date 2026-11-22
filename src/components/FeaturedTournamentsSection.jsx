@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
+import SuspiciousReportModal from './SuspiciousReportModal';
 
 export function loadLiveTournaments() {
   if (typeof window === 'undefined') return [];
@@ -11,6 +12,14 @@ export function loadLiveTournaments() {
     if (!item) return;
     const id = item.id || item._id;
     if (!id || seenIds.has(id)) return;
+
+    // Strict Admin Approval Enforcement:
+    // Only tournaments explicitly approved or set to LIVE are visible to live platform users.
+    const status = (item.status || '').toUpperCase();
+    if (status !== 'APPROVED' && status !== 'LIVE') {
+      return;
+    }
+
     seenIds.add(id);
 
     const gameStr = (item.game || '').toUpperCase();
@@ -25,7 +34,7 @@ export function loadLiveTournaments() {
       title: item.title || item.tournament || 'Live Tournament Match',
       game: item.game || 'BATTLEGROUNDS MOBILE INDIA',
       category: cat,
-      badge: item.type === 'SCRIM' ? '⚔️ DAILY SCRIMS LIVE' : (item.status === 'APPROVED' ? '🔥 VERIFIED TOURNAMENT' : '⚡ REGISTRATION OPEN'),
+      badge: item.type === 'SCRIM' ? '⚔️ DAILY SCRIMS LIVE' : (status === 'APPROVED' ? '🔥 VERIFIED TOURNAMENT' : '⚡ REGISTRATION OPEN'),
       badgeColor: item.type === 'SCRIM' ? 'bg-orange-500 text-white font-extrabold' : 'bg-amber-500 text-black font-extrabold',
       schedule: item.timing || item.schedule || 'Scheduled Match',
       prizePool: item.prize || '₹ 5,000 INR',
@@ -37,6 +46,9 @@ export function loadLiveTournaments() {
       image: item.thumbnail || '/assets/tournament_bgmi_showdown_4k.jpg',
       organizer: item.organizer || item.hostUser || 'Verified Organizer',
       channelLink: item.channelLink || '',
+      roomCode: item.roomCode || '',
+      roomPass: item.roomPass || '',
+      type: item.type || 'TOURNAMENT',
       isLive: true
     });
   };
@@ -71,6 +83,7 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
   const [isFiltering, setIsFiltering] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [spotlightTourney, setSpotlightTourney] = useState(null);
+  const [reportingTarget, setReportingTarget] = useState(null);
   const [liveTournaments, setLiveTournaments] = useState(() => loadLiveTournaments());
 
   const handleFilterChange = (filter) => {
@@ -531,6 +544,26 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
                       src={tourney.image}
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    
+                    {/* Report Flag Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReportingTarget({
+                          id: tourney.id,
+                          title: tourney.title,
+                          type: tourney.category === 'SCRIMS' ? 'Daily Scrim' : 'Tournament Room',
+                          game: tourney.game,
+                          organizer: tourney.organizer,
+                          schedule: tourney.schedule
+                        });
+                      }}
+                      className="absolute top-2.5 right-2.5 z-10 size-7 rounded-lg bg-black/70 hover:bg-rose-900/90 text-white/80 hover:text-rose-200 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all cursor-pointer shadow-md"
+                      title="Report Suspicious Activity / Cheating to Admin"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">flag</span>
+                    </button>
                   </div>
 
                   {/* Clean Content Details: Tournament Title, Timing, Free/Paid Status, Prize Pool & CTA */}
@@ -976,6 +1009,13 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
         }}
         onNavigate={onNavigate}
         isRegistered={spotlightTourney && (joinedTourneyIds.has(spotlightTourney.id) || joinedTourneyIds.has(spotlightTourney.title))}
+      />
+
+      {/* Suspicious Activity Report Modal */}
+      <SuspiciousReportModal
+        target={reportingTarget}
+        currentUser={currentUser}
+        onClose={() => setReportingTarget(null)}
       />
 
     </section>

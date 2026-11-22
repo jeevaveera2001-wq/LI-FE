@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { SkeletonLoader, InfiniteScrollLoader, ButtonLoader } from './loaders';
 import InteractiveTournamentSpotlight from './InteractiveTournamentSpotlight';
 import PreviousFinishedMatchesSection from './PreviousFinishedMatchesSection';
+import SuspiciousReportModal from './SuspiciousReportModal';
 import { loadLiveTournaments } from './FeaturedTournamentsSection';
 
 export default function TournamentsPage({ onNavigate, currentUser }) {
   const [liveTournaments, setLiveTournaments] = useState(() => loadLiveTournaments());
+  const [reportingTarget, setReportingTarget] = useState(null);
 
   useEffect(() => {
     const handleSync = () => {
@@ -493,6 +495,26 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       src={tourney.image}
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                    {/* Report Flag Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setReportingTarget({
+                          id: tourney.id,
+                          title: tourney.title,
+                          type: tourney.category === 'SCRIMS' ? 'Daily Scrim' : 'Tournament Match',
+                          game: tourney.game,
+                          organizer: tourney.organizer,
+                          schedule: tourney.schedule
+                        });
+                      }}
+                      className="absolute top-2.5 right-2.5 z-10 size-7 rounded-lg bg-black/70 hover:bg-rose-900/90 text-white/80 hover:text-rose-200 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all cursor-pointer shadow-md"
+                      title="Report Suspicious Activity / Cheating to Admin"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">flag</span>
+                    </button>
                   </div>
 
                   {/* Clean Content: Title, Timing, Free/Paid Status & Prize Pool */}
@@ -849,6 +871,13 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
         }}
         onNavigate={onNavigate}
         isRegistered={spotlightTourney && (joinedTourneyIds.has(spotlightTourney.id) || joinedTourneyIds.has(spotlightTourney.title))}
+      />
+
+      {/* Suspicious Activity Report Modal */}
+      <SuspiciousReportModal
+        target={reportingTarget}
+        currentUser={currentUser}
+        onClose={() => setReportingTarget(null)}
       />
 
     </div>

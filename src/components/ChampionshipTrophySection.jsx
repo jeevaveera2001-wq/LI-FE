@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { sendPaymentReceiptEmail } from '../utils/emailService';
+import SuspiciousReportModal from './SuspiciousReportModal';
 
-export default function ChampionshipTrophySection({ onNavigate }) {
+export default function ChampionshipTrophySection({ onNavigate, currentUser }) {
   const [showPreRegModal, setShowPreRegModal] = useState(false);
   const [preRegSuccess, setPreRegSuccess] = useState(null);
+  const [reportingTarget, setReportingTarget] = useState(null);
   const [clanName, setClanName] = useState('');
   const [leaderIgn, setLeaderIgn] = useState('');
   const [email, setEmail] = useState('');
@@ -41,6 +43,11 @@ export default function ChampionshipTrophySection({ onNavigate }) {
     e.preventDefault();
     if (!clanName.trim() || !leaderIgn.trim() || !email.trim() || !whatsapp.trim()) {
       alert('Please fill Clan Name, Team Leader IGN, Email, and WhatsApp number.');
+      return;
+    }
+    const cleanWa = (whatsapp || '').replace(/\D/g, '');
+    if (cleanWa.length !== 10) {
+      alert('⚠️ WhatsApp number must be exactly 10 digits (e.g. 9876543210).');
       return;
     }
     setIsProcessing(true);
@@ -181,6 +188,25 @@ export default function ChampionshipTrophySection({ onNavigate }) {
                 alt="LT.IN Championship Trophy - Coming Soon"
                 className="w-full h-auto object-cover block transition-transform duration-700 ease-out group-hover:scale-103 group-hover:brightness-105"
               />
+
+              {/* Report Championship Flag Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReportingTarget({
+                    id: 'champ_national_season_1',
+                    title: 'LiveTournaments National Championship Season 1',
+                    type: 'Official Championship',
+                    organizer: 'LiveTournaments National Esports Board',
+                    game: 'BGMI & Multi-Title Arena'
+                  });
+                }}
+                className="absolute top-4 left-4 z-20 size-8 rounded-xl bg-black/70 hover:bg-rose-900/90 text-white/80 hover:text-rose-200 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all cursor-pointer shadow-md"
+                title="Report Suspicious Activity / Dispute Championship"
+              >
+                <span className="material-symbols-outlined text-[15px]">flag</span>
+              </button>
 
               {/* Dynamic Live Estimation Ribbon */}
               <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-black/85 backdrop-blur-md border border-gold-primary/50 rounded-2xl p-4 md:p-6 text-right max-w-sm shadow-2xl">
@@ -385,16 +411,19 @@ export default function ChampionshipTrophySection({ onNavigate }) {
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                      WhatsApp / Phone *
+                      WhatsApp / Phone (10 Digits) *
                     </label>
                     <input
                       type="tel"
+                      maxLength={10}
+                      pattern="[0-9]{10}"
                       value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="WhatsApp / Phone"
+                      onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="e.g. 9840192831"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:border-gold-primary outline-hidden font-mono"
                       required
                     />
+                    <span className="text-[10px] text-gray-400 mt-0.5 block">{whatsapp.length}/10 digits</span>
                   </div>
                 </div>
 
@@ -432,6 +461,13 @@ export default function ChampionshipTrophySection({ onNavigate }) {
           </div>
         </div>
       )}
+
+      {/* Suspicious Activity Report Modal */}
+      <SuspiciousReportModal
+        target={reportingTarget}
+        currentUser={currentUser}
+        onClose={() => setReportingTarget(null)}
+      />
 
     </section>
   );

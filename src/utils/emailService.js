@@ -197,6 +197,44 @@ export const sendTournamentResultsEmail = async ({ email, name, tournamentTitle,
   return record;
 };
 
+// 7. Tournament & Scrim Official Approval Email to Organizer
+export const sendTournamentApprovalEmail = async ({ email, organizer, title, type = 'Tournament', schedule, game }) => {
+  const cleanEmail = email || 'organizer@livetournaments.in';
+  const cleanName = organizer || 'Tournament Organizer';
+  const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+  const record = {
+    id: 'MAIL_APPROVAL_' + Date.now(),
+    type: 'TOURNAMENT_APPROVED',
+    to: cleanEmail,
+    recipientName: cleanName,
+    subject: `✅ Approved: Your ${type} "${title}" is Now Live on LiveTournaments!`,
+    timestamp,
+    status: 'DELIVERED',
+    details: {
+      title,
+      type,
+      game: game || 'Battlegrounds Mobile India',
+      schedule: schedule || 'Scheduled Match Time'
+    },
+    bodyHtml: `
+      <h2>🎉 Congratulations! Your ${type} has been Officially Approved</h2>
+      <p>Hello ${cleanName},</p>
+      <p>Great news! Your ${type} submission <strong>${title}</strong> (${game || 'Battlegrounds Mobile India'}) has been thoroughly reviewed and approved by platform administration.</p>
+      <p><strong>Visibility Status:</strong> LIVE on Platform Arena & Tournaments Directory</p>
+      <p><strong>Scheduled Match Time:</strong> ${schedule || 'Scheduled Match Time'}</p>
+      <div style="background:#111; color:#fff; padding:15px; border-radius:8px; margin:16px 0; border-left:4px solid #C5A059;">
+        <h4 style="margin:0 0 8px 0; color:#C5A059;">Match Day Room ID & Password Sharing</h4>
+        <p style="margin:0; font-size:13px; line-height:1.5;">You can now independently set and publish your custom Room ID & Password directly from your Organizer Dashboard at match time. Registered players will instantly receive access without requiring any secondary approval.</p>
+      </div>
+      <p>Need assistance or live moderation? Contact superadmin@lt.in or reach our community Discord/WhatsApp hotline.</p>
+    `
+  };
+
+  recordEmailDispatch(record);
+  return record;
+};
+
 // 6. Super Admin Direct VIP Access Invitation Email
 export const sendSuperAdminVipInviteEmail = async ({ email, name, privilege, note }) => {
   const cleanEmail = email || 'partner@livetournaments.in';

@@ -19,6 +19,12 @@ export default function PartnershipPage({ onNavigate, currentUser }) {
       return;
     }
 
+    const cleanPhone = (phone || '').replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('⚠️ WhatsApp / Phone number must be exactly 10 digits (e.g. 9876543210).');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const partnerRequest = {
@@ -219,16 +225,19 @@ export default function PartnershipPage({ onNavigate, currentUser }) {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    WhatsApp / Phone *
+                    WhatsApp / Phone (10 Digits) *
                   </label>
                   <input
                     type="tel"
                     required
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="WhatsApp / Phone"
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="e.g. 9840192831"
                     className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-[#C5A059] focus:bg-white outline-hidden text-xs font-mono transition-colors"
                   />
+                  <span className="text-[10px] text-gray-400 mt-0.5 block">{phone.length}/10 digits</span>
                 </div>
 
                 <div>

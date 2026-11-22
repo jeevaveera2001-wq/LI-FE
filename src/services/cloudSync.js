@@ -179,6 +179,20 @@ export async function deleteCloudContactTicket(id) {
   }
 }
 
+export async function updateCloudContactTicket(id, status = 'RESOLVED') {
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] updateCloudContactTicket failed:', err);
+    return false;
+  }
+}
+
 // User Profile Real-Time Sync
 export async function fetchUserProfile(email, id) {
   try {
@@ -219,3 +233,103 @@ export async function updateCloudUserVip(userId, email, vipClearances) {
     return false;
   }
 }
+
+// Platform Settings & Pricing Sync
+export async function fetchCloudPlatformSettings() {
+  try {
+    const res = await fetch('/api/platform-settings');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.settings : null;
+  } catch (err) {
+    console.warn('[CloudSync] fetchCloudPlatformSettings failed:', err);
+    return null;
+  }
+}
+
+export async function saveCloudPlatformSettings(settings) {
+  try {
+    const res = await fetch('/api/platform-settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] saveCloudPlatformSettings failed:', err);
+    return false;
+  }
+}
+
+// Live Chat & Match Group Messaging Sync
+export async function fetchCloudChatMessages(roomId = 'global') {
+  try {
+    const res = await fetch(`/api/chat?roomId=${encodeURIComponent(roomId)}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.success && Array.isArray(data.messages) ? data.messages : [];
+  } catch (err) {
+    console.warn('[CloudSync] fetchCloudChatMessages failed:', err);
+    return [];
+  }
+}
+
+export async function sendCloudChatMessage(msgData) {
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msgData)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.message : null;
+  } catch (err) {
+    console.warn('[CloudSync] sendCloudChatMessage failed:', err);
+    return null;
+  }
+}
+
+// Suspicious Activity Reports Sync (Admin & Super Admin Exclusive)
+export async function submitCloudSuspiciousReport(reportData) {
+  try {
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reportData)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.report : null;
+  } catch (err) {
+    console.warn('[CloudSync] submitCloudSuspiciousReport failed:', err);
+    return null;
+  }
+}
+
+export async function fetchCloudSuspiciousReports() {
+  try {
+    const res = await fetch('/api/reports');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.success && Array.isArray(data.reports) ? data.reports : [];
+  } catch (err) {
+    console.warn('[CloudSync] fetchCloudSuspiciousReports failed:', err);
+    return [];
+  }
+}
+
+export async function updateCloudReportStatus(id, status, reviewNotes) {
+  try {
+    const res = await fetch('/api/reports', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status, reviewNotes })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] updateCloudReportStatus failed:', err);
+    return false;
+  }
+}
+
