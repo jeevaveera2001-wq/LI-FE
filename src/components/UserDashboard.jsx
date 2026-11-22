@@ -240,6 +240,79 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [credentialsModalRoom, setCredentialsModalRoom] = useState(null);
   const [customRoomCode, setCustomRoomCode] = useState('');
   const [customRoomPass, setCustomRoomPass] = useState('');
+  const [credentialAudience, setCredentialAudience] = useState('REGISTERED'); // 'REGISTERED' | 'PUBLIC'
+
+  // Dynamic notification unread badge count in Dashboard header
+  const [dashboardUnreadCount, setDashboardUnreadCount] = useState(() => {
+    try {
+      const raw = localStorage.getItem('lt_notifications');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.filter(n => n.unread).length;
+      }
+    } catch (e) {}
+    return 0;
+  });
+
+  useEffect(() => {
+    const updateUnread = () => {
+      try {
+        const raw = localStorage.getItem('lt_notifications');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setDashboardUnreadCount(parsed.filter(n => n.unread).length);
+          }
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', updateUnread);
+    window.addEventListener('lt_notify', updateUnread);
+    return () => {
+      window.removeEventListener('storage', updateUnread);
+      window.removeEventListener('lt_notify', updateUnread);
+    };
+  }, []);
+
+  // Dynamic real-time cascading deletion sync for hosted tournaments & scrims
+  useEffect(() => {
+    const syncHostData = () => {
+      try {
+        const saved = localStorage.getItem('lt_user_hosted_tourneys');
+        const deletedRaw = localStorage.getItem('lt_deleted_event_identifiers');
+        const deletedList = deletedRaw ? JSON.parse(deletedRaw) : [];
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            const filtered = parsed.filter(t => {
+              if (isUserMock(t.id)) return false;
+              const tId = String(t.id || '').trim();
+              const tTitle = String(t.title || '').trim().toLowerCase();
+              if (deletedList.includes(tId)) return false;
+              if (deletedList.includes(tTitle)) return false;
+              return true;
+            });
+            setHostedTournaments(filtered);
+            return;
+          }
+        }
+        setHostedTournaments([]);
+      } catch (e) {}
+    };
+
+    window.addEventListener('storage', syncHostData);
+    window.addEventListener('lt_hosting_approved', syncHostData);
+    window.addEventListener('lt_scrim_approved', syncHostData);
+    window.addEventListener('lt_event_deleted', syncHostData);
+    window.addEventListener('lt_refresh_dashboard', syncHostData);
+    return () => {
+      window.removeEventListener('storage', syncHostData);
+      window.removeEventListener('lt_hosting_approved', syncHostData);
+      window.removeEventListener('lt_scrim_approved', syncHostData);
+      window.removeEventListener('lt_event_deleted', syncHostData);
+      window.removeEventListener('lt_refresh_dashboard', syncHostData);
+    };
+  }, []);
 
   // Digital Payment Receipt Modal State
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -341,7 +414,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     reader.readAsDataURL(file);
   };
 
-  // Host saves custom Room ID and Password on Match Day
+  // Host saves custom Room ID and Password on Match Day (with Registered vs Public scope)
   const handleSaveMatchDayCredentials = (e) => {
     e.preventDefault();
     if (!credentialsModalRoom) return;
@@ -349,12 +422,14 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       showToast('⚠️ Please enter both Room ID and Room Password.');
       return;
     }
+    const targetAudience = credentialAudience || 'REGISTERED';
     const updatedRooms = hostedTournaments.map(r => {
       if (r.id === credentialsModalRoom.id) {
         return {
           ...r,
           roomCode: customRoomCode.trim(),
           roomPass: customRoomPass.trim(),
+          audience: targetAudience,
           matchDayCredentialsProvided: true,
           credentialsUpdatedAt: new Date().toISOString()
         };
@@ -368,14 +443,48 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
       publishedCreds[credentialsModalRoom.id] = {
         roomCode: customRoomCode.trim(),
         roomPass: customRoomPass.trim(),
+        audience: targetAudience,
         publishedAt: new Date().toISOString(),
         directAccess: true
       };
       localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
     } catch (err) {}
     window.dispatchEvent(new Event('storage'));
-    showToast(`✓ Room credentials saved! Room ID: ${customRoomCode.trim()} & Pass published to players.`);
+    showToast(targetAudience === 'PUBLIC'
+      ? `🌐 Room credentials published to EVERYONE globally! Room ID: ${customRoomCode.trim()}`
+      : `✓ Room credentials saved for REGISTERED players only! Room ID: ${customRoomCode.trim()}`);
     setCredentialsModalRoom(null);
+  };
+
+  // One-click quick toggle on card between REGISTERED and PUBLIC
+  const handleToggleRoomAudience = (roomId, e) => {
+    if (e) e.stopPropagation();
+    let newAudience = 'PUBLIC';
+    const updatedRooms = hostedTournaments.map(r => {
+      if (r.id === roomId) {
+        newAudience = r.audience === 'PUBLIC' ? 'REGISTERED' : 'PUBLIC';
+        return {
+          ...r,
+          audience: newAudience,
+          credentialsUpdatedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    });
+    setHostedTournaments(updatedRooms);
+    localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updatedRooms));
+    try {
+      const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+      if (publishedCreds[roomId]) {
+        publishedCreds[roomId].audience = newAudience;
+        publishedCreds[roomId].publishedAt = new Date().toISOString();
+        localStorage.setItem('lt_published_room_credentials', JSON.stringify(publishedCreds));
+      }
+    } catch (err) {}
+    window.dispatchEvent(new Event('storage'));
+    showToast(newAudience === 'PUBLIC' 
+      ? '🌐 Room ID & Password are now PUBLIC to everyone in arena!' 
+      : '🔒 Room ID & Password restricted to REGISTERED players only.');
   };
 
   // Featured Tournament State (Flat ₹ 49)
@@ -1403,7 +1512,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Sync Telemetry Button */}
             <button
               onClick={handleSyncLive}
@@ -1414,6 +1523,21 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                 sync
               </span>
               <span>{isSyncing ? 'Syncing...' : 'Live Sync'}</span>
+            </button>
+
+            {/* Notification Center Trigger Bell in Dashboard Header */}
+            <button
+              onClick={() => window.dispatchEvent(new Event('lt_toggle_notifications'))}
+              className="relative size-9 rounded-full bg-white hover:bg-gray-100 text-gray-700 hover:text-black border border-gray-300 flex items-center justify-center transition-all cursor-pointer shadow-xs"
+              title="Notifications & Match Alerts"
+              aria-label="Open Notifications"
+            >
+              <span className="material-symbols-outlined text-[19px]">notifications</span>
+              {dashboardUnreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 size-4 rounded-full bg-red-600 text-white text-[8.5px] font-black flex items-center justify-center shadow-xs animate-pulse">
+                  {dashboardUnreadCount > 9 ? '9+' : dashboardUnreadCount}
+                </span>
+              )}
             </button>
 
             {/* Host Tournament CTA Button (SINGLE PLUS ICON ONLY) */}
@@ -2113,18 +2237,42 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         {/* Room Credentials Management & Automated Email Triggers */}
                         <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                           {h.roomCode && h.roomPass ? (
-                            <div className="flex items-center gap-3 font-mono">
+                            <div className="flex flex-wrap items-center gap-2 font-mono">
                               <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
                                 Room ID: {h.roomCode}
                               </span>
                               <span className="px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
                                 Pass: {h.roomPass}
                               </span>
+                              {h.audience === 'PUBLIC' ? (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold border border-emerald-300 flex items-center gap-1 font-sans">
+                                  <span className="material-symbols-outlined text-[12px]">public</span>
+                                  <span>PUBLIC (ALL)</span>
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9.5px] font-bold border border-amber-300 flex items-center gap-1 font-sans">
+                                  <span className="material-symbols-outlined text-[12px]">lock</span>
+                                  <span>REGISTERED ONLY</span>
+                                </span>
+                              )}
+                              <button
+                                onClick={(e) => handleToggleRoomAudience(h.id, e)}
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-sans transition-colors cursor-pointer flex items-center gap-1 ${
+                                  h.audience === 'PUBLIC'
+                                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                }`}
+                                title={h.audience === 'PUBLIC' ? 'Switch back to registered squads only' : 'Publish credentials publically to everyone in arena'}
+                              >
+                                <span className="material-symbols-outlined text-[12px]">{h.audience === 'PUBLIC' ? 'lock' : 'public'}</span>
+                                <span>{h.audience === 'PUBLIC' ? 'Make Registered-Only' : 'Publish to Global (Everyone)'}</span>
+                              </button>
                               <button
                                 onClick={() => {
                                   setCredentialsModalRoom(h);
                                   setCustomRoomCode(h.roomCode || '');
                                   setCustomRoomPass(h.roomPass || '');
+                                  setCredentialAudience(h.audience || 'REGISTERED');
                                 }}
                                 className="px-2.5 py-1 rounded border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold font-sans cursor-pointer text-[11px]"
                               >
@@ -2577,17 +2725,41 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                         </div>
                         <h4 className="font-bold text-base text-[#1F2937]">{s.title}</h4>
                         <p className="text-xs text-gray-600">{s.timing} &bull; 25 Squads Standard Cap &bull; WhatsApp: {s.whatsApp || 'Active'}</p>
-                        <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
+                        <div className="pt-2 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
                           {s.roomCode && s.roomPass ? (
-                            <div className="flex items-center gap-2 font-mono text-xs">
+                            <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
                               <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
                                 {s.roomCode} / {s.roomPass}
                               </span>
+                              {s.audience === 'PUBLIC' ? (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9.5px] font-bold border border-emerald-300 flex items-center gap-1 font-sans">
+                                  <span className="material-symbols-outlined text-[12px]">public</span>
+                                  <span>PUBLIC</span>
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9.5px] font-bold border border-amber-300 flex items-center gap-1 font-sans">
+                                  <span className="material-symbols-outlined text-[12px]">lock</span>
+                                  <span>REG ONLY</span>
+                                </span>
+                              )}
+                              <button
+                                onClick={(e) => handleToggleRoomAudience(s.id, e)}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold font-sans transition-colors cursor-pointer flex items-center gap-1 ${
+                                  s.audience === 'PUBLIC'
+                                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                }`}
+                                title={s.audience === 'PUBLIC' ? 'Switch back to registered users only' : 'Publish to everyone in arena'}
+                              >
+                                <span className="material-symbols-outlined text-[12px]">{s.audience === 'PUBLIC' ? 'lock' : 'public'}</span>
+                                <span>{s.audience === 'PUBLIC' ? 'Reg Only' : 'Make Public'}</span>
+                              </button>
                               <button
                                 onClick={() => {
                                   setCredentialsModalRoom(s);
                                   setCustomRoomCode(s.roomCode || '');
                                   setCustomRoomPass(s.roomPass || '');
+                                  setCredentialAudience(s.audience || 'REGISTERED');
                                 }}
                                 className="text-xs text-blue-600 underline font-sans font-bold hover:text-blue-800 cursor-pointer"
                               >
@@ -2600,6 +2772,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                                 setCredentialsModalRoom(s);
                                 setCustomRoomCode('');
                                 setCustomRoomPass('');
+                                setCredentialAudience('REGISTERED');
                               }}
                               className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black cursor-pointer flex items-center gap-1"
                             >
@@ -2608,7 +2781,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                             </button>
                           )}
                           <button
-                            onClick={() => showToast(s.roomCode ? `Dispatched room credentials to registered squads: ${s.roomCode} / ${s.roomPass}` : '⚠️ Please set room credentials first.')}
+                            onClick={() => showToast(s.roomCode ? `Dispatched room credentials (${s.audience === 'PUBLIC' ? 'PUBLIC' : 'REGISTERED'}): ${s.roomCode} / ${s.roomPass}` : '⚠️ Please set room credentials first.')}
                             className="px-3 py-1 rounded bg-[#1F2937] text-white text-xs font-bold hover:bg-black cursor-pointer"
                           >
                             Broadcast Key
@@ -3205,7 +3378,50 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   placeholder="e.g. 1234 or LT@99"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden font-mono font-bold text-gray-900"
                 />
-                <p className="text-[10px] text-gray-400 mt-1">Secret password shared with registered squads</p>
+                <p className="text-[10px] text-gray-400 mt-1">Secret password shared with players</p>
+              </div>
+
+              {/* Audience Scope Selector: Registered Users vs Public (Everyone) */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1.5 flex items-center justify-between">
+                  <span>Audience &amp; Access Scope</span>
+                  <span className="text-[10px] text-amber-600 font-semibold font-mono">
+                    {credentialAudience === 'PUBLIC' ? '🌐 PUBLIC (EVERYONE)' : '🔒 REGISTERED USERS ONLY'}
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCredentialAudience('REGISTERED')}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                      credentialAudience === 'REGISTERED' 
+                        ? 'border-[#DFBD78] bg-[#FFFDF7] ring-1 ring-[#DFBD78]' 
+                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-gray-900 text-[11px]">
+                      <span className="material-symbols-outlined text-sm text-[#C5A059]">lock</span>
+                      <span>Registered Only</span>
+                    </div>
+                    <span className="text-[9.5px] text-gray-500">Only verified registered squads &amp; players see Room ID &amp; Pass.</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCredentialAudience('PUBLIC')}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                      credentialAudience === 'PUBLIC' 
+                        ? 'border-emerald-500 bg-emerald-50/60 ring-1 ring-emerald-500' 
+                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold text-gray-900 text-[11px]">
+                      <span className="material-symbols-outlined text-sm text-emerald-600">public</span>
+                      <span>Public / Global</span>
+                    </div>
+                    <span className="text-[9.5px] text-gray-500">Publish to everyone in arena (ideal after match starting time).</span>
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
@@ -3221,7 +3437,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                   className="px-5 py-2 rounded-lg bg-[#1F2937] hover:bg-black text-white font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
                   <span className="material-symbols-outlined text-[16px]">save</span>
-                  <span>Save &amp; Publish to Players</span>
+                  <span>{credentialAudience === 'PUBLIC' ? 'Publish to Public (Everyone)' : 'Save & Publish to Registered'}</span>
                 </button>
               </div>
             </form>

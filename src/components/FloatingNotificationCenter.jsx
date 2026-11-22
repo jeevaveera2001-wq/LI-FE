@@ -243,27 +243,27 @@ export default function FloatingNotificationCenter({ currentUser, onNavigate, st
         {activeToasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto relative overflow-hidden rounded-2xl bg-[#0B0E14]/95 border border-[#C5A059]/60 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.85),0_0_25px_rgba(197,160,89,0.25)] p-4 text-white transition-all duration-300 animate-in slide-in-from-right fade-in group"
+            className="pointer-events-auto relative overflow-hidden rounded-2xl bg-white border-2 border-[#DFBD78] shadow-[0_16px_40px_rgba(0,0,0,0.18),0_0_20px_rgba(223,189,120,0.25)] p-4 text-gray-900 transition-all duration-300 animate-in slide-in-from-right fade-in group"
           >
             {/* Glowing Accent Bar on Left */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#DFBD78] via-[#C5A059] to-[#9B792A]" />
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-[#DFBD78] via-[#C5A059] to-[#9B792A]" />
 
-            <div className="flex items-start gap-3 pl-1">
-              <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#9B792A] flex items-center justify-center text-black shrink-0 shadow-sm mt-0.5">
+            <div className="flex items-start gap-3 pl-1.5">
+              <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#C5A059] flex items-center justify-center text-black shrink-0 shadow-xs mt-0.5 font-bold">
                 <span className="material-symbols-outlined text-[17px]">notifications_active</span>
               </div>
 
-              <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase border ${getBadgeStyle(toast.type)}`}>
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider border ${getBadgeStyle(toast.type)}`}>
                     {toast.type}
                   </span>
-                  <span className="text-[10px] text-[#C5A059] font-mono">Just now</span>
+                  <span className="text-[10px] text-gray-500 font-mono font-bold">Just now</span>
                 </div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wide truncate">
+                <h4 className="text-xs font-black text-gray-900 uppercase tracking-wide truncate">
                   {toast.title}
                 </h4>
-                <p className="text-[11px] text-gray-300 leading-relaxed mt-0.5 line-clamp-2">
+                <p className="text-[11.5px] text-gray-700 font-medium leading-relaxed mt-0.5 line-clamp-2">
                   {toast.message}
                 </p>
 
@@ -273,25 +273,25 @@ export default function FloatingNotificationCenter({ currentUser, onNavigate, st
                       onNavigate(toast.link);
                       dismissToast(toast.id);
                     }}
-                    className="mt-2 text-[10px] font-bold text-gold-light hover:text-white uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+                    className="mt-2 text-[10.5px] font-black text-[#8C6D2D] hover:text-black uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <span>View in Arena</span>
-                    <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
                   </button>
                 )}
               </div>
 
               <button
                 onClick={() => dismissToast(toast.id)}
-                className="size-5 rounded-md hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                className="size-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Dismiss"
               >
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <span className="material-symbols-outlined text-[15px]">close</span>
               </button>
             </div>
 
             {/* Auto-Dismiss Progress Bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 overflow-hidden">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-[#DFBD78] to-[#C5A059] animate-[shrink_5s_linear_forwards]" />
             </div>
           </div>
@@ -308,10 +308,10 @@ export default function FloatingNotificationCenter({ currentUser, onNavigate, st
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`relative size-10 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-200 shadow-xl cursor-pointer ${
+            className={`relative size-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-xl cursor-pointer ${
               isOpen
-                ? 'bg-neutral-900 border-2 border-[#DFBD78] text-[#DFBD78] shadow-[0_0_20px_rgba(223,189,120,0.4)]'
-                : 'bg-neutral-950/85 border border-white/20 text-white hover:border-[#DFBD78]/70 hover:text-[#DFBD78]'
+                ? 'bg-white border-2 border-[#DFBD78] text-[#8C6D2D] shadow-[0_0_20px_rgba(223,189,120,0.4)]'
+                : 'bg-white/95 border border-gray-300 text-gray-700 hover:border-[#DFBD78] hover:text-black'
             }`}
             title="Notifications & Match Alerts"
             aria-label="Open Notifications"
@@ -331,167 +331,168 @@ export default function FloatingNotificationCenter({ currentUser, onNavigate, st
       )}
 
       {/* ========================================================
-          3. LUXURY NOTIFICATION CENTER DROPDOWN PANEL
+          3. LUXURY NOTIFICATION CENTER DROPDOWN PANEL (PURE WHITE)
           ======================================================== */}
       {isOpen && (
         <div
           ref={panelRef}
           style={{ position: 'fixed', top: '72px', right: '16px', width: '380px', maxWidth: 'calc(100vw - 32px)', zIndex: 99990 }}
-          className="rounded-3xl bg-[#0B0E14]/98 border border-[#C5A059]/50 backdrop-blur-3xl shadow-[0_24px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(197,160,89,0.2)] flex flex-col overflow-hidden text-white animate-in fade-in zoom-in-95 duration-150"
+          className="rounded-3xl bg-white border border-gray-200 shadow-[0_24px_60px_rgba(0,0,0,0.22),0_0_30px_rgba(197,160,89,0.15)] flex flex-col overflow-hidden text-gray-900 animate-in fade-in zoom-in-95 duration-150"
         >
-              {/* Header */}
-              <div className="p-4 bg-gradient-to-r from-[#141722] via-[#0E1119] to-black border-b border-white/10 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="size-7 rounded-lg bg-gradient-to-br from-[#DFBD78] to-[#9B792A] flex items-center justify-center text-black shadow-xs">
-                    <span className="material-symbols-outlined text-[16px]">notifications</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                      <span>Notifications</span>
-                      {unreadCount > 0 && (
-                        <span className="px-1.5 py-0.2 rounded-full bg-red-500/20 text-red-400 text-[8.5px] font-bold border border-red-500/30">
-                          {unreadCount} NEW
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-[10px] text-gray-400">Live platform alerts &amp; match updates</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5">
+          {/* Header */}
+          <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#C5A059] flex items-center justify-center text-black shadow-xs font-bold">
+                <span className="material-symbols-outlined text-[17px]">notifications</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                  <span>Notifications</span>
                   {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-[#DFBD78] hover:text-white text-[9.5px] font-bold uppercase transition-colors cursor-pointer"
-                      title="Mark all as read"
-                    >
-                      Read All
-                    </button>
+                    <span className="px-1.5 py-0.2 rounded-full bg-red-50 text-red-600 text-[8.5px] font-black border border-red-200">
+                      {unreadCount} NEW
+                    </span>
                   )}
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="size-6 rounded-lg bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">close</span>
-                  </button>
-                </div>
+                </h3>
+                <p className="text-[10.5px] text-gray-500 font-medium">Live platform alerts &amp; match updates</p>
               </div>
+            </div>
 
-              {/* Filter Tabs */}
-              <div className="p-2 bg-[#08090D] border-b border-white/5 flex items-center gap-1.5 overflow-x-auto text-[10px]">
-                {['ALL', 'TOURNAMENTS', 'SCRIMS', 'BROADCAST', 'SYSTEM'].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveFilter(tab)}
-                    className={`px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                      activeFilter === tab
-                        ? 'bg-[#DFBD78] text-black shadow-xs'
-                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center gap-1.5">
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black text-[9.5px] font-bold uppercase transition-colors cursor-pointer"
+                  title="Mark all as read"
+                >
+                  Read All
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="size-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="p-2 bg-gray-50/90 border-b border-gray-100 flex items-center gap-1.5 overflow-x-auto text-[10px]">
+            {['ALL', 'TOURNAMENTS', 'SCRIMS', 'BROADCAST', 'SYSTEM'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveFilter(tab)}
+                className={`px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                  activeFilter === tab
+                    ? 'bg-[#DFBD78] text-black shadow-xs'
+                    : 'bg-white text-gray-600 hover:text-black hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
 
               {/* Notification Items List */}
-              <div className="max-h-[380px] overflow-y-auto divide-y divide-white/5 p-2 bg-[#0B0E14]/90 space-y-1">
-                {filteredNotifications.length === 0 ? (
-                  <div className="py-12 text-center text-gray-500 space-y-1.5">
-                    <span className="material-symbols-outlined text-3xl text-gray-600 block">notifications_off</span>
-                    <p className="text-xs font-bold text-gray-400">No notifications in this category</p>
-                    <p className="text-[10px] text-gray-600">Platform updates and match triggers will appear here.</p>
-                  </div>
-                ) : (
-                  filteredNotifications.map((n) => (
-                    <div
-                      key={n.id}
-                      onClick={() => markAsRead(n.id)}
-                      className={`p-3 rounded-2xl transition-all cursor-pointer relative group flex flex-col gap-1.5 ${
-                        n.unread
-                          ? 'bg-white/[0.04] border border-[#DFBD78]/30 hover:border-[#DFBD78]/60 hover:bg-white/[0.07]'
-                          : 'bg-transparent hover:bg-white/[0.03] border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          {n.unread && (
-                            <span className="size-1.5 rounded-full bg-red-500 shadow-xs shrink-0" />
-                          )}
-                          <span className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase border ${getBadgeStyle(n.type)}`}>
-                            {n.type}
-                          </span>
-                          <span className="text-[9.5px] font-mono text-gray-500">{n.time}</span>
-                        </div>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setNotifications(prev => prev.filter(item => item.id !== n.id));
-                          }}
-                          className="opacity-0 group-hover:opacity-100 size-4 text-gray-500 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer"
-                          title="Delete notification"
-                        >
-                          <span className="material-symbols-outlined text-[13px]">delete</span>
-                        </button>
-                      </div>
-
-                      <div>
-                        <h4 className="text-[11.5px] font-bold text-white leading-tight">
-                          {n.title}
-                        </h4>
-                        <p className="text-[10.5px] text-gray-300 leading-relaxed mt-0.5">
-                          {n.message}
-                        </p>
-                      </div>
-
-                      {n.link && onNavigate && (
-                        <div className="pt-1 flex items-center justify-between text-[10px]">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsOpen(false);
-                              onNavigate(n.link);
-                            }}
-                            className="font-bold text-[#DFBD78] hover:text-white uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <span>Open in Arena</span>
-                            <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
+          {/* Notification Items List */}
+          <div className="max-h-[380px] overflow-y-auto divide-y divide-gray-100 p-2 bg-white space-y-1">
+            {filteredNotifications.length === 0 ? (
+              <div className="py-12 text-center text-gray-400 space-y-1.5">
+                <span className="material-symbols-outlined text-4xl text-gray-300 block">notifications_off</span>
+                <p className="text-xs font-bold text-gray-700">No notifications in this category</p>
+                <p className="text-[10.5px] text-gray-500">Platform updates and match triggers will appear here.</p>
               </div>
-
-              {/* Footer Actions */}
-              <div className="p-3 bg-gradient-to-r from-black via-[#0E1119] to-black border-t border-white/10 flex items-center justify-between text-[10.5px] shrink-0">
-                <button
-                  onClick={() => {
-                    pushNotification({
-                      title: '⚡ Test Alert Dispatched',
-                      message: 'Real-time floating top-right notification successfully delivered across the platform!',
-                      type: 'SYSTEM',
-                      category: 'SYSTEM',
-                      link: 'tournaments'
-                    });
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
+            ) : (
+              filteredNotifications.map((n) => (
+                <div
+                  key={n.id}
+                  onClick={() => markAsRead(n.id)}
+                  className={`p-3 rounded-2xl transition-all cursor-pointer relative group flex flex-col gap-1.5 ${
+                    n.unread
+                      ? 'bg-[#FFFDF7] border border-[#DFBD78]/60 hover:bg-[#FFF9EA]'
+                      : 'bg-white hover:bg-gray-50/80 border border-gray-100'
+                  }`}
                 >
-                  <span className="material-symbols-outlined text-[13px]">bolt</span>
-                  <span>Test Notification</span>
-                </button>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {n.unread && (
+                        <span className="size-1.5 rounded-full bg-red-500 shadow-xs shrink-0" />
+                      )}
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border ${getBadgeStyle(n.type)}`}>
+                        {n.type}
+                      </span>
+                      <span className="text-[9.5px] font-mono font-medium text-gray-400">{n.time}</span>
+                    </div>
 
-                {notifications.length > 0 && (
-                  <button
-                    onClick={clearAllNotifications}
-                    className="text-gray-500 hover:text-rose-400 font-bold transition-colors cursor-pointer"
-                  >
-                    Clear All
-                  </button>
-                )}
-              </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotifications(prev => prev.filter(item => item.id !== n.id));
+                      }}
+                      className="opacity-0 group-hover:opacity-100 size-5 text-gray-400 hover:text-rose-600 flex items-center justify-center transition-all cursor-pointer"
+                      title="Delete notification"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <h4 className="text-[12px] font-bold text-gray-900 leading-tight">
+                      {n.title}
+                    </h4>
+                    <p className="text-[11px] text-gray-600 leading-relaxed mt-0.5 font-normal">
+                      {n.message}
+                    </p>
+                  </div>
+
+                  {n.link && onNavigate && (
+                    <div className="pt-1 flex items-center justify-between text-[10px]">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsOpen(false);
+                          onNavigate(n.link);
+                        }}
+                        className="font-bold text-[#8C6D2D] hover:text-black uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span>Open in Arena</span>
+                        <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[10.5px] shrink-0">
+            <button
+              onClick={() => {
+                pushNotification({
+                  title: '⚡ Test Alert Dispatched',
+                  message: 'Real-time floating top-right notification successfully delivered across the platform!',
+                  type: 'SYSTEM',
+                  category: 'SYSTEM',
+                  link: 'tournaments'
+                });
+              }}
+              className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black font-bold transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[13px]">bolt</span>
+              <span>Test Notification</span>
+            </button>
+
+            {notifications.length > 0 && (
+              <button
+                onClick={clearAllNotifications}
+                className="text-gray-400 hover:text-rose-600 font-bold transition-colors cursor-pointer"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
             </div>
           )}
         </>

@@ -1587,18 +1587,76 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('✅ Tournament Approved! Live users can now view it & approval email pushed to organizer.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
-  const handleRejectHosting = (id) => {
-    setHostingRequests(prev => prev.filter(r => r.id !== id));
+  // GLOBAL PURGE HELPER: Ensures deleted events are completely wiped from who conducted them and all feeds
+  const purgeEventGlobally = (targetId, targetTitle) => {
     try {
-      declineCloudHostingRequest(id);
-      const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminHostings.filter(h => h.id !== id)));
+      const idStr = String(targetId || '').trim();
+      const titleStr = String(targetTitle || '').trim().toLowerCase();
+
+      // 1. Maintain persistent blacklist of deleted identifiers
+      const deletedRaw = localStorage.getItem('lt_deleted_event_identifiers');
+      const deletedList = deletedRaw ? JSON.parse(deletedRaw) : [];
+      if (idStr && !deletedList.includes(idStr)) deletedList.push(idStr);
+      if (titleStr && !deletedList.includes(titleStr)) deletedList.push(titleStr);
+      localStorage.setItem('lt_deleted_event_identifiers', JSON.stringify(deletedList));
+
+      // 2. Cascade removal from user's conducted tournaments / scrims
       const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
       if (userHostingsRaw) {
         const userHostings = JSON.parse(userHostingsRaw);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id)));
+        const filtered = userHostings.filter(h => {
+          const hId = String(h.id || '').trim();
+          const hTitle = String(h.title || '').trim().toLowerCase();
+          if (idStr && (hId === idStr || hId.includes(idStr) || idStr.includes(hId))) return false;
+          if (titleStr && (hTitle === titleStr || hTitle.includes(titleStr) || titleStr.includes(hTitle))) return false;
+          return true;
+        });
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(filtered));
       }
+
+      // 3. Cascade removal from admin requests & feeds
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminReqs.filter(h => h.id !== targetId && String(h.title || '').trim().toLowerCase() !== titleStr)));
+
+      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(adminScrims.filter(s => s.id !== targetId && String(s.title || '').trim().toLowerCase() !== titleStr)));
+
+      const dailyScrims = JSON.parse(localStorage.getItem('daily_scrims') || '[]');
+      localStorage.setItem('daily_scrims', JSON.stringify(dailyScrims.filter(s => s.id !== targetId && String(s.title || '').trim().toLowerCase() !== titleStr)));
+
+      const customScrims = JSON.parse(localStorage.getItem('lt_scrim_custom_matches') || '[]');
+      localStorage.setItem('lt_scrim_custom_matches', JSON.stringify(customScrims.filter(s => s.id !== targetId && String(s.title || '').trim().toLowerCase() !== titleStr)));
+
+      const allTourneys = JSON.parse(localStorage.getItem('lt_all_tournaments') || '[]');
+      localStorage.setItem('lt_all_tournaments', JSON.stringify(allTourneys.filter(t => t.id !== targetId && String(t.title || '').trim().toLowerCase() !== titleStr)));
+
+      const activeRooms = JSON.parse(localStorage.getItem('lt_tournament_rooms') || '[]');
+      localStorage.setItem('lt_tournament_rooms', JSON.stringify(activeRooms.filter(r => r.id !== targetId && String(r.title || '').trim().toLowerCase() !== titleStr)));
+
+      // 4. Cascade removal from published room credentials
+      const published = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+      if (published[targetId]) {
+        delete published[targetId];
+        localStorage.setItem('lt_published_room_credentials', JSON.stringify(published));
+      }
+
+      // 5. Fire multi-system storage and custom deletion events
+      window.dispatchEvent(new CustomEvent('lt_event_deleted', { detail: { id: targetId, title: targetTitle } }));
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('lt_scrim_approved'));
+      window.dispatchEvent(new Event('lt_refresh_dashboard'));
+    } catch (err) {
+      console.warn('Error purging event globally:', err);
+    }
+  };
+
+  const handleRejectHosting = (id) => {
+    const req = hostingRequests.find(r => r.id === id);
+    setHostingRequests(prev => prev.filter(r => r.id !== id));
+    try {
+      declineCloudHostingRequest(id);
+      purgeEventGlobally(id, req?.title);
     } catch (e) {}
     showToast('❌ Tournament Hosting Request Declined & Dismissed');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
@@ -1624,13 +1682,14 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       }
       window.dispatchEvent(new Event('lt_hosting_approved'));
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('lt_refresh_dashboard'));
     } catch (e) {}
     showToast('⚠️ Tournament Hosting Suspended! Match hidden from live users.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleDeleteHosting = (id) => {
     const req = hostingRequests.find(r => r.id === id);
-    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${req?.title || 'this tournament'}"? It will be removed from all feeds, match rooms, and database.`)) {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${req?.title || 'this tournament'}"? It will be removed from who conducted it, all feeds, match rooms, and database.`)) {
       return;
     }
     setHostingRequests(prev => prev.filter(r => r.id !== id));
@@ -1639,19 +1698,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       setAllTournamentsList(prev => prev.filter(t => t.id !== id && t.title !== req.title));
       setActiveMatchRooms(prev => prev.filter(r => !r.title?.includes(req.title)));
     }
-    try {
-      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminReqs.filter(h => h.id !== id)));
-
-      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
-      if (userHostingsRaw) {
-        const userHostings = JSON.parse(userHostingsRaw);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== req?.title)));
-      }
-      window.dispatchEvent(new Event('lt_hosting_approved'));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {}
-    showToast('🗑️ Tournament Match permanently deleted from platform.');
+    purgeEventGlobally(id, req?.title);
+    showToast('🗑️ Tournament Match permanently deleted from platform and host profile.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleBlockUser = (name, email, reqId) => {
@@ -1850,24 +1898,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
   const handleDeleteScrim = (id) => {
     const scrim = scrimsRequests.find(s => s.id === id);
-    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${scrim?.title || 'this scrim'}"?`)) {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${scrim?.title || 'this scrim'}"? It will be removed from who conducted it and all active feeds.`)) {
       return;
     }
     setScrimsRequests(prev => prev.filter(s => s.id !== id));
     deleteCloudHostingRequest(id);
-    try {
-      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
-      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(adminScrims.filter(s => s.id !== id)));
-
-      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
-      if (userHostingsRaw) {
-        const userHostings = JSON.parse(userHostingsRaw);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== scrim?.title)));
-      }
-      window.dispatchEvent(new Event('lt_scrim_approved'));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {}
-    showToast('🗑️ Scrim Match permanently deleted');
+    purgeEventGlobally(id, scrim?.title);
+    showToast('🗑️ Scrim Match permanently deleted from platform and host profile');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
 
@@ -1903,26 +1940,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleDeleteTournamentFromList = (id, title) => {
-    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${title}"?`)) return;
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${title}"? It will be removed from who conducted it and all active feeds.`)) return;
     setAllTournamentsList(prev => prev.filter(t => t.id !== id && t.title !== title));
     setHostingRequests(prev => prev.filter(r => r.id !== id && r.title !== title));
     setActiveMatchRooms(prev => prev.filter(r => !r.title?.includes(title)));
     deleteCloudHostingRequest(id);
-
-    try {
-      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
-      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminReqs.filter(h => h.id !== id && h.title !== title)));
-
-      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
-      if (userHostingsRaw) {
-        const userHostings = JSON.parse(userHostingsRaw);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== title)));
-      }
-      window.dispatchEvent(new Event('lt_hosting_approved'));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {}
-
-    showToast(`🗑️ Permanently Deleted ${title}`);
+    purgeEventGlobally(id, title);
+    showToast(`🗑️ Permanently Deleted ${title} from platform and host profile`);
   };
 
   const handleApprovePartner = (id) => {

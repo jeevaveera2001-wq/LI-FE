@@ -540,6 +540,31 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
                       </div>
                     </div>
 
+                    {/* Public Credentials Banner if published by host for everyone */}
+                    {(() => {
+                      try {
+                        const publishedCreds = JSON.parse(localStorage.getItem('lt_published_room_credentials') || '{}');
+                        const cred = publishedCreds[tourney.id];
+                        const isPublic = tourney.audience === 'PUBLIC' || cred?.audience === 'PUBLIC';
+                        const code = tourney.roomCode || cred?.roomCode;
+                        const pass = tourney.roomPass || cred?.roomPass;
+                        if (isPublic && code && pass) {
+                          return (
+                            <div className="mt-2 p-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-[10.5px] font-mono flex items-center justify-between gap-1 shadow-2xs">
+                              <div className="flex items-center gap-1.5 font-bold">
+                                <span className="material-symbols-outlined text-[13px] text-emerald-600">public</span>
+                                <span>ID: {code} | Pass: {pass}</span>
+                              </div>
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900 font-sans font-black text-[8.5px] uppercase">
+                                PUBLIC KEY
+                              </span>
+                            </div>
+                          );
+                        }
+                      } catch (e) {}
+                      return null;
+                    })()}
+
                     {/* Prize Pool & Registration Action Button */}
                     <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                       <div>

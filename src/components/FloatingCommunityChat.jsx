@@ -261,23 +261,23 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
       )}
 
       {/* ========================================================
-          2. EXPANDED CHAT BOX (GLOBAL ARENA + REGISTERED GROUPS)
+          2. EXPANDED CHAT BOX (PURE WHITE BACKGROUND FOR VISIBILITY)
           ======================================================== */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[550px] max-h-[85vh] rounded-3xl bg-[#0F1015]/98 border border-[#DFBD78]/50 shadow-[0_24px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(223,189,120,0.2)] flex flex-col overflow-hidden text-white animate-fade-in backdrop-blur-2xl">
+        <div className="w-[360px] sm:w-[420px] h-[550px] max-h-[85vh] rounded-3xl bg-white border-2 border-gray-200 shadow-[0_24px_60px_rgba(0,0,0,0.22),0_0_30px_rgba(223,189,120,0.15)] flex flex-col overflow-hidden text-gray-900 animate-fade-in backdrop-blur-2xl">
           
           {/* Header */}
-          <div className="p-3.5 bg-gradient-to-r from-[#171821] via-[#121319] to-black border-b border-white/10 flex items-center justify-between shrink-0">
+          <div className="p-3.5 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#99793D] flex items-center justify-center text-black shrink-0 shadow-sm">
+              <div className="size-8 rounded-xl bg-gradient-to-br from-[#DFBD78] to-[#C5A059] flex items-center justify-center text-black shrink-0 shadow-xs font-bold">
                 <span className="material-symbols-outlined text-[18px]">chat</span>
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5 truncate">
+                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5 truncate">
                   <span>{activeChannel === 'global' ? 'Global Arena Chat' : 'Registered Match Groups'}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[8px] font-bold border border-emerald-500/30">ONLINE</span>
+                  <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[8px] font-black border border-emerald-200">ONLINE</span>
                 </h3>
-                <p className="text-[10px] text-gray-400 truncate max-w-[210px]">
+                <p className="text-[10px] text-gray-500 font-medium truncate max-w-[210px]">
                   {activeChannel === 'global' ? 'Public Community Lounge' : (activeSelectedGroup?.title || 'Private Group')}
                 </p>
               </div>
@@ -286,7 +286,7 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsOpen(false)}
-                className="size-7 rounded-lg bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="size-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-800 flex items-center justify-center transition-colors cursor-pointer"
                 title="Minimize Chat"
               >
                 <span className="material-symbols-outlined text-[16px]">expand_more</span>
@@ -295,13 +295,13 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
           </div>
 
           {/* Scope Selector: Global Arena OR Registered Match Groups */}
-          <div className="p-2 bg-[#090A0D] border-b border-white/10 flex items-center gap-1.5 overflow-x-auto shrink-0 text-[10.5px]">
+          <div className="p-2 bg-gray-50/90 border-b border-gray-100 flex items-center gap-1.5 overflow-x-auto shrink-0 text-[10.5px]">
             <button
               onClick={() => setActiveChannel('global')}
               className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeChannel === 'global'
-                  ? 'bg-[#DFBD78] text-black shadow-sm'
-                  : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                  ? 'bg-[#DFBD78] text-black shadow-xs'
+                  : 'bg-white text-gray-600 hover:text-black hover:bg-gray-100 border border-gray-200'
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">public</span>
@@ -315,8 +315,8 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
               }}
               className={`px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeChannel === 'match'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-gray-600 hover:text-black hover:bg-gray-100 border border-gray-200'
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">groups</span>
@@ -326,12 +326,12 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
 
           {/* If Match Groups Active: Show ONLY Registered Match Tournaments */}
           {activeChannel === 'match' && (
-            <div className="p-2 bg-blue-950/30 border-b border-blue-500/20 shrink-0">
+            <div className="p-2.5 bg-blue-50/70 border-b border-blue-100 shrink-0">
               {userRegisteredGroups.length === 0 ? (
-                <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-500/30 text-center space-y-1.5">
-                  <span className="material-symbols-outlined text-2xl text-blue-400 block">lock</span>
-                  <h4 className="text-xs font-bold text-white uppercase">Only Registered Match Groups</h4>
-                  <p className="text-[10px] text-gray-300 leading-relaxed">
+                <div className="p-3 rounded-xl bg-white border border-blue-200 text-center space-y-1.5 shadow-2xs">
+                  <span className="material-symbols-outlined text-2xl text-blue-600 block">lock</span>
+                  <h4 className="text-xs font-bold text-gray-900 uppercase">Only Registered Match Groups</h4>
+                  <p className="text-[10px] text-gray-600 leading-relaxed">
                     Tournament group chats are exclusively accessible to participants registered with their squad/organization.
                   </p>
                   {onNavigate && (
@@ -348,11 +348,11 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-[9.5px] font-bold text-blue-300 uppercase shrink-0">Match Group:</span>
+                  <span className="text-[9.5px] font-bold text-blue-900 uppercase shrink-0">Match Group:</span>
                   <select
                     value={selectedMatchRoomId}
                     onChange={(e) => setSelectedMatchRoomId(e.target.value)}
-                    className="w-full bg-[#12131A] text-white text-[11px] font-medium py-1.5 px-2 rounded-lg border border-blue-400/40 outline-hidden cursor-pointer"
+                    className="w-full bg-white text-gray-900 text-[11px] font-bold py-1.5 px-2.5 rounded-lg border border-blue-300 outline-hidden cursor-pointer shadow-2xs"
                   >
                     {userRegisteredGroups.map(m => (
                       <option key={m.id} value={m.id}>
@@ -365,20 +365,20 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
             </div>
           )}
 
-          {/* Messages Body */}
-          <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#0B0C10]/80">
+          {/* Messages Body (PURE WHITE CANVAS) */}
+          <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-white">
             {activeChannel === 'match' && userRegisteredGroups.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 space-y-2">
-                <span className="material-symbols-outlined text-4xl text-gray-600">groups</span>
-                <p className="text-xs font-bold text-gray-400">Match Room Locked</p>
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400 space-y-2">
+                <span className="material-symbols-outlined text-4xl text-gray-300">groups</span>
+                <p className="text-xs font-bold text-gray-700">Match Room Locked</p>
                 <p className="text-[10.5px] text-gray-500 max-w-[240px]">
                   Register for an upcoming tournament room or scrim to unlock private messaging with your match squads and host!
                 </p>
               </div>
             ) : messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 space-y-1.5">
-                <span className="material-symbols-outlined text-4xl text-gray-600">chat_bubble_outline</span>
-                <p className="text-xs font-bold text-gray-400">
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400 space-y-1.5">
+                <span className="material-symbols-outlined text-4xl text-gray-300">chat_bubble_outline</span>
+                <p className="text-xs font-bold text-gray-700">
                   {activeChannel === 'global' ? 'No messages in Global Arena yet.' : 'No messages in this match group yet.'}
                 </p>
                 <p className="text-[10.5px] text-gray-500 max-w-[240px]">
@@ -399,40 +399,40 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
                     className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-0.5`}
                   >
                     {/* Sender Identity */}
-                    <div className="flex items-center gap-1.5 text-[9.5px] text-gray-400 px-1">
-                      <span className={`font-black ${isMe ? 'text-[#DFBD78]' : 'text-gray-300'}`}>
+                    <div className="flex items-center gap-1.5 text-[9.5px] text-gray-500 px-1">
+                      <span className={`font-black ${isMe ? 'text-gray-900' : 'text-[#8C6D2D]'}`}>
                         {msg.sender}
                       </span>
 
                       {isHost && (
-                        <span className="px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[8px] font-black uppercase border border-amber-400/30">
+                        <span className="px-1 py-0.2 rounded bg-amber-100 text-amber-800 text-[8px] font-black uppercase border border-amber-300">
                           HOST
                         </span>
                       )}
 
                       {isVip && !isHost && (
-                        <span className="px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 text-[8px] font-bold uppercase border border-purple-400/30">
+                        <span className="px-1 py-0.2 rounded bg-purple-100 text-purple-800 text-[8px] font-bold uppercase border border-purple-300">
                           {msg.senderRole}
                         </span>
                       )}
 
                       {msg.senderClan && (
-                        <span className="text-[8.5px] text-gray-400 font-semibold">
+                        <span className="text-[8.5px] text-gray-500 font-bold">
                           [{msg.senderClan}]
                         </span>
                       )}
 
-                      <span className="text-[8.5px] text-gray-600 font-mono">
+                      <span className="text-[8.5px] text-gray-400 font-mono font-medium">
                         {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
                     {/* Chat Bubble */}
                     <div
-                      className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed break-words shadow-sm ${
+                      className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed break-words shadow-2xs ${
                         isMe
-                          ? 'bg-gradient-to-r from-[#DFBD78] to-[#C5A059] text-black font-medium rounded-tr-xs'
-                          : 'bg-[#181922] text-gray-200 border border-white/10 rounded-tl-xs'
+                          ? 'bg-gradient-to-r from-[#DFBD78] to-[#C5A059] text-black font-semibold rounded-tr-xs'
+                          : 'bg-gray-100 text-gray-900 border border-gray-200 rounded-tl-xs'
                       }`}
                     >
                       {msg.message}
@@ -446,28 +446,28 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
 
           {/* Quick Preset Buttons */}
           {!(activeChannel === 'match' && userRegisteredGroups.length === 0) && (
-            <div className="px-2.5 py-1.5 bg-[#090A0D] border-t border-white/5 flex items-center gap-1.5 overflow-x-auto text-[9.5px]">
+            <div className="px-2.5 py-1.5 bg-gray-50 border-t border-gray-100 flex items-center gap-1.5 overflow-x-auto text-[9.5px]">
               <button
                 onClick={() => handleQuickPreset('Ready for match! ✅')}
-                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-gray-100 text-gray-700 hover:text-black border border-gray-200 whitespace-nowrap cursor-pointer transition-colors font-medium shadow-2xs"
               >
                 Ready for match! ✅
               </button>
               <button
                 onClick={() => handleQuickPreset('Room ID & Pass shared? 🔑')}
-                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-gray-100 text-gray-700 hover:text-black border border-gray-200 whitespace-nowrap cursor-pointer transition-colors font-medium shadow-2xs"
               >
                 Room ID &amp; Pass? 🔑
               </button>
               <button
                 onClick={() => handleQuickPreset('Need 1 assaulter for squad ⚔️')}
-                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-gray-100 text-gray-700 hover:text-black border border-gray-200 whitespace-nowrap cursor-pointer transition-colors font-medium shadow-2xs"
               >
                 Need 1 player ⚔️
               </button>
               <button
                 onClick={() => handleQuickPreset('GG all! 🏆')}
-                className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white whitespace-nowrap cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-gray-100 text-gray-700 hover:text-black border border-gray-200 whitespace-nowrap cursor-pointer transition-colors font-medium shadow-2xs"
               >
                 GG all! 🏆
               </button>
@@ -476,10 +476,10 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
 
           {/* Sender Input Field */}
           {!(activeChannel === 'match' && userRegisteredGroups.length === 0) && (
-            <div className="p-3 bg-[#111218] border-t border-white/10 shrink-0">
+            <div className="p-3 bg-white border-t border-gray-100 shrink-0">
               {!currentUser && (
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="text-[10px] text-gray-400 uppercase font-bold shrink-0">Your Handle:</span>
+                  <span className="text-[10px] text-gray-600 uppercase font-bold shrink-0">Your Handle:</span>
                   <input
                     type="text"
                     value={guestName}
@@ -487,7 +487,7 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
                       setGuestName(e.target.value);
                       if (typeof window !== 'undefined') localStorage.setItem('lt_chat_guest_name', e.target.value);
                     }}
-                    className="w-full px-2 py-1 rounded bg-[#090A0E] border border-white/15 text-[11px] text-[#DFBD78] font-bold outline-hidden focus:border-[#DFBD78]"
+                    className="w-full px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-[11px] text-gray-900 font-bold outline-hidden focus:border-[#DFBD78]"
                   />
                 </div>
               )}
@@ -498,13 +498,13 @@ export default function FloatingCommunityChat({ currentUser, onNavigate }) {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder={activeChannel === 'match' ? `Message ${activeSelectedGroup?.title || 'match group'}...` : 'Type message in Global Arena...'}
-                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#090A0E] border border-white/15 text-xs text-white placeholder:text-gray-500 outline-hidden focus:border-[#DFBD78] transition-colors"
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 outline-hidden focus:border-[#DFBD78] transition-colors"
                   maxLength={500}
                 />
                 <button
                   type="submit"
                   disabled={!inputText.trim()}
-                  className="size-9 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] disabled:opacity-40 text-black flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md"
+                  className="size-9 rounded-xl bg-[#DFBD78] hover:bg-[#C5A059] disabled:opacity-40 text-black flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs"
                 >
                   <span className="material-symbols-outlined text-[18px]">send</span>
                 </button>
