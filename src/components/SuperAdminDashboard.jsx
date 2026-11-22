@@ -787,24 +787,37 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     const val = validateLiveStreamUrl(rawUrl);
     const validUrl = val.isValid ? val.normalizedUrl : 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
 
-    // Publish to Home Arena Live Broadcast Section
+    // Publish to Home Arena Live Broadcast Section & Host Tournaments sequential cards
     const approvedStreamObj = {
+      id: req.id || ('bcast_' + Date.now()),
       url: validUrl,
       title: req.title || `${req.tournament || 'Live Match'} - Stream by ${req.creator || req.organizerName || 'Partner'}`,
       organizer: req.creator || req.organizerName || 'Verified Streamer',
       clan: req.clan || req.organizerClan || 'OFFICIAL',
       game: req.game || 'BGMI',
       isApproved: true,
-      viewers: 16840
+      viewers: 16840,
+      approvedAt: new Date().toISOString()
     };
+
+    // Sequentially assign to lt_approved_broadcasts
+    try {
+      const existingRaw = localStorage.getItem('lt_approved_broadcasts');
+      const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+      const filtered = Array.isArray(existingList) ? existingList.filter(b => b.url !== validUrl && b.id !== approvedStreamObj.id) : [];
+      const updatedList = [...filtered, approvedStreamObj];
+      localStorage.setItem('lt_approved_broadcasts', JSON.stringify(updatedList));
+    } catch (e) {}
+
     localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
     localStorage.setItem('lt_user_live_stream_url', validUrl);
     window.dispatchEvent(new Event('lt_stream_updated'));
+    window.dispatchEvent(new Event('lt_broadcast_approved'));
     window.dispatchEvent(new Event('storage'));
 
     setActiveBroadcasts(prev => [
       {
-        id: 'bcast_' + Date.now(),
+        id: approvedStreamObj.id,
         title: approvedStreamObj.title,
         tournament: req.tournament || 'Competitive Series',
         casters: req.creator || req.organizerName,
@@ -819,7 +832,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       },
       ...prev
     ]);
-    showToast(`✓ Broadcast for ${req.creator || req.organizerName || 'host'} approved & live on Home Arena!`);
+    showToast(`✓ Broadcast for ${req.creator || req.organizerName || 'host'} approved & assigned to Host Tournaments card!`);
   };
 
   const handleDeclineBroadcastRequest = (id) => {
@@ -2497,19 +2510,30 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                                 const val = validateLiveStreamUrl(rawUrl);
                                 const validUrl = val.isValid ? val.normalizedUrl : rawUrl;
                                 const approvedStreamObj = {
+                                  id: req.id || ('bcast_' + Date.now()),
                                   url: validUrl,
                                   title: streamReq.title,
                                   organizer: streamReq.organizerName,
                                   clan: streamReq.clan,
                                   game: req.game || 'BGMI',
                                   isApproved: true,
-                                  viewers: 16840
+                                  viewers: 16840,
+                                  approvedAt: new Date().toISOString()
                                 };
+                                try {
+                                  const existingRaw = localStorage.getItem('lt_approved_broadcasts');
+                                  const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+                                  const filtered = Array.isArray(existingList) ? existingList.filter(b => b.url !== validUrl && b.id !== approvedStreamObj.id) : [];
+                                  const updatedList = [...filtered, approvedStreamObj];
+                                  localStorage.setItem('lt_approved_broadcasts', JSON.stringify(updatedList));
+                                } catch (e) {}
+
                                 localStorage.setItem('lt_approved_live_stream', JSON.stringify(approvedStreamObj));
                                 localStorage.setItem('lt_user_live_stream_url', validUrl);
                                 window.dispatchEvent(new Event('lt_stream_updated'));
+                                window.dispatchEvent(new Event('lt_broadcast_approved'));
                                 window.dispatchEvent(new Event('storage'));
-                                showToast(`✓ Broadcast for ${req.title} authorized & streaming live!`);
+                                showToast(`✓ Broadcast for ${req.title} authorized & live in Host Tournaments!`);
                               }}
                               className="px-2 py-0.5 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] cursor-pointer shadow-xs shrink-0"
                             >
@@ -3717,6 +3741,21 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <button
                           onClick={() => {
                             setActiveBroadcasts(prev => prev.filter(b => b.id !== bc.id));
+                            try {
+                              const existingRaw = localStorage.getItem('lt_approved_broadcasts');
+                              const existingList = existingRaw ? JSON.parse(existingRaw) : [];
+                              const filtered = Array.isArray(existingList) ? existingList.filter(b => b.id !== bc.id && b.url !== bc.streamUrl) : [];
+                              localStorage.setItem('lt_approved_broadcasts', JSON.stringify(filtered));
+                              if (filtered.length > 0) {
+                                localStorage.setItem('lt_approved_live_stream', JSON.stringify(filtered[0]));
+                                localStorage.setItem('lt_user_live_stream_url', filtered[0].url);
+                              } else {
+                                localStorage.removeItem('lt_approved_live_stream');
+                              }
+                            } catch (e) {}
+                            window.dispatchEvent(new Event('lt_stream_updated'));
+                            window.dispatchEvent(new Event('lt_broadcast_approved'));
+                            window.dispatchEvent(new Event('storage'));
                             showToast(`Broadcast ended for ${bc.title}`);
                           }}
                           className="px-3 py-1.5 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold cursor-pointer"
