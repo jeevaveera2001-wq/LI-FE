@@ -63,7 +63,7 @@ const DEFAULT_NOTIFICATIONS = [
   }
 ];
 
-export default function FloatingNotificationCenter({ currentUser, onNavigate, standaloneBell = true }) {
+export default function FloatingNotificationCenter({ currentUser, onNavigate, standaloneBell = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => {
     if (typeof window !== 'undefined') {
