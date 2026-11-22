@@ -166,12 +166,16 @@ export default function FeaturedTournamentsSection({ onNavigate, currentUser }) 
     window.addEventListener('lt_hosting_requested', syncJoined);
     window.addEventListener('lt_room_requested', syncJoined);
     window.addEventListener('lt_scrim_requested', syncJoined);
+    window.addEventListener('lt_hosting_approved', syncJoined);
+    window.addEventListener('lt_scrim_approved', syncJoined);
 
     return () => {
       window.removeEventListener('storage', syncJoined);
       window.removeEventListener('lt_hosting_requested', syncJoined);
       window.removeEventListener('lt_room_requested', syncJoined);
       window.removeEventListener('lt_scrim_requested', syncJoined);
+      window.removeEventListener('lt_hosting_approved', syncJoined);
+      window.removeEventListener('lt_scrim_approved', syncJoined);
     };
   }, []);
 

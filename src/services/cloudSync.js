@@ -136,6 +136,34 @@ export async function declineCloudHostingRequest(id) {
   }
 }
 
+export async function updateCloudHostingRequestStatus(id, status) {
+  try {
+    const res = await fetch('/api/hosting-requests', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] updateCloudHostingRequestStatus failed:', err);
+    return false;
+  }
+}
+
+export async function deleteCloudHostingRequest(id) {
+  try {
+    const res = await fetch('/api/hosting-requests', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, permanent: true })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] deleteCloudHostingRequest failed:', err);
+    return false;
+  }
+}
+
 // Contact Us Tickets Sync
 export async function submitCloudContactTicket(ticketData) {
   try {

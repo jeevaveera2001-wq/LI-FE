@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     // GET /api/hosting-requests
     if (req.method === 'GET') {
       const type = req.query.type;
-      const filter = { status: { $ne: 'REJECTED' } };
+      const filter = { status: { $nin: ['REJECTED', 'DELETED'] } };
       if (type) filter.type = type.toUpperCase();
 
       const requests = await collection
@@ -75,12 +75,9 @@ export default async function handler(req, res) {
       const id = req.query.id || req.body?.id;
       if (!id) return res.status(400).json({ success: false, error: 'id is required' });
 
-      await collection.updateOne(
-        { id },
-        { $set: { status: 'REJECTED', updatedAt: new Date().toISOString() } }
-      );
+      await collection.deleteOne({ id });
 
-      return res.status(200).json({ success: true, message: 'Request rejected' });
+      return res.status(200).json({ success: true, message: 'Request deleted permanently' });
     }
 
     return res.status(405).json({ success: false, error: 'Method not allowed' });

@@ -11,6 +11,8 @@ import {
   fetchCloudCardSlots,
   fetchCloudHostingRequests,
   declineCloudHostingRequest,
+  updateCloudHostingRequestStatus,
+  deleteCloudHostingRequest,
   fetchCloudContactTickets,
   deleteCloudContactTicket,
   updateCloudContactTicket,
@@ -1510,6 +1512,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const handleApproveHosting = async (id) => {
     const req = hostingRequests.find(r => r.id === id);
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'APPROVED' } : r));
+    updateCloudHostingRequestStatus(id, 'APPROVED');
     if (req) {
       try {
         await sendTournamentApprovalEmail({
@@ -1524,22 +1527,28 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         console.warn('Failed to dispatch tournament approval email:', err);
       }
 
-      const newT = {
-        id: 't_' + Date.now(),
-        title: req.title,
-        game: req.game || 'Battlegrounds Mobile India',
-        format: req.format || 'Squad Battle Royale',
-        prizePool: req.prizePool || '₹ 50,000',
-        entryFee: req.entryFee || '₹ 50 / Squad',
-        slots: req.slots || 64,
-        registered: 0,
-        status: 'LIVE',
-        dates: 'Active Now',
-        thumbnail: req.thumbnail || '/tournament_bgmi_showdown_4k.jpg',
-        organizer: req.organizer || 'Community Organizer',
-        matchTime: req.timing || 'Today at 8:00 PM IST'
-      };
-      setAllTournamentsList(prev => [newT, ...prev]);
+      setAllTournamentsList(prev => {
+        const exists = prev.find(t => t.id === id || t.title === req.title);
+        if (exists) {
+          return prev.map(t => (t.id === id || t.title === req.title) ? { ...t, status: 'LIVE' } : t);
+        }
+        const newT = {
+          id: id || ('t_' + Date.now()),
+          title: req.title,
+          game: req.game || 'Battlegrounds Mobile India',
+          format: req.format || 'Squad Battle Royale',
+          prizePool: req.prizePool || '₹ 50,000',
+          entryFee: req.entryFee || '₹ 50 / Squad',
+          slots: req.slots || 64,
+          registered: 0,
+          status: 'LIVE',
+          dates: 'Active Now',
+          thumbnail: req.thumbnail || '/tournament_bgmi_showdown_4k.jpg',
+          organizer: req.organizer || 'Community Organizer',
+          matchTime: req.timing || 'Today at 8:00 PM IST'
+        };
+        return [newT, ...prev];
+      });
 
       const newR = {
         id: 'room_' + Date.now(),
@@ -1556,7 +1565,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
         topSquad: 'Waiting for Launch',
         streamLink: ''
       };
-      setActiveMatchRooms(prev => [newR, ...prev]);
+      setActiveMatchRooms(prev => [newR, ...prev.filter(r => !r.title?.includes(req.title))]);
     }
 
     // Sync status into user's hosted tournaments & admin hosting requests
@@ -1595,8 +1604,54 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleSuspendHosting = (id) => {
+    const req = hostingRequests.find(r => r.id === id);
     setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'SUSPENDED' } : r));
-    showToast('⚠️ Tournament Hosting Suspended & Terminated');
+    updateCloudHostingRequestStatus(id, 'SUSPENDED');
+    if (req) {
+      setAllTournamentsList(prev => prev.map(t => (t.id === id || t.title === req.title) ? { ...t, status: 'SUSPENDED' } : t));
+      setActiveMatchRooms(prev => prev.map(r => r.title?.includes(req.title) ? { ...r, status: 'SUSPENDED' } : r));
+    }
+    try {
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      const updatedAdmin = adminReqs.map(h => (h.id === id || h.title === req?.title) ? { ...h, status: 'SUSPENDED' } : h);
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(updatedAdmin));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id || h.title === req?.title) ? { ...h, status: 'SUSPENDED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    showToast('⚠️ Tournament Hosting Suspended! Match hidden from live users.');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+  const handleDeleteHosting = (id) => {
+    const req = hostingRequests.find(r => r.id === id);
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${req?.title || 'this tournament'}"? It will be removed from all feeds, match rooms, and database.`)) {
+      return;
+    }
+    setHostingRequests(prev => prev.filter(r => r.id !== id));
+    deleteCloudHostingRequest(id);
+    if (req) {
+      setAllTournamentsList(prev => prev.filter(t => t.id !== id && t.title !== req.title));
+      setActiveMatchRooms(prev => prev.filter(r => !r.title?.includes(req.title)));
+    }
+    try {
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminReqs.filter(h => h.id !== id)));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== req?.title)));
+      }
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    showToast('🗑️ Tournament Match permanently deleted from platform.');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleBlockUser = (name, email, reqId) => {
@@ -1722,6 +1777,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const handleApproveScrim = async (id) => {
     const scrim = scrimsRequests.find(s => s.id === id);
     setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'APPROVED' } : s));
+    updateCloudHostingRequestStatus(id, 'APPROVED');
     if (scrim) {
       try {
         await sendTournamentApprovalEmail({
@@ -1758,7 +1814,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   const handleRejectScrim = (id) => {
     setScrimsRequests(prev => prev.filter(s => s.id !== id));
     try {
-      declineCloudHostingRequest(id);
+      deleteCloudHostingRequest(id);
       const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
       localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(adminScrims.filter(s => s.id !== id)));
       const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
@@ -1772,9 +1828,101 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleSuspendScrim = (id) => {
+    const scrim = scrimsRequests.find(s => s.id === id);
     setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'SUSPENDED' } : s));
-    showToast('⚠️ Scrim Schedule Suspended & Terminated');
+    updateCloudHostingRequestStatus(id, 'SUSPENDED');
+    try {
+      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+      const updatedScrims = adminScrims.map(s => (s.id === id || s.title === scrim?.title) ? { ...s, status: 'SUSPENDED' } : s);
+      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(updatedScrims));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id || h.title === scrim?.title) ? { ...h, status: 'SUSPENDED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+      window.dispatchEvent(new Event('lt_scrim_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    showToast('⚠️ Scrim Schedule Suspended & Hidden from live users');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+  const handleDeleteScrim = (id) => {
+    const scrim = scrimsRequests.find(s => s.id === id);
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${scrim?.title || 'this scrim'}"?`)) {
+      return;
+    }
+    setScrimsRequests(prev => prev.filter(s => s.id !== id));
+    deleteCloudHostingRequest(id);
+    try {
+      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(adminScrims.filter(s => s.id !== id)));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== scrim?.title)));
+      }
+      window.dispatchEvent(new Event('lt_scrim_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    showToast('🗑️ Scrim Match permanently deleted');
+    if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
+  };
+
+  const handleToggleSuspendTournamentFromList = (id, title) => {
+    let newStatus = 'SUSPENDED';
+    setAllTournamentsList(prev => prev.map(t => {
+      if (t.id === id || t.title === title) {
+        newStatus = t.status === 'SUSPENDED' ? 'LIVE' : 'SUSPENDED';
+        return { ...t, status: newStatus };
+      }
+      return t;
+    }));
+
+    setHostingRequests(prev => prev.map(r => (r.id === id || r.title === title) ? { ...r, status: newStatus === 'LIVE' ? 'APPROVED' : 'SUSPENDED' } : r));
+    updateCloudHostingRequestStatus(id, newStatus === 'LIVE' ? 'APPROVED' : 'SUSPENDED');
+
+    try {
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      const updatedAdmin = adminReqs.map(h => (h.id === id || h.title === title) ? { ...h, status: newStatus === 'LIVE' ? 'APPROVED' : 'SUSPENDED' } : h);
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(updatedAdmin));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        const updated = userHostings.map(h => (h.id === id || h.title === title) ? { ...h, status: newStatus === 'LIVE' ? 'APPROVED' : 'SUSPENDED' } : h);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+      }
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+
+    showToast(newStatus === 'SUSPENDED' ? `⚠️ Suspended ${title} - Hidden from live users` : `✓ Re-Approved ${title} - Now Live!`);
+  };
+
+  const handleDeleteTournamentFromList = (id, title) => {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE "${title}"?`)) return;
+    setAllTournamentsList(prev => prev.filter(t => t.id !== id && t.title !== title));
+    setHostingRequests(prev => prev.filter(r => r.id !== id && r.title !== title));
+    setActiveMatchRooms(prev => prev.filter(r => !r.title?.includes(title)));
+    deleteCloudHostingRequest(id);
+
+    try {
+      const adminReqs = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminReqs.filter(h => h.id !== id && h.title !== title)));
+
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id && h.title !== title)));
+      }
+      window.dispatchEvent(new Event('lt_hosting_approved'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+
+    showToast(`🗑️ Permanently Deleted ${title}`);
   };
 
   const handleApprovePartner = (id) => {
@@ -3136,7 +3284,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                       </div>
                     </div>
 
-                    {/* DECISION ACTION BUTTONS (ACCEPT, SUSPEND, BLOCK USER) */}
+                    {/* DECISION ACTION BUTTONS (ACCEPT, SUSPEND, BLOCK USER, DELETE) */}
                     <div className="pt-2 border-t border-[#F3F4F6] flex flex-col gap-1.5">
                       {(req.status === 'PENDING' || req.status === 'PENDING_APPROVAL') ? (
                         <>
@@ -3160,25 +3308,113 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                               Decline
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleBlockUser(req.organizer || req.hostUser, req.email, req.id)}
-                            className="w-full py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">block</span>
-                            Block User
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleBlockUser(req.organizer || req.hostUser, req.email, req.id)}
+                              className="flex-1 py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block User
+                            </button>
+                            <button
+                              onClick={() => handleDeleteHosting(req.id)}
+                              className="py-1 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete Match
+                            </button>
+                          </div>
                         </>
+                      ) : (req.status === 'APPROVED' || req.status === 'LIVE') ? (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-[#6B7280] font-semibold">Status: <strong className="text-emerald-600 font-bold">APPROVED (LIVE)</strong></span>
+                            <span className="text-[9px] text-gray-400 font-mono">Live on Portal</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleSuspendHosting(req.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              title="Suspend and hide match from live users"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">pause_circle</span>
+                              Suspend Match
+                            </button>
+                            <button
+                              onClick={() => handleBlockUser(req.organizer || req.hostUser, req.email, req.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                              title="Block clan / host from future tournaments"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block Host
+                            </button>
+                            <button
+                              onClick={() => handleDeleteHosting(req.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                              title="Permanently delete match"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ) : req.status === 'SUSPENDED' ? (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-[#6B7280] font-semibold">Status: <strong className="text-amber-600 font-bold">SUSPENDED</strong></span>
+                            <span className="text-[9px] text-amber-500 font-semibold">Hidden from Users</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveHosting(req.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              title="Re-approve match back into live rotation"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                              Re-Approve Match
+                            </button>
+                            <button
+                              onClick={() => handleBlockUser(req.organizer || req.hostUser, req.email, req.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block Host
+                            </button>
+                            <button
+                              onClick={() => handleDeleteHosting(req.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       ) : (
                         <div className="flex items-center justify-between text-[10px] pt-1">
                           <span className="text-[#6B7280] font-semibold">Status: <strong className="text-[#1F2937]">{req.status}</strong></span>
-                          {req.status !== 'BLOCKED' && (
+                          <div className="flex items-center gap-2">
+                            {req.status === 'BLOCKED' ? (
+                              <button
+                                onClick={() => handleUnblockUser(req.email)}
+                                className="text-emerald-600 hover:underline font-bold text-[10px] cursor-pointer"
+                              >
+                                Unblock Host
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleBlockUser(req.organizer, req.email, req.id)}
+                                className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
+                              >
+                                Block User &rarr;
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleBlockUser(req.organizer, req.email, req.id)}
+                              onClick={() => handleDeleteHosting(req.id)}
                               className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
                             >
-                              Block User &rarr;
+                              Delete
                             </button>
-                          )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -3402,25 +3638,113 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                               Decline
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
-                            className="w-full py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">block</span>
-                            Block User
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                              className="flex-1 py-1 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block User
+                            </button>
+                            <button
+                              onClick={() => handleDeleteScrim(scrim.id)}
+                              className="py-1 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete Scrim
+                            </button>
+                          </div>
                         </>
+                      ) : (scrim.status === 'APPROVED' || scrim.status === 'LIVE') ? (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-[#6B7280] font-semibold">Status: <strong className="text-emerald-600 font-bold">APPROVED (ACTIVE)</strong></span>
+                            <span className="text-[9px] text-gray-400 font-mono">Live on Portal</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleSuspendScrim(scrim.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              title="Suspend and hide scrim from live users"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">pause_circle</span>
+                              Suspend Scrim
+                            </button>
+                            <button
+                              onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                              title="Block clan from hosting scrims"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block Clan
+                            </button>
+                            <button
+                              onClick={() => handleDeleteScrim(scrim.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                              title="Permanently delete scrim"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ) : scrim.status === 'SUSPENDED' ? (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-[#6B7280] font-semibold">Status: <strong className="text-amber-600 font-bold">SUSPENDED</strong></span>
+                            <span className="text-[9px] text-amber-500 font-semibold">Hidden from Users</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleApproveScrim(scrim.id)}
+                              className="flex-1 py-1.5 rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                              title="Re-approve scrim back into live rotation"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                              Re-Approve Scrim
+                            </button>
+                            <button
+                              onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-gray-900 hover:bg-black text-rose-300 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">block</span>
+                              Block Clan
+                            </button>
+                            <button
+                              onClick={() => handleDeleteScrim(scrim.id)}
+                              className="py-1.5 px-2.5 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       ) : (
                         <div className="flex items-center justify-between text-[10px] pt-1">
                           <span className="text-[#6B7280] font-semibold">Status: <strong className="text-[#1F2937]">{scrim.status}</strong></span>
-                          {scrim.status !== 'BLOCKED' && (
+                          <div className="flex items-center gap-2">
+                            {scrim.status === 'BLOCKED' ? (
+                              <button
+                                onClick={() => handleUnblockUser(scrim.contact)}
+                                className="text-emerald-600 hover:underline font-bold text-[10px] cursor-pointer"
+                              >
+                                Unblock Clan
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                                className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
+                              >
+                                Block Clan &rarr;
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleBlockUser(scrim.clan, scrim.contact, scrim.id)}
+                              onClick={() => handleDeleteScrim(scrim.id)}
                               className="text-rose-600 hover:underline font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
                             >
-                              Block Clan &rarr;
+                              Delete
                             </button>
-                          )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -3713,6 +4037,8 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm ${
                           t.status === 'LIVE' ? 'bg-emerald-500 text-white animate-pulse' :
                           t.status === 'REGISTRATION OPEN' ? 'bg-blue-600 text-white' :
+                          t.status === 'SUSPENDED' ? 'bg-amber-600 text-white' :
+                          t.status === 'BLOCKED' ? 'bg-rose-700 text-white' :
                           'bg-amber-500 text-white'
                         }`}>
                           {t.status}
@@ -3752,18 +4078,36 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-[#F3F4F6] flex items-center gap-2">
+                      <div className="pt-2 border-t border-[#F3F4F6] flex flex-wrap items-center gap-1.5">
                         <button
                           onClick={() => { setActiveTab('active-matches'); showToast(`Opening Room Console for ${t.title}`); }}
-                          className="flex-1 py-1.5 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
+                          className="flex-1 min-w-[90px] py-1.5 rounded-[6px] bg-[#1F2937] hover:bg-black text-white text-[11px] font-bold transition-colors cursor-pointer text-center"
                         >
                           Manage Room
                         </button>
+                        {t.status === 'SUSPENDED' ? (
+                          <button
+                            onClick={() => handleToggleSuspendTournamentFromList(t.id, t.title)}
+                            className="py-1.5 px-2 rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                            title="Re-activate match to live rotation"
+                          >
+                            ✓ Re-Approve
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleSuspendTournamentFromList(t.id, t.title)}
+                            className="py-1.5 px-2 rounded-[6px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                            title="Suspend match and hide from live users"
+                          >
+                            ⚠️ Suspend
+                          </button>
+                        )}
                         <button
-                          onClick={() => showToast(`Viewing registered teams for ${t.title}`)}
-                          className="py-1.5 px-3 rounded-[6px] border border-[#D1D1D1] text-[#4B5563] hover:bg-gray-50 text-[11px] font-bold transition-colors cursor-pointer"
+                          onClick={() => handleDeleteTournamentFromList(t.id, t.title)}
+                          className="py-1.5 px-2 rounded-[6px] bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                          title="Permanently delete match"
                         >
-                          Teams ({t.registered})
+                          🗑️ Delete
                         </button>
                       </div>
                     </div>
@@ -6298,6 +6642,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
                 >
                   <span className="material-symbols-outlined text-[15px]">block</span>
                   Block User
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteHosting(selectedInspectImage.id);
+                  }}
+                  className="px-3.5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">delete</span>
+                  Delete Match
                 </button>
                 <button
                   onClick={() => setSelectedInspectImage(null)}

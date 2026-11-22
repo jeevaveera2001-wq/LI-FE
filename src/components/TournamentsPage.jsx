@@ -17,11 +17,15 @@ export default function TournamentsPage({ onNavigate, currentUser }) {
     window.addEventListener('lt_hosting_requested', handleSync);
     window.addEventListener('lt_room_requested', handleSync);
     window.addEventListener('lt_scrim_requested', handleSync);
+    window.addEventListener('lt_hosting_approved', handleSync);
+    window.addEventListener('lt_scrim_approved', handleSync);
     return () => {
       window.removeEventListener('storage', handleSync);
       window.removeEventListener('lt_hosting_requested', handleSync);
       window.removeEventListener('lt_room_requested', handleSync);
       window.removeEventListener('lt_scrim_requested', handleSync);
+      window.removeEventListener('lt_hosting_approved', handleSync);
+      window.removeEventListener('lt_scrim_approved', handleSync);
     };
   }, []);
   const [activeCategory, setActiveCategory] = useState('ALL');
