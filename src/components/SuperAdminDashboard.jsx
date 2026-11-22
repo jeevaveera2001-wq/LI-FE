@@ -9,7 +9,11 @@ import {
   declineCloudBroadcastRequest,
   assignCloudBroadcastToSlot,
   fetchCloudCardSlots,
-  fetchCloudHostingRequests
+  fetchCloudHostingRequests,
+  declineCloudHostingRequest,
+  fetchCloudContactTickets,
+  deleteCloudContactTicket,
+  updateCloudUserVip
 } from '../services/cloudSync';
 
 /**
@@ -268,11 +272,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
       const userStreamUrl = localStorage.getItem('lt_user_live_stream_url');
       if (userStreamUrl && userStreamUrl.trim()) {
         const val = validateLiveStreamUrl(userStreamUrl);
-        if (val.isValid && !declinedIds.has(val.normalizedUrl)) {
+        if (val.isValid && !declinedIds.has('bcast_user_active') && !declinedIds.has(val.normalizedUrl)) {
           const alreadyExists = Array.from(map.values()).some(b => b.streamUrl === val.normalizedUrl);
           if (!alreadyExists) {
             map.set('user_live_stream_active', {
-              id: 'bcast_user_active_' + Date.now(),
+              id: 'bcast_user_active',
               title: 'Competitor Match Live Broadcast',
               tournament: 'Live Stream Arena Feed',
               streamUrl: val.normalizedUrl,
@@ -743,18 +747,68 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
     // Universal Cloud Database Polling Interval (2.5s) to guarantee real-time updates across disparate devices and browsers
     const cloudPollInterval = setInterval(() => {
+      const declinedIds = new Set(getDeclinedBroadcastIds());
+
+      // 1. Sync broadcast requests from cloud database (filtering out declined IDs)
       fetchCloudBroadcastRequests().then(cloudRequests => {
-        if (Array.isArray(cloudRequests) && cloudRequests.length > 0) {
+        if (Array.isArray(cloudRequests)) {
           setBroadcastRequests(prev => {
             const map = new Map();
             cloudRequests.forEach(r => {
-              if (r && (r.id || r.streamUrl)) map.set(r.id || r.streamUrl, r);
+              if (r && (r.id || r.streamUrl) && !declinedIds.has(r.id) && !declinedIds.has(r.streamUrl) && r.status !== 'DECLINED') {
+                map.set(r.id || r.streamUrl, r);
+              }
             });
             prev.forEach(r => {
               const k = r.id || r.streamUrl;
-              if (!map.has(k)) map.set(k, r);
+              if (!map.has(k) && !declinedIds.has(r.id) && !declinedIds.has(r.streamUrl) && r.status !== 'DECLINED') {
+                map.set(k, r);
+              }
             });
             return Array.from(map.values());
+          });
+        }
+      }).catch(() => {});
+
+      // 2. Sync hosting & scrim requests from cloud database
+      fetchCloudHostingRequests().then(cloudHostings => {
+        if (Array.isArray(cloudHostings)) {
+          setHostingRequests(prev => {
+            const map = new Map();
+            cloudHostings.filter(h => h.status !== 'REJECTED' && (h.type === 'TOURNAMENT' || !h.type)).forEach(h => {
+              map.set(h.id, h);
+            });
+            prev.forEach(h => {
+              if (!map.has(h.id) && h.status !== 'REJECTED') map.set(h.id, h);
+            });
+            return Array.from(map.values());
+          });
+
+          setScrimsRequests(prev => {
+            const map = new Map();
+            cloudHostings.filter(h => h.status !== 'REJECTED' && h.type === 'SCRIM').forEach(h => {
+              map.set(h.id, h);
+            });
+            prev.forEach(h => {
+              if (!map.has(h.id) && h.status !== 'REJECTED') map.set(h.id, h);
+            });
+            return Array.from(map.values());
+          });
+        }
+      }).catch(() => {});
+
+      // 3. Sync contact messages from cloud database
+      fetchCloudContactTickets().then(cloudTickets => {
+        if (Array.isArray(cloudTickets)) {
+          setContactMessages(prev => {
+            const map = new Map();
+            cloudTickets.forEach(t => map.set(t.id, t));
+            prev.forEach(t => {
+              if (!map.has(t.id)) map.set(t.id, t);
+            });
+            const merged = Array.from(map.values());
+            localStorage.setItem('lt_admin_contact_messages', JSON.stringify(merged));
+            return merged;
           });
         }
       }).catch(() => {});
@@ -1117,16 +1171,32 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast(`✓ Custom live stream published to Card Slot ${slotNumber}!`);
   };
 
-  const handleGrantUserClearances = (userId, options) => {
+  const handleGrantUserClearances = async (userId, options) => {
+    const targetUser = userDatabase.find(u => u.userId === userId || u.email === userId);
+    const email = targetUser?.email || userId;
+
+    updateCloudUserVip(userId, email, {
+      role: 'VIP',
+      isVip: true,
+      broadcast: options.broadcast,
+      featured: options.featured,
+      scrims: options.scrims,
+      tournaments: options.tournaments,
+      tier: 'VIP_DIRECT'
+    });
+
     setUserDatabase(prev => {
       const updated = prev.map(u => {
         if (u.userId === userId || u.email === userId) {
           return {
             ...u,
+            role: 'VIP',
+            isVip: true,
             hasBroadcastVip: options.broadcast ?? u.hasBroadcastVip,
             hasFeaturedApproval: options.featured ?? u.hasFeaturedApproval,
             hasScrimsApproval: options.scrims ?? u.hasScrimsApproval,
-            hasTourneyApproval: options.tournaments ?? u.hasTourneyApproval
+            hasTourneyApproval: options.tournaments ?? u.hasTourneyApproval,
+            tier: 'VIP_DIRECT'
           };
         }
         return u;
@@ -1139,19 +1209,22 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
     try {
       const cur = JSON.parse(localStorage.getItem('lt_user') || 'null');
-      if (cur && (cur.id === userId || cur.email === userId)) {
+      if (cur && (cur.id === userId || cur.email === userId || cur.email === email)) {
         const updatedCur = {
           ...cur,
+          role: 'VIP',
+          isVip: true,
           hasBroadcastVip: options.broadcast ?? cur.hasBroadcastVip,
           hasFeaturedApproval: options.featured ?? cur.hasFeaturedApproval,
           hasScrimsApproval: options.scrims ?? cur.hasScrimsApproval,
-          hasTourneyApproval: options.tournaments ?? cur.hasTourneyApproval
+          hasTourneyApproval: options.tournaments ?? cur.hasTourneyApproval,
+          tier: 'VIP_DIRECT'
         };
         localStorage.setItem('lt_user', JSON.stringify(updatedCur));
       }
     } catch (e) {}
 
-    showToast(`✓ Direct VIP Clearances granted for user!`);
+    showToast(`✓ Direct VIP Clearances granted & synced to Cloud Database!`);
     setClearanceModalUser(null);
   };
 
@@ -1161,22 +1234,31 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
   const handleDeclineBroadcastRequest = (id) => {
     try {
+      const targetReq = broadcastRequests.find(b => b.id === id);
       const declined = getDeclinedBroadcastIds();
       if (!declined.includes(id)) {
         declined.push(id);
-        localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(declined));
       }
-      if (id === 'bcast_user_active') {
+      if (targetReq && targetReq.streamUrl && !declined.includes(targetReq.streamUrl)) {
+        declined.push(targetReq.streamUrl);
+      }
+      localStorage.setItem('lt_admin_declined_broadcast_ids', JSON.stringify(declined));
+
+      if (id === 'bcast_user_active' || id.includes('bcast_user_active') || id === 'user_live_stream_active') {
         localStorage.removeItem('lt_user_live_stream_url');
       }
-      const remaining = broadcastRequests.filter(b => b.id !== id);
+
+      const remaining = broadcastRequests.filter(b => b.id !== id && (!targetReq?.streamUrl || b.streamUrl !== targetReq.streamUrl));
       setBroadcastRequests(remaining);
       localStorage.setItem('lt_broadcast_requests', JSON.stringify(remaining));
       localStorage.setItem('lt_admin_broadcast_requests', JSON.stringify(remaining));
       declineCloudBroadcastRequest(id);
       window.dispatchEvent(new Event('storage'));
-    } catch (e) {}
-    showToast(`✕ Broadcast request declined`);
+      window.dispatchEvent(new Event('lt_stream_updated'));
+    } catch (e) {
+      console.warn('Decline error:', e);
+    }
+    showToast(`✕ Broadcast request declined and removed`);
   };
 
   // 5. ACTIVITY LOGS (Dynamic from localStorage, seeded with live login session)
@@ -1405,16 +1487,19 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectHosting = (id) => {
-    setHostingRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'REJECTED' } : r));
+    setHostingRequests(prev => prev.filter(r => r.id !== id));
     try {
+      declineCloudHostingRequest(id);
+      const adminHostings = JSON.parse(localStorage.getItem('lt_admin_hosting_requests') || '[]');
+      localStorage.setItem('lt_admin_hosting_requests', JSON.stringify(adminHostings.filter(h => h.id !== id)));
       const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
       if (userHostingsRaw) {
         const userHostings = JSON.parse(userHostingsRaw);
-        const updated = userHostings.map(h => (h.id === id) ? { ...h, status: 'REJECTED' } : h);
-        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(updated));
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id)));
       }
+      window.dispatchEvent(new Event('storage'));
     } catch (e) {}
-    showToast('❌ Tournament Hosting Request Declined');
+    showToast('❌ Tournament Hosting Request Declined & Dismissed');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleSuspendHosting = (id) => {
@@ -1548,8 +1633,19 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleRejectScrim = (id) => {
-    setScrimsRequests(prev => prev.map(s => s.id === id ? { ...s, status: 'REJECTED' } : s));
-    showToast('❌ Scrim Request Declined');
+    setScrimsRequests(prev => prev.filter(s => s.id !== id));
+    try {
+      declineCloudHostingRequest(id);
+      const adminScrims = JSON.parse(localStorage.getItem('lt_admin_scrims_requests') || '[]');
+      localStorage.setItem('lt_admin_scrims_requests', JSON.stringify(adminScrims.filter(s => s.id !== id)));
+      const userHostingsRaw = localStorage.getItem('lt_user_hosted_tourneys');
+      if (userHostingsRaw) {
+        const userHostings = JSON.parse(userHostingsRaw);
+        localStorage.setItem('lt_user_hosted_tourneys', JSON.stringify(userHostings.filter(h => h.id !== id)));
+      }
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+    showToast('❌ Scrim Request Declined & Dismissed');
     if (selectedInspectImage?.id === id) setSelectedInspectImage(null);
   };
   const handleSuspendScrim = (id) => {
@@ -1563,8 +1659,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('✅ Partner Hosting License Granted & Tournament Published!');
   };
   const handleRejectPartner = (id) => {
-    setPartnerHostingRequests(prev => prev.map(p => p.id === id ? { ...p, status: 'REJECTED' } : p));
-    showToast('❌ Partner Hosting Proposal Declined');
+    setPartnerHostingRequests(prev => prev.filter(p => p.id !== id));
+    try {
+      const saved = JSON.parse(localStorage.getItem('lt_admin_partner_hostings') || '[]');
+      localStorage.setItem('lt_admin_partner_hostings', JSON.stringify(saved.filter(p => p.id !== id)));
+    } catch (e) {}
+    showToast('❌ Partner Hosting Proposal Declined & Dismissed');
   };
 
   const handleApproveFeatured = (id) => {
@@ -1572,8 +1672,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('⭐ Tournament Pinned to Official Featured Arena!');
   };
   const handleRejectFeatured = (id) => {
-    setFeaturedRequests(prev => prev.map(f => f.id === id ? { ...f, status: 'REJECTED' } : f));
-    showToast('❌ Featured Placement Request Declined');
+    setFeaturedRequests(prev => prev.filter(f => f.id !== id));
+    try {
+      const saved = JSON.parse(localStorage.getItem('lt_admin_featured_requests') || '[]');
+      localStorage.setItem('lt_admin_featured_requests', JSON.stringify(saved.filter(f => f.id !== id)));
+    } catch (e) {}
+    showToast('❌ Featured Placement Request Declined & Dismissed');
   };
 
   const handleApproveAd = (id) => {
@@ -1581,8 +1685,12 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     showToast('💼 Sponsorship Proposal Accepted & Media Invoice Issued!');
   };
   const handleRejectAd = (id) => {
-    setAdRequests(prev => prev.map(a => a.id === id ? { ...a, status: 'REJECTED' } : a));
-    showToast('❌ Sponsorship Deal Declined');
+    setAdRequests(prev => prev.filter(a => a.id !== id));
+    try {
+      const saved = JSON.parse(localStorage.getItem('lt_admin_ad_requests') || '[]');
+      localStorage.setItem('lt_admin_ad_requests', JSON.stringify(saved.filter(a => a.id !== id)));
+    } catch (e) {}
+    showToast('❌ Sponsorship Deal Declined & Dismissed');
   };
 
   // Result Verifier Handlers
@@ -1665,10 +1773,11 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
   };
 
   const handleDeleteContactTicket = (id) => {
+    deleteCloudContactTicket(id);
     const updated = contactMessages.filter(m => m.id !== id);
     setContactMessages(updated);
     localStorage.setItem('lt_admin_contact_messages', JSON.stringify(updated));
-    showToast('🗑️ Ticket removed from contact inquiries.');
+    showToast('🗑️ Ticket removed from contact inquiries & cloud database.');
   };
 
   // Save Platform Settings & Broadcast to Home Arena

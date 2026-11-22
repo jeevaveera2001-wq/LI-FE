@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { submitCloudContactTicket } from '../services/cloudSync';
 
 export default function ContactUsSection({ onNavigate, currentUser }) {
   const [name, setName] = useState(currentUser?.name || currentUser?.username || '');
@@ -38,6 +39,9 @@ export default function ContactUsSection({ onNavigate, currentUser }) {
     };
 
     try {
+      // 1. Submit ticket directly to MongoDB Atlas Cloud Database
+      submitCloudContactTicket(ticket);
+
       const existing = JSON.parse(localStorage.getItem('lt_admin_contact_messages') || '[]');
       localStorage.setItem('lt_admin_contact_messages', JSON.stringify([ticket, ...existing]));
 

@@ -159,19 +159,26 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [liveStreamGame, setLiveStreamGame] = useState('BATTLEGROUNDS MOBILE INDIA');
   const [liveStreamClan, setLiveStreamClan] = useState(() => currentUser?.clan || '');
   const [liveStreamTournamentType, setLiveStreamTournamentType] = useState('Pro Championship League');
+  const isUserVip = !!(
+    currentUser?.isVip || 
+    currentUser?.role === 'VIP' || 
+    currentUser?.hasBroadcastVip || 
+    currentUser?.tier === 'VIP_DIRECT'
+  );
+
   const [activeBroadcastPass, setActiveBroadcastPass] = useState(() => {
     const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
     if (isPurchased) {
       return localStorage.getItem('lt_user_broadcast_pass') || null;
     }
-    return currentUser?.hasBroadcastVip ? 'VIP Broadcast Pass' : null;
+    return isUserVip ? 'VIP Broadcast Pass' : null;
   });
   const [broadcastExpiresAt, setBroadcastExpiresAt] = useState(() => {
     const isPurchased = localStorage.getItem('lt_user_broadcast_pass_purchased') === 'true';
     if (isPurchased) {
       return localStorage.getItem('lt_user_broadcast_expiry') || null;
     }
-    return currentUser?.hasBroadcastVip ? 'Unlimited VIP' : null;
+    return isUserVip ? 'Unlimited VIP' : null;
   });
 
   // Banner file upload handler for custom image selection from PC or Mobile device
@@ -968,7 +975,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     // Dispatch update event so Home Arena live stream reflects change immediately
     window.dispatchEvent(new Event('lt_stream_updated'));
     setLiveStreamInput('');
-    showToast(currentUser?.hasBroadcastVip ? '🌟 Broadcast VIP Active! Stream published directly to Homepage!' : '🔴 Live stream submitted! Contact email and YouTube link verified for Admin slotting.');
+    showToast(isUserVip ? '🌟 Broadcast VIP Active! Stream published directly to Homepage!' : '🔴 Live stream submitted! Contact email and YouTube link verified for Admin slotting.');
   };
 
   // 8. Submit Results for Admin Verification

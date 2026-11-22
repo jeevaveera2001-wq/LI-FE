@@ -121,3 +121,75 @@ export async function fetchCloudHostingRequests(type) {
     return [];
   }
 }
+
+export async function declineCloudHostingRequest(id) {
+  try {
+    const res = await fetch('/api/hosting-requests', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] declineCloudHostingRequest failed:', err);
+    return false;
+  }
+}
+
+// Contact Us Tickets Sync
+export async function submitCloudContactTicket(ticketData) {
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ticketData)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.ticket : null;
+  } catch (err) {
+    console.warn('[CloudSync] submitCloudContactTicket failed:', err);
+    return null;
+  }
+}
+
+export async function fetchCloudContactTickets() {
+  try {
+    const res = await fetch('/api/contact');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.success && Array.isArray(data.messages) ? data.messages : [];
+  } catch (err) {
+    console.warn('[CloudSync] fetchCloudContactTickets failed:', err);
+    return [];
+  }
+}
+
+export async function deleteCloudContactTicket(id) {
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] deleteCloudContactTicket failed:', err);
+    return false;
+  }
+}
+
+// User VIP & Clearance Sync
+export async function updateCloudUserVip(userId, email, vipClearances) {
+  try {
+    const res = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, email, vipClearances })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[CloudSync] updateCloudUserVip failed:', err);
+    return false;
+  }
+}

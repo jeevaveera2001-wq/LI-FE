@@ -104,7 +104,9 @@ export default async function handler(req, res) {
           return res.status(403).json({ success: false, error: 'Your account is temporarily suspended. Please contact tournament administration.' });
         }
 
-        const userRole = (user.role === 'superadmin' || user.email === SUPERADMIN_EMAIL) ? 'superadmin' : 'user';
+        const isSuper = (user.role === 'superadmin' || user.email === SUPERADMIN_EMAIL);
+        const resolvedRole = isSuper ? 'superadmin' : (user.role || 'user');
+        const isVip = !!(user.isVip || user.role === 'VIP' || user.hasBroadcastVip);
 
         // Update exact location in users collection
         await db.collection('users').updateOne(
@@ -137,9 +139,16 @@ export default async function handler(req, res) {
             email: user.email,
             name: user.name,
             mobile: user.mobile,
-            role: userRole,
+            role: resolvedRole,
             status: user.status || 'ACTIVE',
-            location: locationStr
+            location: locationStr,
+            clan: user.clan || '',
+            isVip: isVip,
+            hasBroadcastVip: !!(user.hasBroadcastVip || isVip),
+            hasFeaturedApproval: !!user.hasFeaturedApproval,
+            hasScrimsApproval: !!user.hasScrimsApproval,
+            hasTourneyApproval: !!user.hasTourneyApproval,
+            tier: user.tier || (isVip ? 'VIP_DIRECT' : 'FREE')
           }
         });
       }

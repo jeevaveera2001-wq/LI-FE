@@ -44,28 +44,49 @@ export default async function handler(req, res) {
           registeredAt: formattedDate,
           status: u.status || 'ACTIVE',
           location: u.location || 'Chennai, Tamil Nadu, India',
-          ip: u.ip || '103.211.54.12'
+          ip: u.ip || '103.211.54.12',
+          role: u.role || 'PLAYER',
+          isVip: !!(u.isVip || u.role === 'VIP' || u.hasBroadcastVip),
+          hasBroadcastVip: !!u.hasBroadcastVip,
+          hasFeaturedApproval: !!u.hasFeaturedApproval,
+          hasScrimsApproval: !!u.hasScrimsApproval,
+          hasTourneyApproval: !!u.hasTourneyApproval,
+          tier: u.tier || (u.isVip ? 'VIP_DIRECT' : 'FREE')
         };
       });
 
       return res.status(200).json({ success: true, users: formattedUsers });
     }
 
-    // POST/PATCH /api/admin/users - Update user status (ACTIVE, SUSPENDED, BLOCKED) in MongoDB
+    // POST/PATCH /api/admin/users - Update user status and VIP clearances in MongoDB
     if (req.method === 'POST' || req.method === 'PATCH') {
-      const { userId, email, username, newStatus } = req.body || {};
-      if (!newStatus) {
-        return res.status(400).json({ success: false, error: 'newStatus is required' });
+      const { userId, email, username, newStatus, vipClearances } = req.body || {};
+      if (!newStatus && !vipClearances) {
+        return res.status(400).json({ success: false, error: 'newStatus or vipClearances is required' });
       }
 
       const filter = {};
       if (userId) filter.id = userId;
-      else if (email) filter.email = email;
+      else if (email) filter.email = email.toLowerCase().trim();
       else if (username) filter.username = username;
+
+      const setFields = { updatedAt: new Date().toISOString() };
+      if (newStatus) setFields.status = newStatus;
+      if (vipClearances) {
+        if (vipClearances.role) setFields.role = vipClearances.role;
+        else setFields.role = 'VIP';
+        setFields.isVip = vipClearances.isVip !== undefined ? vipClearances.isVip : true;
+        if (vipClearances.broadcast !== undefined) setFields.hasBroadcastVip = vipClearances.broadcast;
+        if (vipClearances.featured !== undefined) setFields.hasFeaturedApproval = vipClearances.featured;
+        if (vipClearances.scrims !== undefined) setFields.hasScrimsApproval = vipClearances.scrims;
+        if (vipClearances.tournaments !== undefined) setFields.hasTourneyApproval = vipClearances.tournaments;
+        if (vipClearances.tier) setFields.tier = vipClearances.tier;
+        else setFields.tier = 'VIP_DIRECT';
+      }
 
       const result = await db.collection('users').updateOne(
         filter,
-        { $set: { status: newStatus } }
+        { $set: setFields }
       );
 
       // Extract client telemetry
