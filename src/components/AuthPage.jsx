@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { sendAccountRegistrationEmail } from '../utils/emailService';
 
 export default function AuthPage({ initialMode = 'login', onNavigate, onNavigateHome, onLoginSuccess }) {
   const [mode, setMode] = useState(initialMode); // 'login' or 'register'
@@ -604,6 +605,17 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
           timestamp: new Date().toISOString()
         });
         localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
+      } catch (e) {}
+
+      // Dispatch and log Welcome Account Registration Email
+      try {
+        await sendAccountRegistrationEmail({
+          email: newUser.email,
+          name: newUser.name,
+          username: newUser.username,
+          mobile: newUser.mobile,
+          userId: newUser.userId
+        });
       } catch (e) {}
 
       setSuccessMessage('🎉 Email verified & account created! Launching Dashboard...');

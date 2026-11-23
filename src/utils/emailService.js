@@ -88,6 +88,45 @@ export const sendRegistrationConfirmationEmail = async ({ email, name, teamName,
   return record;
 };
 
+// 2b. User Account Registration Confirmation & Welcome Email
+export const sendAccountRegistrationEmail = async ({ email, name, username, mobile, userId }) => {
+  const cleanEmail = email || 'player@livetournaments.in';
+  const cleanName = name || 'Competitor';
+  const cleanIgn = username || cleanEmail.split('@')[0];
+  const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+  const record = {
+    id: 'MAIL_USER_REG_' + Date.now(),
+    type: 'ACCOUNT_REGISTRATION',
+    to: cleanEmail,
+    recipientName: cleanName,
+    subject: `🎉 Welcome to Live Tournaments, ${cleanName}! Your Account is Ready`,
+    timestamp,
+    status: 'DELIVERED',
+    details: {
+      name: cleanName,
+      ign: cleanIgn,
+      email: cleanEmail,
+      mobile: mobile || 'Not Provided',
+      userId: userId || 'LT-USR-' + Date.now().toString().slice(-4),
+      division: 'Recruit Division',
+      fairPlayScore: '100% Verified'
+    },
+    bodyHtml: `
+      <h2>Account Registration & Verification Confirmed</h2>
+      <p>Hello ${cleanName},</p>
+      <p>Welcome to <strong>Live Tournaments</strong>! Your player account has been verified and registered.</p>
+      <p><strong>Gamer Tag / IGN:</strong> ${cleanIgn}</p>
+      <p><strong>Player ID:</strong> ${userId || 'Verified'}</p>
+      <p><strong>Registered Email:</strong> ${cleanEmail}</p>
+      <p>You can now participate in daily scrims, custom tournaments, and championship events.</p>
+    `
+  };
+
+  recordEmailDispatch(record);
+  return record;
+};
+
 // 3. Pre-Match 24-Hour Reminder Email
 export const sendTournamentReminderEmail = async ({ email, name, tournamentTitle, matchTiming, roomCode, roomPass }) => {
   const cleanEmail = email || 'player@livetournaments.in';
