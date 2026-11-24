@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { verifyAdminToken, sanitizeNoSql, sanitizeText } from '../lib/security.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -6,12 +7,16 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PATCH,DELETE');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-admin-token, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Vector 14: Sanitize against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
 
   try {
     const { db } = await connectToDatabase();
@@ -87,23 +92,33 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, request: newRequest });
     }
 
-    // PATCH /api/broadcast-requests (Assign to Slot / Update Status)
+    // PATCH /api/broadcast-requests (Assign to Slot / Update Status - Admin Only)
     if (req.method === 'PATCH') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin privileges required' });
+      }
+
       const { id, status, slotNumber } = req.body || {};
       if (!id) {
         return res.status(400).json({ success: false, error: 'id is required' });
       }
 
       const updateFields = { updatedAt: new Date().toISOString() };
-      if (status) updateFields.status = status;
+      if (status) updateFields.status = sanitizeText(String(status));
       if (slotNumber) updateFields.slotNumber = Number(slotNumber);
 
       const result = await collection.updateOne({ id }, { $set: updateFields });
       return res.status(200).json({ success: true, modifiedCount: result.modifiedCount });
     }
 
-    // DELETE /api/broadcast-requests (Decline Request)
+    // DELETE /api/broadcast-requests (Decline Request - Admin Only)
     if (req.method === 'DELETE') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin privileges required' });
+      }
+
       const id = req.query.id || req.body?.id;
       if (!id) {
         return res.status(400).json({ success: false, error: 'id is required' });

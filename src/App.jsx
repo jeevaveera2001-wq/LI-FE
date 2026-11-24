@@ -163,7 +163,17 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (path.includes('admin') || hash.includes('admin')) return 'admin-dashboard';
+      if (path.includes('admin') || hash.includes('admin')) {
+        try {
+          const raw = localStorage.getItem('lt_user');
+          if (raw) {
+            const u = JSON.parse(raw);
+            const isSuper = u && (u.role === 'superadmin' || u.role === 'SUPERADMIN' || u.email === 'superadmin@lt.in' || u.isSuperAdmin === true);
+            if (isSuper) return 'admin-dashboard';
+          }
+        } catch (e) {}
+        return 'login';
+      }
       if (path.includes('dashboard') || hash.includes('dashboard')) return 'user-dashboard';
       if (path.includes('login') || hash.includes('login')) return 'login';
       if (path.includes('register') || hash.includes('register')) return 'register';
@@ -185,6 +195,23 @@ export default function App() {
   const navigateTo = (page, param) => {
     setIsNavigating(true);
     setTimeout(() => setIsNavigating(false), 450);
+
+    // Security Gate: Protect admin dashboard from unauthorized navigation
+    if (page === 'admin-dashboard') {
+      const isSuper = currentUser && (
+        currentUser.role === 'superadmin' || 
+        currentUser.role === 'SUPERADMIN' || 
+        currentUser.email === 'superadmin@lt.in' || 
+        currentUser.isSuperAdmin === true
+      );
+      if (!isSuper) {
+        setCurrentPage('login');
+        if (typeof window !== 'undefined') {
+          window.history.pushState({ page: 'login' }, '', '/login');
+        }
+        return;
+      }
+    }
 
     if (page === 'user-dashboard' && param) {
       setSelectedRegistrationTourney(param);
@@ -257,7 +284,26 @@ export default function App() {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       if (path.includes('admin') || hash.includes('admin')) {
-        setCurrentPage('admin-dashboard');
+        let isSuper = currentUser && (
+          currentUser.role === 'superadmin' || 
+          currentUser.role === 'SUPERADMIN' || 
+          currentUser.email === 'superadmin@lt.in' || 
+          currentUser.isSuperAdmin === true
+        );
+        if (!isSuper) {
+          try {
+            const raw = localStorage.getItem('lt_user');
+            if (raw) {
+              const u = JSON.parse(raw);
+              isSuper = u && (u.role === 'superadmin' || u.role === 'SUPERADMIN' || u.email === 'superadmin@lt.in' || u.isSuperAdmin === true);
+            }
+          } catch (e) {}
+        }
+        if (isSuper) {
+          setCurrentPage('admin-dashboard');
+        } else {
+          setCurrentPage('login');
+        }
       } else if (path.includes('dashboard') || hash.includes('dashboard')) {
         setCurrentPage('user-dashboard');
       } else if (path.includes('login') || hash.includes('login')) {

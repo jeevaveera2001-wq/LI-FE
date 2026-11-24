@@ -452,12 +452,15 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     }
   };
 
-  // Banner file upload handler for custom image selection from PC or Mobile device
+  // Banner file upload handler for custom image selection from PC or Mobile device (Vector 12 Hardened)
   const handleBannerFileUpload = (e, target = 'tournament') => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showToast('⚠️ Please upload a valid image file (PNG, JPG, WebP)');
+
+    const validExtensions = /\.(jpe?g|png|webp)$/i;
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validMimes.includes(file.type?.toLowerCase()) || !validExtensions.test(file.name || '')) {
+      showToast('⚠️ Security Block: Only genuine image files (PNG, JPG, WebP) are permitted. SVG, executables, and scripts are rejected.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -2143,7 +2146,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     <input
                       id="custom-tournament-banner-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/png, image/jpeg, image/webp"
                       onChange={(e) => handleBannerFileUpload(e, 'tournament')}
                       className="hidden"
                     />
@@ -2832,7 +2835,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     <input
                       id="custom-scrim-banner-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/png, image/jpeg, image/webp"
                       onChange={(e) => handleBannerFileUpload(e, 'scrim')}
                       className="hidden"
                     />

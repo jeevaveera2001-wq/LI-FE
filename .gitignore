@@ -1,2 +1,29 @@
-.vercel
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Production & Builds
+dist
+build
+.vercel
+
+# Environment & Secret Credentials
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System
+.DS_Store
+Thumbs.db

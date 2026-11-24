@@ -1095,9 +1095,15 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
   // Real-time synchronization of MongoDB registered users and activity logs
   const fetchLiveAdminData = async () => {
+    const adminToken = (typeof localStorage !== 'undefined' ? localStorage.getItem('lt_admin_token') : '') || '';
+    const authHeaders = {
+      'Content-Type': 'application/json',
+      ...(adminToken ? { 'x-admin-token': adminToken, 'Authorization': `Bearer ${adminToken}` } : {})
+    };
+
     // 1. Fetch all registered users from MongoDB
     try {
-      const res = await fetch('/api/admin/users');
+      const res = await fetch('/api/admin/users', { headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.users) && data.users.length > 0) {
@@ -1129,7 +1135,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
 
     // 2. Fetch all activity logs from MongoDB
     try {
-      const res = await fetch('/api/admin/activity-logs');
+      const res = await fetch('/api/admin/activity-logs', { headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.logs) && data.logs.length > 0) {
@@ -1181,9 +1187,13 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     }
 
     try {
+      const adminToken = (typeof localStorage !== 'undefined' ? localStorage.getItem('lt_admin_token') : '') || '';
       await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { 'x-admin-token': adminToken, 'Authorization': `Bearer ${adminToken}` } : {})
+        },
         body: JSON.stringify({
           userId,
           email: targetUser?.email,
@@ -2472,6 +2482,37 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
     setShowCreateModal(false);
     showToast('🏆 New Tournament Created Successfully!');
   };
+
+  // Security Wall: Strict 403 Guard for unauthenticated access (Vector 1: type/admin)
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0E0E10] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[#18181B] border border-red-500/30 rounded-2xl p-8 text-center shadow-2xl space-y-4">
+          <div className="size-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto text-red-400">
+            <span className="material-symbols-outlined text-3xl">gpp_bad</span>
+          </div>
+          <h2 className="text-xl font-bold text-white tracking-tight">403 • Restricted Administrative Area</h2>
+          <p className="text-sm text-gray-400 leading-relaxed">
+            Super Administrator authentication is required to access the LiveTournaments Command Center. Direct access via URL without authenticated credentials has been blocked.
+          </p>
+          <div className="pt-2 flex flex-col gap-2">
+            <button
+              onClick={() => onNavigate ? onNavigate('login') : (window.location.href = '/login')}
+              className="w-full py-2.5 rounded-xl bg-[#DFBD78] hover:bg-[#c5a059] text-black font-bold text-xs uppercase tracking-wider transition-all"
+            >
+              Sign In as Super Admin
+            </button>
+            <button
+              onClick={() => onNavigate ? onNavigate('home') : (window.location.href = '/')}
+              className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold text-xs transition-all"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="nagulan-dashboard min-h-screen bg-[#F3F4F6] text-[#1F2937] flex font-['Inter',sans-serif] antialiased selection:bg-[#DFBD78]/30">

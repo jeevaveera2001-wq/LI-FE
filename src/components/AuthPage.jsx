@@ -272,33 +272,6 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       } catch (e) {}
     }
 
-    // Direct Admin Credentials Authentication (admin / admin@123)
-    const normalizedInput = (loginEmail || '').trim().toLowerCase();
-    if (
-      (normalizedInput === 'admin' || normalizedInput === 'admin@lt.in' || normalizedInput === 'admin@livetournaments.in' || normalizedInput === 'superadmin@lt.in') &&
-      loginPassword === 'admin@123'
-    ) {
-      const adminUser = {
-        id: 'LT-ADM-001',
-        name: 'Admin',
-        username: 'admin',
-        displayName: 'Admin',
-        email: 'admin@livetournaments.in',
-        role: 'admin',
-        status: 'ACTIVE',
-        location: activeLoc || 'Chennai, Tamil Nadu, India'
-      };
-      localStorage.setItem('lt_user', JSON.stringify(adminUser));
-      if (onLoginSuccess) onLoginSuccess(adminUser);
-      setSuccessMessage('Admin Authenticated! Redirecting to Admin Dashboard...');
-      setTimeout(() => {
-        if (onNavigate) onNavigate('admin-dashboard');
-        else if (onNavigateHome) onNavigateHome();
-      }, 400);
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await axios.post('/api/auth/login', {
         usernameOrEmail: loginEmail,
@@ -308,6 +281,13 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       });
 
       const user = response.data?.user;
+      const adminToken = response.data?.adminToken;
+      if (adminToken) {
+        try {
+          localStorage.setItem('lt_admin_token', adminToken);
+        } catch (e) {}
+      }
+
       if (user) {
         localStorage.setItem('lt_user', JSON.stringify(user));
         if (onLoginSuccess) onLoginSuccess(user);
@@ -380,55 +360,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
         }
       }, 800);
     } catch (err) {
-      if (
-        (loginEmail.toLowerCase() === 'superadmin@lt.in' || loginEmail.toLowerCase() === 'superadmin' || loginEmail.toLowerCase() === 'admin' || loginEmail.toLowerCase() === 'admin@lt.in') &&
-        (loginPassword === 'SuperAdmin@21' || loginPassword === 'admin@123')
-      ) {
-        const resolvedLocation = exactLocation.location || 'Chennai, Tamil Nadu, India';
-        const resolvedIp = exactLocation.ip || '127.0.0.1';
-        const superUser = {
-          id: 'LT-ADM-001',
-          username: 'admin',
-          email: 'admin@livetournaments.in',
-          name: 'Admin',
-          role: 'admin',
-          displayName: 'Admin',
-          status: 'ACTIVE',
-          location: resolvedLocation
-        };
-        localStorage.setItem('lt_user', JSON.stringify(superUser));
-        if (onLoginSuccess) onLoginSuccess(superUser);
-
-        // Record Admin Login in local logs with exact location
-        try {
-          const savedLogs = localStorage.getItem('lt_activity_logs');
-          const logsList = savedLogs ? JSON.parse(savedLogs) : [];
-          logsList.unshift({
-            id: 'act_' + Date.now(),
-            userId: 'LT-ADM-001',
-            userName: 'Admin',
-            userEmail: 'admin@livetournaments.in',
-            action: 'Admin Console Access & Authentication',
-            ip: resolvedIp,
-            location: resolvedLocation,
-            agreements: 'Administrator Master Security Protocol Verified',
-            device: typeof navigator !== 'undefined' && navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop (Windows)',
-            time: new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
-            date: new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
-            timestamp: new Date().toISOString()
-          });
-          localStorage.setItem('lt_activity_logs', JSON.stringify(logsList));
-        } catch (e) {}
-
-        setSuccessMessage('Admin Authenticated! Redirecting to Admin Dashboard...');
-        setTimeout(() => {
-          if (onNavigate) onNavigate('admin-dashboard');
-          else if (onNavigateHome) onNavigateHome();
-        }, 800);
-      } else {
-        const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Invalid credentials. Please verify your email and password.';
-        setErrorMessage(errorDetail);
-      }
+      const errorDetail = err.response?.data?.error || err.response?.data?.message || 'Invalid credentials. Please verify your email and password.';
+      setErrorMessage(errorDetail);
     } finally {
       setLoading(false);
     }

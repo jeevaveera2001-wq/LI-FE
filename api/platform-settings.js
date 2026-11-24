@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { verifyAdminToken, sanitizeNoSql } from '../lib/security.js';
 
 export const config = {
   runtime: 'nodejs'
@@ -37,6 +38,10 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Vector 14: Sanitize against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
+
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection('platform_settings');
@@ -60,6 +65,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Super Administrator privileges required' });
+      }
+
       const newSettings = req.body;
       if (!newSettings || typeof newSettings !== 'object') {
         return res.status(400).json({ success: false, message: 'Invalid payload' });

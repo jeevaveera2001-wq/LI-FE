@@ -1,6 +1,18 @@
 // Cloud Database & API Synchronization Service for LiveTournaments
 // Ensures 100% reliable cross-device and multi-user synchronization with MongoDB Atlas backend
 
+export function getAuthHeaders() {
+  try {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('lt_admin_token') : null;
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'x-admin-token': token, 'Authorization': `Bearer ${token}` } : {})
+    };
+  } catch (e) {
+    return { 'Content-Type': 'application/json' };
+  }
+}
+
 export async function fetchCloudBroadcastRequests() {
   try {
     const res = await fetch('/api/broadcast-requests');
@@ -252,7 +264,7 @@ export async function updateCloudUserVip(userId, email, vipClearances) {
   try {
     const res = await fetch('/api/admin/users', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ userId, email, vipClearances })
     });
     return res.ok;
@@ -267,7 +279,7 @@ export async function deleteCloudUser(userId, email, username) {
   try {
     const res = await fetch('/api/admin/users', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ userId, email, username })
     });
     return res.ok;
@@ -282,7 +294,7 @@ export async function clearCloudUserTournamentHistory(params) {
   try {
     const res = await fetch('/api/admin/clear-tournament-history', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(params)
     });
     if (!res.ok) return false;
@@ -311,7 +323,7 @@ export async function saveCloudPlatformSettings(settings) {
   try {
     const res = await fetch('/api/platform-settings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(settings)
     });
     return res.ok;
@@ -369,7 +381,9 @@ export async function submitCloudSuspiciousReport(reportData) {
 
 export async function fetchCloudSuspiciousReports() {
   try {
-    const res = await fetch('/api/reports');
+    const res = await fetch('/api/reports', {
+      headers: getAuthHeaders()
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return data.success && Array.isArray(data.reports) ? data.reports : [];
@@ -383,7 +397,7 @@ export async function updateCloudReportStatus(id, status, reviewNotes) {
   try {
     const res = await fetch('/api/reports', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ id, status, reviewNotes })
     });
     return res.ok;

@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../../lib/mongodb.js';
+import { verifyAdminToken, sanitizeNoSql } from '../../lib/security.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -6,11 +7,21 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PATCH,DELETE');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-admin-token, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // Sanitize query and body against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
+
+  // Security Gate: Strict SuperAdmin verification for all user management
+  const auth = verifyAdminToken(req);
+  if (!auth) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Super Administrator privileges required' });
   }
 
   try {

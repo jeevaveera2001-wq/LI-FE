@@ -25,10 +25,19 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
   const handleClanLogoUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload a valid image file (PNG, JPG, WebP)');
+
+    // Vector 12: Strict file extension, MIME type, and size validation
+    const validExtensions = /\.(jpe?g|png|webp)$/i;
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validMimes.includes(file.type?.toLowerCase()) || !validExtensions.test(file.name || '')) {
+      alert('Security Policy: Only genuine image files (PNG, JPG, JPEG, WebP) are permitted. SVG, executables, and non-photo files are blocked.');
       return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds 5MB limit. Please choose a smaller image.');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       setClanLogo(event.target.result);
@@ -391,7 +400,7 @@ export default function ChampionshipRegistrationPage({ onNavigate, currentUser }
                     <input
                       id="clan-logo-input"
                       type="file"
-                      accept="image/*"
+                      accept="image/png, image/jpeg, image/webp"
                       onChange={handleClanLogoUpload}
                       className="hidden"
                     />

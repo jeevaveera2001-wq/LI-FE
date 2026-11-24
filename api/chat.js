@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { sanitizeAiPrompt, sanitizeText, sanitizeNoSql, verifyAdminToken } from '../lib/security.js';
 
 export const config = {
   runtime: 'nodejs'
@@ -52,6 +53,10 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Vector 14: Sanitize against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
+
   try {
     const { db } = await connectToDatabase();
     const collection = db.collection('chat_messages');
@@ -73,6 +78,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, roomId, messages });
     }
 
+    // POST /api/chat (Hardened with AI Prompt Injection & Stored XSS filter - Vectors 10 & 11)
     if (req.method === 'POST') {
       const {
         roomId = 'global',
@@ -85,19 +91,24 @@ export default async function handler(req, res) {
         isHost = false
       } = req.body || {};
 
-      if (!message || !message.trim()) {
+      if (!message || !String(message).trim()) {
         return res.status(400).json({ success: false, message: 'Message content is required' });
       }
+
+      // Neutralize AI prompt injection delimiters and stored script tags
+      const sanitizedMessage = sanitizeAiPrompt(String(message)).slice(0, 500);
+      const sanitizedSender = sanitizeText(String(sender || 'Anonymous Competitor')).slice(0, 50);
+      const sanitizedClan = sanitizeText(String(senderClan || '')).slice(0, 50);
 
       const newMsg = {
         id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         roomId: String(roomId),
-        roomTitle: String(roomTitle || 'Match Room'),
-        sender: String(sender || 'Anonymous Competitor').trim(),
-        senderEmail: String(senderEmail || '').trim(),
+        roomTitle: sanitizeText(String(roomTitle || 'Match Room')),
+        sender: sanitizedSender,
+        senderEmail: String(senderEmail || '').trim().toLowerCase().slice(0, 100),
         senderRole: String(senderRole || 'PLAYER'),
-        senderClan: String(senderClan || ''),
-        message: String(message).trim().slice(0, 500),
+        senderClan: sanitizedClan,
+        message: sanitizedMessage,
         timestamp: new Date().toISOString(),
         isHost: Boolean(isHost)
       };
@@ -107,12 +118,18 @@ export default async function handler(req, res) {
       return res.status(201).json({ success: true, message: newMsg });
     }
 
+    // DELETE /api/chat (Administrative SuperAdmin Only - Vector 2 IDOR Protection)
     if (req.method === 'DELETE') {
-      const { id } = req.query;
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin privileges required to delete chat messages' });
+      }
+
+      const id = typeof req.query?.id === 'string' ? req.query.id : '';
       if (id) {
         await collection.deleteOne({ id });
       }
-      return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true, message: 'Message deleted' });
     }
 
     return res.status(405).json({ message: 'Method Not Allowed' });

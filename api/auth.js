@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { connectToDatabase } from '../lib/mongodb.js';
 import { resolveExactLocation } from '../lib/location.js';
+import { generateAdminToken, isReservedAdminHandle, sanitizeText, sanitizeNoSql } from '../lib/security.js';
 
 const SUPERADMIN_USERNAME = 'superadmin';
 const SUPERADMIN_EMAIL = 'superadmin@lt.in';
@@ -81,13 +82,17 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Vector 14: Sanitize request payload against NoSQL object injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
+
   // Resolve action from query or URL pathname
   const urlPath = req.url ? req.url.split('?')[0] : '';
   const actionFromPath = urlPath.split('/').filter(Boolean).pop() || '';
   const action = (req.query?.action || (actionFromPath !== 'auth' ? actionFromPath : '') || '').toLowerCase().trim();
 
   // -------------------------------------------------------------
-  // 1. ACTION: send-otp
+  // 1. ACTION: send-otp (Hardened with 60s Rate-Limit Cooldown - Vector 9)
   // -------------------------------------------------------------
   if (action === 'send-otp') {
     if (req.method !== 'POST') {
@@ -95,22 +100,48 @@ export default async function handler(req, res) {
     }
 
     try {
-      const { email, purpose } = req.body || {};
-      if (!email || !email.includes('@')) {
+      const rawEmail = typeof req.body?.email === 'string' ? req.body.email : '';
+      const purpose = typeof req.body?.purpose === 'string' ? req.body.purpose : '';
+      if (!rawEmail || !rawEmail.includes('@')) {
         return res.status(400).json({ success: false, error: 'Valid email address required' });
       }
 
-      const cleanEmail = email.toLowerCase().trim();
+      const cleanEmail = rawEmail.toLowerCase().trim();
+
+      // Check 60-second rate-limiting cooldown per email
+      try {
+        const { db } = await connectToDatabase();
+        const existingOtp = await db.collection('otps').findOne({ email: cleanEmail });
+        if (existingOtp && existingOtp.lastSentAt && (Date.now() - existingOtp.lastSentAt < 60000)) {
+          const remainingSeconds = Math.ceil((60000 - (Date.now() - existingOtp.lastSentAt)) / 1000);
+          return res.status(429).json({
+            success: false,
+            error: `Please wait ${remainingSeconds}s before requesting another verification code.`
+          });
+        }
+      } catch (rateErr) {
+        console.warn('[send-otp] Rate check warning:', rateErr.message);
+      }
+
       const isReset = purpose === 'reset' || purpose === 'forgot';
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-      // Store OTP in MongoDB Atlas
+      // Store OTP in MongoDB Atlas with attempt counters and rate limit timestamp
       try {
         const { db } = await connectToDatabase();
         await db.collection('otps').updateOne(
           { email: cleanEmail },
-          { $set: { email: cleanEmail, otp, expiry, updatedAt: new Date() } },
+          { 
+            $set: { 
+              email: cleanEmail, 
+              otp, 
+              expiry, 
+              attempts: 0, 
+              lastSentAt: Date.now(), 
+              updatedAt: new Date() 
+            } 
+          },
           { upsert: true }
         );
         console.log(`[send-otp] Stored OTP ${otp} for ${cleanEmail} in MongoDB`);
@@ -185,7 +216,7 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // 2. ACTION: verify-otp
+  // 2. ACTION: verify-otp (Hardened with 5-Attempt Lockout - Vector 9)
   // -------------------------------------------------------------
   if (action === 'verify-otp') {
     if (req.method !== 'POST') {
@@ -193,47 +224,65 @@ export default async function handler(req, res) {
     }
 
     try {
-      const { email, otp } = req.body || {};
-      if (!email || !otp) {
+      const rawEmail = typeof req.body?.email === 'string' ? req.body.email : '';
+      const rawOtp = typeof req.body?.otp === 'string' || typeof req.body?.otp === 'number' ? String(req.body.otp) : '';
+      if (!rawEmail || !rawOtp) {
         return res.status(400).json({ success: false, error: 'Email and verification code are required' });
       }
 
-      const cleanEmail = email.toLowerCase().trim();
-      const cleanOtp = String(otp).replace(/\D/g, '').trim();
+      const cleanEmail = rawEmail.toLowerCase().trim();
+      const cleanOtp = rawOtp.replace(/\D/g, '').trim();
 
       if (!cleanOtp || cleanOtp.length < 6) {
         return res.status(400).json({ success: false, error: 'Please enter a valid 6-digit verification code' });
       }
 
-      try {
-        const { db } = await connectToDatabase();
-        const record = await db.collection('otps').findOne({ email: cleanEmail });
+      const { db } = await connectToDatabase();
+      const record = await db.collection('otps').findOne({ email: cleanEmail });
 
-        if (record) {
-          if (Date.now() > record.expiry) {
-            await db.collection('otps').deleteOne({ email: cleanEmail });
-            return res.status(400).json({ success: false, error: 'Verification code has expired. Please request a new one.' });
-          }
-
-          if (record.otp !== cleanOtp) {
-            return res.status(400).json({ success: false, error: 'Invalid verification code. Please check your email inbox.' });
-          }
-
-          // Invalidate code upon successful verification
-          await db.collection('otps').deleteOne({ email: cleanEmail });
-        }
-      } catch (dbErr) {
-        console.warn('[verify-otp] Database check error:', dbErr.message);
+      if (!record) {
+        return res.status(400).json({ success: false, error: 'No active verification code found. Please request a new code.' });
       }
+
+      if (Date.now() > record.expiry) {
+        await db.collection('otps').deleteOne({ email: cleanEmail });
+        return res.status(400).json({ success: false, error: 'Verification code has expired. Please request a new one.' });
+      }
+
+      // Lockout check: max 5 failed attempts per OTP (Vector 9: guess the login code)
+      if ((record.attempts || 0) >= 5) {
+        await db.collection('otps').deleteOne({ email: cleanEmail });
+        return res.status(429).json({
+          success: false,
+          error: 'Too many incorrect attempts. This code has been invalidated for security. Please request a new code.'
+        });
+      }
+
+      if (record.otp !== cleanOtp) {
+        const nextAttempts = (record.attempts || 0) + 1;
+        await db.collection('otps').updateOne(
+          { email: cleanEmail },
+          { $set: { attempts: nextAttempts, updatedAt: new Date() } }
+        );
+        const remaining = 5 - nextAttempts;
+        return res.status(400).json({
+          success: false,
+          error: `Invalid verification code. Please check your email inbox. (${remaining} attempt${remaining === 1 ? '' : 's'} remaining)`
+        });
+      }
+
+      // Invalidate code upon successful verification
+      await db.collection('otps').deleteOne({ email: cleanEmail });
 
       return res.status(200).json({ success: true, message: 'Email verified successfully' });
     } catch (error) {
-      return res.status(200).json({ success: true, message: 'Verified' });
+      console.warn('[verify-otp] error:', error);
+      return res.status(500).json({ success: false, error: 'Verification failed' });
     }
   }
 
   // -------------------------------------------------------------
-  // 3. ACTION: register
+  // 3. ACTION: register (Hardened against Admin Privilege Escalation & Stored XSS - Vectors 8 & 11)
   // -------------------------------------------------------------
   if (action === 'register') {
     if (req.method !== 'POST') {
@@ -241,17 +290,39 @@ export default async function handler(req, res) {
     }
 
     try {
-      const { name, email, mobile, password, location, ip: clientIpReq } = req.body || {};
-      if (!name || !email || !password) {
+      const rawName = typeof req.body?.name === 'string' ? req.body.name : '';
+      const rawEmail = typeof req.body?.email === 'string' ? req.body.email : '';
+      const rawPassword = typeof req.body?.password === 'string' ? req.body.password : '';
+      const rawMobile = typeof req.body?.mobile === 'string' ? req.body.mobile : '';
+
+      if (!rawName.trim() || !rawEmail.trim() || !rawPassword) {
         return res.status(400).json({ success: false, error: 'Name, email, and password required' });
       }
 
-      const cleanEmail = email.toLowerCase().trim();
-      const cleanUsername = cleanEmail.split('@')[0];
-      const passwordHash = hashPassword(password);
+      const cleanEmail = rawEmail.toLowerCase().trim();
+      const cleanUsername = sanitizeText(cleanEmail.split('@')[0]);
+      const sanitizedName = sanitizeText(rawName);
+      const sanitizedMobile = sanitizeText(rawMobile);
+
+      // Vector 8: Guard against admin privilege escalation at signup
+      if (
+        isReservedAdminHandle(cleanUsername) || 
+        isReservedAdminHandle(sanitizedName) || 
+        cleanEmail.includes('admin') || 
+        cleanEmail.includes('superadmin') ||
+        cleanUsername === 'admin' ||
+        cleanUsername === 'superadmin'
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: 'This username, name, or email handle is reserved for official tournament administrators.'
+        });
+      }
+
+      const passwordHash = hashPassword(rawPassword);
 
       // Resolve exact client geographical location and public IP
-      const { location: locationStr, ip: clientIp } = await resolveExactLocation(req, location, clientIpReq);
+      const { location: locationStr, ip: clientIp } = await resolveExactLocation(req, req.body?.location, req.body?.ip);
 
       const userAgent = req.headers['user-agent'] || 'Chrome / Windows';
       const deviceStr = userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop / Windows 11';
@@ -259,12 +330,12 @@ export default async function handler(req, res) {
       const userId = 'LT-USR-' + Date.now().toString().slice(-4);
       const newUser = {
         id: userId,
-        name: name.trim(),
+        name: sanitizedName,
         username: cleanUsername,
         email: cleanEmail,
-        mobile: (mobile || '').trim(),
+        mobile: sanitizedMobile,
         passwordHash,
-        role: 'user',
+        role: 'user', // strictly enforced - client cannot pass admin role
         status: 'ACTIVE',
         location: locationStr,
         ip: clientIp,
@@ -422,6 +493,7 @@ export default async function handler(req, res) {
 
       // Super Admin Direct Auth Check
       if ((cleanInput === SUPERADMIN_USERNAME || cleanInput === SUPERADMIN_EMAIL) && password === SUPERADMIN_PASS) {
+        const adminToken = generateAdminToken(SUPERADMIN_EMAIL);
         const superUser = {
           id: 'LT-USR-1001',
           username: SUPERADMIN_USERNAME,
@@ -430,6 +502,7 @@ export default async function handler(req, res) {
           role: 'superadmin',
           displayName: 'Super Admin',
           status: 'ACTIVE',
+          adminToken,
           location: locationStr
         };
 
@@ -451,7 +524,7 @@ export default async function handler(req, res) {
           });
         } catch (e) {}
 
-        return res.status(200).json({ success: true, user: superUser });
+        return res.status(200).json({ success: true, user: superUser, adminToken });
       }
 
       // MongoDB check for registered users
@@ -543,8 +616,25 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, error: 'Verification code has expired. Please request a new one.' });
       }
 
+      if ((mongoRecord.attempts || 0) >= 5) {
+        await db.collection('otps').deleteOne({ email: cleanEmail });
+        return res.status(429).json({
+          success: false,
+          error: 'Too many incorrect attempts. This code has been invalidated for security. Please request a fresh code.'
+        });
+      }
+
       if (mongoRecord.otp !== cleanOtp) {
-        return res.status(400).json({ success: false, error: 'Invalid verification code. Please check your email.' });
+        const nextAttempts = (mongoRecord.attempts || 0) + 1;
+        await db.collection('otps').updateOne(
+          { email: cleanEmail },
+          { $set: { attempts: nextAttempts, updatedAt: new Date() } }
+        );
+        const rem = 5 - nextAttempts;
+        return res.status(400).json({
+          success: false,
+          error: `Invalid verification code. Please check your email inbox. (${rem} attempt${rem === 1 ? '' : 's'} remaining)`
+        });
       }
 
       await db.collection('otps').deleteOne({ email: cleanEmail });

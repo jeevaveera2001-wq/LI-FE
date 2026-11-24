@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../../lib/mongodb.js';
+import { verifyAdminToken, sanitizeNoSql, sanitizeText } from '../../lib/security.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -6,18 +7,27 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-admin-token, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // Sanitize against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
+
   try {
     const { db } = await connectToDatabase();
 
     // GET /api/admin/activity-logs - Return all activity logs for Super Admin
     if (req.method === 'GET') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Super Administrator privileges required' });
+      }
+
       const rawLogs = await db.collection('activity_logs').find({}).sort({ timestamp: -1 }).limit(100).toArray();
 
       const formattedLogs = rawLogs.map((l) => {

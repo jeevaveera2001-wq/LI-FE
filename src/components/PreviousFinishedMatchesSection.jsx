@@ -98,6 +98,16 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      const validExtensions = /\.(jpe?g|png|webp)$/i;
+      const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validMimes.includes(file.type?.toLowerCase()) || !validExtensions.test(file.name || '')) {
+        alert('⚠️ Security Alert: Only valid image files (PNG, JPG, WebP) are accepted. SVG, executables, and scripts are rejected.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('⚠️ File size exceeds 5MB limit. Please choose a smaller image.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         setImagePreview(reader.result);
@@ -684,7 +694,7 @@ export default function PreviousFinishedMatchesSection({ onNavigate, currentUser
                   <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center space-y-3 bg-white-dirty/50 hover:border-gold-primary transition-colors cursor-pointer relative">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png, image/jpeg, image/webp"
                       onChange={handleImageUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />

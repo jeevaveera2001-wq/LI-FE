@@ -1,4 +1,5 @@
 import { connectToDatabase } from '../lib/mongodb.js';
+import { verifyAdminToken, sanitizeNoSql } from '../lib/security.js';
 
 const DEFAULT_SLOTS = [
   { id: 'slot-1', slotNumber: 1, title: 'Live Broadcast Channel Slot 1', url: null, game: 'BGMI', isUnavailable: true, isDefault: true },
@@ -13,12 +14,16 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,DELETE');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-admin-token, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Vector 14: Sanitize against NoSQL injection
+  req.body = sanitizeNoSql(req.body);
+  req.query = sanitizeNoSql(req.query);
 
   try {
     const { db } = await connectToDatabase();
@@ -40,8 +45,13 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, slots: merged });
     }
 
-    // POST /api/card-slots (Save/Assign slot)
+    // POST /api/card-slots (Save/Assign slot - Admin only)
     if (req.method === 'POST') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin privileges required' });
+      }
+
       const { slotNumber, slotData } = req.body || {};
       const num = Number(slotNumber);
       if (!num || num < 1 || num > 4) {
@@ -65,8 +75,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, slot: slotRecord });
     }
 
-    // DELETE /api/card-slots (Reset slot to standby)
+    // DELETE /api/card-slots (Reset slot to standby - Admin only)
     if (req.method === 'DELETE') {
+      const auth = verifyAdminToken(req);
+      if (!auth) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin privileges required' });
+      }
       const num = Number(req.query.slotNumber || req.body?.slotNumber);
       if (!num || num < 1 || num > 4) {
         return res.status(400).json({ success: false, error: 'slotNumber must be 1, 2, 3, or 4' });
