@@ -377,7 +377,8 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       setErrorMessage('Please enter your full name or gamer tag.');
       return;
     }
-    if (!regEmail || !regEmail.includes('@') || !regEmail.includes('.')) {
+    const cleanEmail = (regEmail || '').trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
@@ -401,20 +402,23 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
 
     setLoading(true);
     try {
-      await axios.post('/api/auth/send-otp', {
-        email: regEmail.trim(),
+      const res = await axios.post('/api/auth/send-otp', {
+        email: cleanEmail,
         purpose: 'registration',
       });
 
+      if (res.data && res.data.success === false) {
+        setErrorMessage(res.data.error || 'Failed to dispatch verification code.');
+        return;
+      }
+
       setRegStep('verify');
       setResendTimer(60);
-      setSuccessMessage(`Verification code sent to ${regEmail}! Please check your email inbox.`);
+      setSuccessMessage(`Verification code sent to ${cleanEmail}! Please check your email inbox.`);
     } catch (err) {
-      console.warn('[Register] Send OTP attempt:', err);
-      // Even if notification delivery was delayed or queued, allow user to advance to code entry
-      setRegStep('verify');
-      setResendTimer(60);
-      setSuccessMessage(`Verification code dispatched to ${regEmail}. Please enter the 6-digit code.`);
+      console.error('[Register] Send OTP attempt failed:', err);
+      const errMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to dispatch verification code. Please check that your email is correct.';
+      setErrorMessage(errMsg);
     } finally {
       setLoading(false);
     }
@@ -425,17 +429,22 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
     if (resendTimer > 0) return;
     setErrorMessage('');
     setLoading(true);
+    const cleanEmail = (regEmail || '').trim().toLowerCase();
     try {
-      await axios.post('/api/auth/send-otp', {
-        email: regEmail.trim(),
+      const res = await axios.post('/api/auth/send-otp', {
+        email: cleanEmail,
         purpose: 'registration',
       });
+      if (res.data && res.data.success === false) {
+        setErrorMessage(res.data.error || 'Failed to resend verification code.');
+        return;
+      }
       setResendTimer(60);
-      setSuccessMessage(`New code sent to ${regEmail}! Please check your inbox.`);
+      setSuccessMessage(`New code sent to ${cleanEmail}! Please check your inbox.`);
     } catch (err) {
-      console.warn('[Register] Resend warning:', err);
-      setResendTimer(60);
-      setSuccessMessage(`Code re-dispatched to ${regEmail}! Please check your inbox.`);
+      console.error('[Register] Resend warning:', err);
+      const errMsg = err.response?.data?.error || err.response?.data?.message || 'Could not resend code. Please wait before trying again.';
+      setErrorMessage(errMsg);
     } finally {
       setLoading(false);
     }
@@ -453,44 +462,64 @@ export default function AuthPage({ initialMode = 'login', onNavigate, onNavigate
       return;
     }
 
+    const cleanEmail = (regEmail || '').trim().toLowerCase();
+
     setLoading(true);
     try {
       // 1. Verify OTP with backend
       try {
-        await axios.post('/api/auth/verify-otp', {
-          email: regEmail.trim(),
+        const verifyRes = await axios.post('/api/auth/verify-otp', {
+          email: cleanEmail,
           otp: cleanCode,
         });
+        if (verifyRes.data && verifyRes.data.success === false) {
+          setErrorMessage(verifyRes.data.error || 'Invalid verification code.');
+          setLoading(false);
+          return;
+        }
       } catch (verifyErr) {
-        console.warn('[Register] Backend verify check:', verifyErr);
+        const errMsg = verifyErr.response?.data?.error || 'Invalid or expired verification code. Please check your email inbox.';
+        setErrorMessage(errMsg);
+        setLoading(false);
+        return;
       }
 
       // 2. Register user account in database with exact location
       const resolvedLocation = exactLocation.location || 'Chennai, Tamil Nadu, India';
       const resolvedIp = exactLocation.ip || '103.211.54.12';
+      let serverUser = null;
       try {
-        await axios.post('/api/auth/register', {
+        const regRes = await axios.post('/api/auth/register', {
           name: regName.trim(),
-          email: regEmail.trim(),
+          email: cleanEmail,
           mobile: regMobile.trim(),
           password: regPassword,
           location: exactLocation.location || undefined,
           ip: exactLocation.ip || undefined
         });
+        if (regRes.data && regRes.data.success === false) {
+          setErrorMessage(regRes.data.error || 'Registration failed.');
+          setLoading(false);
+          return;
+        }
+        serverUser = regRes.data?.user;
       } catch (regErr) {
-        console.warn('[Register] Backend account insert warning:', regErr);
+        const errMsg = regErr.response?.data?.error || 'Account registration failed. An account with this email may already exist.';
+        setErrorMessage(errMsg);
+        setLoading(false);
+        return;
       }
 
       // 3. Complete authentication session
-      const cleanUsername = regEmail.split('@')[0];
-      const userId = 'LT-USR-' + Date.now().toString().slice(-4);
+      const cleanUsername = cleanEmail.split('@')[0];
+      const userId = serverUser?.id || ('LT-USR-' + Date.now().toString().slice(-4));
       const newUser = {
         id: userId,
         userId: userId,
         name: regName.trim(),
-        username: cleanUsername,
-        ign: cleanUsername,
-        email: regEmail.trim(),
+        username: serverUser?.username || cleanUsername,
+        ign: serverUser?.username || cleanUsername,
+        email: cleanEmail,
         mobile: regMobile.trim(),
         role: 'user',
         displayName: regName.trim(),

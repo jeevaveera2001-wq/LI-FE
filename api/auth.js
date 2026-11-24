@@ -13,10 +13,26 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password + PASSWORD_SALT).digest('hex');
 }
 
-// Nodemailer helper with Dual-Port Fallback (Port 465 SSL -> Port 587 STARTTLS)
-async function sendEmailWithFallback({ to, subject, html }) {
+// Nodemailer helper with Dual-Port Fallback (Port 465 SSL -> Port 587 STARTTLS) & Deliverability Optimization
+async function sendEmailWithFallback({ to, subject, html, text }) {
   const user = (process.env.GMAIL_USER || 'livetournaments.in@gmail.com').trim();
   const pass = (process.env.GMAIL_APP_PASSWORD || 'ngdrnjgwbjfglfga').trim().replace(/\s+/g, '');
+
+  const plainText = text || (html ? html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '');
+  const mailOptions = {
+    from: `"Live Tournaments" <${user}>`,
+    replyTo: user,
+    to,
+    subject,
+    text: plainText,
+    html,
+    headers: {
+      'X-Priority': '1 (Highest)',
+      'Importance': 'high',
+      'X-MSMail-Priority': 'High',
+      'X-Mailer': 'Live Tournaments Esports Engine'
+    }
+  };
 
   // 1. Try Port 465 (Implicit SSL)
   try {
@@ -25,17 +41,12 @@ async function sendEmailWithFallback({ to, subject, html }) {
       port: 465,
       secure: true,
       auth: { user, pass },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
 
-    const info = await transporter465.sendMail({
-      from: `"Live Tournaments" <${user}>`,
-      to,
-      subject,
-      html
-    });
+    const info = await transporter465.sendMail(mailOptions);
     console.log('[sendEmail] Sent successfully via Port 465! Msg ID:', info?.messageId);
     return { success: true, info };
   } catch (err465) {
@@ -49,17 +60,12 @@ async function sendEmailWithFallback({ to, subject, html }) {
         requireTLS: true,
         auth: { user, pass },
         tls: { rejectUnauthorized: false },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 10000
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000
       });
 
-      const info = await transporter587.sendMail({
-        from: `"Live Tournaments" <${user}>`,
-        to,
-        subject,
-        html
-      });
+      const info = await transporter587.sendMail(mailOptions);
       console.log('[sendEmail] Sent successfully via Port 587! Msg ID:', info?.messageId);
       return { success: true, info };
     } catch (err587) {
@@ -193,18 +199,29 @@ export default async function handler(req, res) {
         </div>
       `;
 
+      const textContent = `Live Tournaments Verification Code\n\nHello,\n\nUse the following verification code to complete your ${actionLabel} on Live Tournaments:\n\n${otp}\n(or enter G-${otp} in the portal)\n\nThis verification code expires in 10 minutes.\nIf you did not initiate this request, you can safely ignore this email.\n\n© ${new Date().getFullYear()} LiveTournaments.in - Official Competitive BGMI Esports Portal`;
+
       const result = await sendEmailWithFallback({
         to: cleanEmail,
         subject: subjectLine,
+        text: textContent,
         html: htmlContent
       });
 
+      if (!result.success) {
+        console.error('[send-otp] Failed to deliver email to', cleanEmail, ':', result.error);
+        return res.status(502).json({
+          success: false,
+          emailSent: false,
+          error: `Could not deliver verification email to ${cleanEmail}. Please verify the email address is correct and accessible.`
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        message: result.success ? 'Verification code sent to your email' : 'Verification code generated',
+        message: 'Verification code sent to your email',
         email: cleanEmail,
-        emailSent: result.success,
-        error: result.error || null
+        emailSent: true
       });
     } catch (error) {
       console.error('[send-otp] Caught error:', error);
@@ -444,11 +461,15 @@ export default async function handler(req, res) {
           </div>
         `;
 
-        sendEmailWithFallback({
+        const welcomeText = `Welcome to Live Tournaments, ${newUser.name}!\n\nYour competitive esports account has been successfully registered and verified. You are now officially cleared to participate in daily scrims, custom tournaments, and championship events.\n\nAccount Credentials & Profile:\n- Player ID: ${newUser.id}\n- Gamer Tag / IGN: ${newUser.username}\n- Email: ${newUser.email}\n- Division: ${newUser.clan}\n- Fair Play Status: 100% Verified\n\nOpen Player Dashboard: https://dist-five-phi-17.vercel.app/dashboard\n\nSupport: livetournaments.in@gmail.com\n\n© ${new Date().getFullYear()} LiveTournaments.in - Official Competitive BGMI Esports Portal`;
+
+        const welcomeResult = await sendEmailWithFallback({
           to: cleanEmail,
-          subject: `🎉 Welcome to Live Tournaments, ${newUser.name}! Your Account is Ready`,
+          subject: `Welcome to Live Tournaments, ${newUser.name}! Your Account is Ready`,
+          text: welcomeText,
           html: welcomeHtml
-        }).catch(e => console.warn('[register] Welcome email background warning:', e.message));
+        });
+        console.log('[register] Welcome email dispatch status:', welcomeResult.success ? 'Delivered' : welcomeResult.error);
       } catch (welcomeErr) {
         console.warn('[register] Welcome email delivery warning:', welcomeErr.message);
       }
