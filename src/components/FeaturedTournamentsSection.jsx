@@ -41,7 +41,7 @@ export function loadLiveTournaments() {
       squadType: item.format || 'Squad',
       format: item.format || 'Squad',
       map: item.map || 'Erangel / Miramar',
-      entryFee: item.type === 'SCRIM' ? '₹ 50 Entry' : (item.amountPaid ? `₹ ${item.amountPaid} Entry` : 'FREE ENTRY'),
+      entryFee: item.entryFee || 'FREE ENTRY',
       slots: `${item.registeredSquads || 1} / ${item.slotCap || 25} Squads`,
       image: item.thumbnail || '/assets/tournament_bgmi_showdown_4k.jpg',
       organizer: item.organizer || item.hostUser || 'Verified Organizer',

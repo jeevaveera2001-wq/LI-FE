@@ -1859,7 +1859,7 @@ export default function SuperAdminDashboard({ currentUser, onNavigate, onLogout 
           game: req.game || 'Battlegrounds Mobile India',
           format: req.format || 'Squad Battle Royale',
           prizePool: req.prizePool || '₹ 50,000',
-          entryFee: req.entryFee || '₹ 50 / Squad',
+          entryFee: req.entryFee || 'FREE ENTRY',
           slots: req.slots || 64,
           registered: 0,
           status: 'LIVE',

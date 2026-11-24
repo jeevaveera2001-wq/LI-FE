@@ -146,6 +146,34 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
     return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
   };
 
+  // Helper to accurately determine if a host's entry fee is Free (e.g. 0, "₹ 0 / Squad", "FREE", etc.)
+  const isFreeEntryFee = (fee) => {
+    if (!fee) return true;
+    const str = String(fee).trim().toUpperCase();
+    if (
+      str === '' ||
+      str === '0' ||
+      str === 'FREE' ||
+      str === 'FREE ENTRY' ||
+      str === '₹ 0' ||
+      str === '₹0' ||
+      str.startsWith('₹ 0') ||
+      str.startsWith('₹0') ||
+      str.startsWith('0 /') ||
+      str === '0 / SQUAD' ||
+      str === '₹ 0 / SQUAD' ||
+      str === '₹ 0 / TEAM' ||
+      str === '₹ 0 / PLAYER'
+    ) {
+      return true;
+    }
+    const numOnly = str.replace(/[^0-9]/g, '');
+    if (numOnly === '0' || numOnly === '00' || numOnly === '000') {
+      return true;
+    }
+    return false;
+  };
+
   const [conductDate, setConductDate] = useState(() => getTodayDateStr());
   const [conductTime, setConductTime] = useState('20:00');
   const [conductTitle, setConductTitle] = useState('');
@@ -153,7 +181,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
   const [conductFormat, setConductFormat] = useState('Squad (Erangel + Miramar)');
   const [conductSlots, setConductSlots] = useState('25 Squads (100 Players)');
   const [conductPrize, setConductPrize] = useState('₹ 5,000 INR');
-  const [conductEntryFee, setConductEntryFee] = useState('₹ 50 / Squad');
+  const [conductEntryFee, setConductEntryFee] = useState('FREE ENTRY');
   const [conductTiming, setConductTiming] = useState(() => {
     const d = new Date();
     return `${d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })} at 8:00 PM IST`;
@@ -745,7 +773,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         registeredSquads: 1,
         slotCap: 25,
         prize: conductPrize || '₹ 5,000 INR',
-        entryFee: conductEntryFee || '₹ 50 / Squad',
+        entryFee: isFreeEntryFee(conductEntryFee) ? 'FREE ENTRY' : (conductEntryFee ? conductEntryFee.trim() : 'FREE ENTRY'),
         timing: conductTiming,
         thumbnail: conductThumbnail,
         tier: isVipBypass ? 'VIP' : 'standard',
@@ -946,7 +974,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
         registeredSquads: 1,
         slotCap: 25,
         prize: 'Tier-1 Practice Lobby',
-        entryFee: scrimEntryFee || 'FREE ENTRY',
+        entryFee: isFreeEntryFee(scrimEntryFee) ? 'FREE ENTRY' : (scrimEntryFee ? scrimEntryFee.trim() : 'FREE ENTRY'),
         timing: scrimTiming,
         schedule: scrimTiming,
         thumbnail: scrimThumbnail,
@@ -1969,25 +1997,80 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
-                          Room Entry Fee (Per Squad / Player) *
-                        </label>
-                        <span className="text-[10px] text-emerald-600 font-semibold font-mono">
-                          {conductEntryFee === 'FREE ENTRY' || conductEntryFee === 'FREE' || conductEntryFee === '0' ? 'Free for Players' : 'Paid Entry'}
+                      <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                            Room Entry Fee (Decided by Host) *
+                          </label>
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            Set any custom amount or keep it 100% Free
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
+                          isFreeEntryFee(conductEntryFee)
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                        }`}>
+                          {isFreeEntryFee(conductEntryFee) ? '🟢 100% Free Entry' : '⚡ Paid Entry (Host Decided)'}
                         </span>
                       </div>
-                      <input
-                        type="text"
-                        value={conductEntryFee}
-                        onChange={(e) => setConductEntryFee(e.target.value)}
-                        placeholder="e.g. ₹ 50 / Squad or FREE ENTRY"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
-                        required
-                      />
-                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        <span className="text-[10px] text-gray-400 font-medium">Presets:</span>
-                        {['FREE ENTRY', '₹ 20 / Player', '₹ 50 / Squad', '₹ 100 / Squad'].map((preset) => (
+
+                      {/* Quick Mode Switcher */}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setConductEntryFee('FREE ENTRY')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                            isFreeEntryFee(conductEntryFee)
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          <span>🟢 Free Entry (₹ 0)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isFreeEntryFee(conductEntryFee)) {
+                              setConductEntryFee('₹ 20 / Squad');
+                            }
+                          }}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                            !isFreeEntryFee(conductEntryFee)
+                              ? 'bg-[#1F2937] text-[#DFBD78] border-[#1F2937] shadow-sm'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          <span>⚡ Custom Paid Amount</span>
+                        </button>
+                      </div>
+
+                      {/* Custom Amount Input with Clear button */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={conductEntryFee}
+                          onChange={(e) => setConductEntryFee(e.target.value)}
+                          placeholder="Enter any custom fee (e.g. 0, 15, 25, 50, 100 / Squad)"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#C5A059] outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                          required
+                        />
+                        {conductEntryFee && (
+                          <button
+                            type="button"
+                            onClick={() => setConductEntryFee('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs px-1.5 py-0.5 rounded cursor-pointer"
+                            title="Clear input"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Optional quick-pick suggestion chips */}
+                      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                        <span className="text-[10px] text-gray-400 font-medium">Quick Suggestions:</span>
+                        {['FREE ENTRY', '₹ 10 / Squad', '₹ 20 / Player', '₹ 30 / Squad', '₹ 50 / Squad', '₹ 100 / Squad'].map((preset) => (
                           <button
                             key={preset}
                             type="button"
@@ -2141,7 +2224,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     <div className="border-l border-gray-700/80 pl-5">
                       <span className="text-[10px] text-gray-400 uppercase font-bold block">Participant Room Entry Fee</span>
                       <span className="text-base font-black font-mono text-amber-300">
-                        {conductEntryFee || '₹ 50 / Squad'}
+                        {isFreeEntryFee(conductEntryFee) ? 'FREE ENTRY (₹ 0)' : conductEntryFee}
                       </span>
                     </div>
                   </div>
@@ -2606,25 +2689,80 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
-                          Scrim Room Entry Fee *
-                        </label>
-                        <span className="text-[10px] text-blue-600 font-semibold font-mono">
-                          {scrimEntryFee === 'FREE ENTRY' || scrimEntryFee === 'FREE' || scrimEntryFee === '0' ? 'Free for Players' : 'Paid Scrims'}
+                      <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700">
+                            Scrim Room Entry Fee *
+                          </label>
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            Decided by Host — Set any custom amount or keep it 100% Free
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all ${
+                          isFreeEntryFee(scrimEntryFee)
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {isFreeEntryFee(scrimEntryFee) ? '🟢 100% Free Scrim' : '⚡ Paid Scrim (Host Decided)'}
                         </span>
                       </div>
-                      <input
-                        type="text"
-                        value={scrimEntryFee}
-                        onChange={(e) => setScrimEntryFee(e.target.value)}
-                        placeholder="e.g. FREE ENTRY or ₹ 20 / Team"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
-                        required
-                      />
-                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        <span className="text-[10px] text-gray-400 font-medium">Presets:</span>
-                        {['FREE ENTRY', '₹ 10 / Squad', '₹ 20 / Team', '₹ 50 / Squad'].map((preset) => (
+
+                      {/* Quick Mode Switcher */}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setScrimEntryFee('FREE ENTRY')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                            isFreeEntryFee(scrimEntryFee)
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          <span>🟢 Free Scrim (₹ 0)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isFreeEntryFee(scrimEntryFee)) {
+                              setScrimEntryFee('₹ 10 / Squad');
+                            }
+                          }}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                            !isFreeEntryFee(scrimEntryFee)
+                              ? 'bg-blue-900 text-white border-blue-900 shadow-sm'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          <span>⚡ Custom Paid Amount</span>
+                        </button>
+                      </div>
+
+                      {/* Custom Amount Input with Clear button */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={scrimEntryFee}
+                          onChange={(e) => setScrimEntryFee(e.target.value)}
+                          placeholder="Enter any custom fee (e.g. 0, 10, 20, 50, 100 / Team)"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 outline-hidden text-xs font-mono bg-gray-50 focus:bg-white transition-colors"
+                          required
+                        />
+                        {scrimEntryFee && (
+                          <button
+                            type="button"
+                            onClick={() => setScrimEntryFee('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs px-1.5 py-0.5 rounded cursor-pointer"
+                            title="Clear input"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Optional quick-pick suggestion chips */}
+                      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                        <span className="text-[10px] text-gray-400 font-medium">Quick Suggestions:</span>
+                        {['FREE ENTRY', '₹ 10 / Squad', '₹ 20 / Team', '₹ 30 / Squad', '₹ 50 / Squad'].map((preset) => (
                           <button
                             key={preset}
                             type="button"
@@ -2775,7 +2913,7 @@ export default function UserDashboard({ currentUser, initialTab = 'dashboard', o
                     <div className="border-l border-blue-800/80 pl-5">
                       <span className="text-[10px] text-blue-300 uppercase font-bold block">Participant Scrim Entry Fee</span>
                       <span className="text-base font-black font-mono text-emerald-300">
-                        {scrimEntryFee || 'FREE ENTRY'}
+                        {isFreeEntryFee(scrimEntryFee) ? 'FREE ENTRY (₹ 0)' : scrimEntryFee}
                       </span>
                     </div>
                   </div>
